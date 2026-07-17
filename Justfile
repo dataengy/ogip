@@ -71,3 +71,19 @@ vps-smoke *args:
 # Show containers + deployed ref on the host (read-only, no -dry sibling needed).
 vps-status:
     @bash deploy/vps/status.sh
+
+# --- Observability (Phase 7): stack lives in deploy/obs/; start it with `make obs-up` ---
+# Compose healthchecks cover VM/Loki/Grafana; Alloy ships no HTTP client and cannot self-probe,
+# so obs-verify is what asserts Alloy — and it checks every published port from the host.
+
+# Assert every obs endpoint answers.
+obs-verify:
+    bash src/scripts/obs-verify.sh
+
+# Accept-check for the log path: file → Alloy → Loki → query. Needs no pipeline run.
+obs-smoke-log:
+    bash src/scripts/obs-smoke-log.sh
+
+# Tail the obs stack's own container logs.
+obs-logs *args:
+    docker compose -f deploy/obs/docker-compose.obs.yml logs -f --tail=100 {{args}}

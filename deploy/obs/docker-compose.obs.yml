@@ -1,0 +1,128 @@
+# OGIP — observability stack (Phase 7 · lock lane `obs`).
+#
+# Self-contained ON PURPOSE. The base `deploy/docker-compose.yml` (Postgres, Prefect, MinIO)
+# is owned by other lanes and does not exist yet, so this stack stands alone and is driven by
+# `make obs-up` / `make obs-down`. When the base compose lands, drop the `ogip-obs` network
+# below for `{ogip: {external: true}}` and the two stacks merge without touching services.
+#
+# Ports come from config/config.yml (the SSoT) via the rendered .env. The `:-` fallbacks
+# mirror the SSoT literals so the stack still boots from a bare checkout — today .env carries
+# no obs ports (config/.env-render.py does not map them yet; see docs/architecture/
+# observability.md → "Ports & the SSoT gap").
+#
+# Healthchecks: every image here has busybox wget EXCEPT grafana/alloy, which ships no HTTP
+# client at all (no wget/curl/nc) — a healthcheck there would reference a missing binary and sit
+# unhealthy forever, hanging `up --wait`. So Alloy has none; the host-side `just obs-verify`
+# probes it over HTTP and covers the gap.
+
+name: ogip-obs
+
+services:
+  # --- metrics store: Prometheus-compatible, single binary (PLAN A10 / ADR: lightweight) ---
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:v1.106.1
+    container_name: ogip-victoriametrics
+    restart: unless-stopped
+    ports:
+      - "${VICTORIAMETRICS_PORT:-8428}:8428"
+    volumes:
+      - victoriametrics-data:/victoria-metrics-data
+      - ./victoriametrics/scrape.yml:/etc/victoriametrics/scrape.yml:ro
+    command:
+      - --storageDataPath=/victoria-metrics-data
+      - --httpListenAddr=:8428
+      - --retentionPeriod=30d
+      - --promscrape.config=/etc/victoriametrics/scrape.yml
+      - --promscrape.config.strictParse=false
+    healthcheck:
+      # 127.0.0.1, not localhost: VM binds IPv4 only, and busybox wget tries ::1 first.
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8428/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks: [ogip-obs]
+
+  # --- log store: single-binary filesystem mode (image default config is fit for local) ---
+  loki:
+    image: grafana/loki:3.3.2
+    container_name: ogip-loki
+    restart: unless-stopped
+    ports:
+      - "${LOKI_PORT:-3100}:3100"
+    volumes:
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3100/ready"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    networks: [ogip-obs]
+
+  # --- collector: tails pipeline logs → Loki; receives OTLP metrics → VictoriaMetrics ---
+  alloy:
+    image: grafana/alloy:v1.5.1
+    container_name: ogip-alloy
+    restart: unless-stopped
+    ports:
+      - "${ALLOY_PORT:-12345}:12345" # Alloy UI + /metrics
+      - "${OTLP_GRPC_PORT:-4317}:4317" # OTLP gRPC  — pipeline metrics in
+      - "${OTLP_HTTP_PORT:-4318}:4318" # OTLP HTTP  — pipeline metrics in
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - alloy-data:/var/lib/alloy/data
+      # The pipeline runs on the host (ephemeral Prefect, D3) and writes .run/logs/ogip.log.
+      - ../../.run/logs:/var/log/ogip:ro
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    # No healthcheck: this image has no wget/curl/nc to probe /-/ready with. `just obs-verify`
+    # checks it from the host instead.
+    depends_on:
+      loki: {condition: service_healthy}
+      victoriametrics: {condition: service_healthy}
+    networks: [ogip-obs]
+
+  # --- dashboards: datasources + dashboards provisioned from disk (no click-ops) ---
+  grafana:
+    image: grafana/grafana:11.4.0
+    container_name: ogip-grafana
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT:-3300}:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "true" # local demo: dashboards open without a login
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 15s # provisioning runs on first boot
+    depends_on:
+      loki: {condition: service_healthy}
+      victoriametrics: {condition: service_healthy}
+    networks: [ogip-obs]
+
+volumes:
+  victoriametrics-data:
+  loki-data:
+  alloy-data:
+  grafana-data:
+
+networks:
+  ogip-obs:
+    name: ogip-obs

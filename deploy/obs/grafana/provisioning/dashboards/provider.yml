@@ -1,0 +1,16 @@
+# OGIP — dashboard provider: loads every JSON under /var/lib/grafana/dashboards
+# (bind-mounted from deploy/obs/grafana/dashboards/, so dashboards are code).
+
+apiVersion: 1
+
+providers:
+  - name: ogip
+    orgId: 1
+    folder: OGIP
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false # edits in the UI are transient by design — commit the JSON instead
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false

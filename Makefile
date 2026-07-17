@@ -6,6 +6,9 @@ SHELL := /bin/bash
 export UV_PROJECT_ENVIRONMENT := .run/venv
 
 COMPOSE := docker compose -f deploy/docker-compose.yml --env-file .env
+# Obs stack is a standalone compose file (lane `obs`), not a --profile of the base one:
+# deploy/docker-compose.yml is owned by other lanes. See deploy/obs/README.md.
+OBS := docker compose -f deploy/obs/docker-compose.obs.yml --env-file .env
 PREK := uvx prek --config config/.pre-commit-config.yaml
 
 .PHONY: help bootstrap render-env lint fmt typecheck sql-lint \
@@ -88,10 +91,12 @@ logs: ## Tail service logs
 	$(COMPOSE) logs -f --tail=100
 
 obs-up: .env ## Start observability stack (VictoriaMetrics, Loki, Alloy, Grafana)
-	$(COMPOSE) --profile obs up -d --wait
+	@mkdir -p .run/logs   # Alloy bind-mounts this; docker would otherwise create it as root
+	$(OBS) up -d --wait
+	@just obs-verify
 
-obs-down: ## Stop observability stack
-	$(COMPOSE) --profile obs down
+obs-down: ## Stop observability stack (volumes preserved)
+	$(OBS) down
 
 # --- Object storage (D2 / ADR-0003): the `minio` lake profile ---
 # `make down` still stops these — compose removes every container in the project.

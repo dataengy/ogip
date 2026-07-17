@@ -1,0 +1,106 @@
+// OGIP — Grafana Alloy collector (Phase 7 · lock lane `obs`).
+//
+// Two jobs:
+//   1. tail the pipeline's log file  → Loki
+//   2. receive OTLP metrics (pipeline runs on the host) → VictoriaMetrics
+//
+// Alloy's own /metrics is scraped BY VictoriaMetrics (see ../victoriametrics/scrape.yml),
+// so there is no self-scrape here.
+
+// ── 1. logs: .run/logs/*.log → Loki ──────────────────────────────────────────
+// Mounted read-only at /var/log/ogip by docker-compose.obs.yml.
+
+local.file_match "ogip" {
+	path_targets = [{
+		__path__ = "/var/log/ogip/*.log",
+		job      = "ogip",
+		service  = "pipeline",
+	}]
+	sync_period = "10s"
+}
+
+loki.source.file "ogip" {
+	targets    = local.file_match.ogip.targets
+	forward_to = [loki.process.ogip.receiver]
+}
+
+loki.process "ogip" {
+	// loguru with serialize=true writes one JSON object per line:
+	//   {"text": "...", "record": {"level": {"name": "INFO"}, "extra": {"source": "rawg"}, ...}}
+	// The default (log_json=false) writes plain text. Match on a leading `{` so both forms
+	// flow through and only the JSON ones get parsed into labels.
+	stage.match {
+		selector = "{job=\"ogip\"} |~ \"^\\\\{\""
+
+		stage.json {
+			expressions = {
+				text     = "text",
+				level    = "record.level.name",
+				logger   = "record.name",
+				source   = "record.extra.source",
+				entity   = "record.extra.entity",
+				flow_run = "record.extra.flow_run_id",
+			}
+		}
+
+		// Labels stay LOW-cardinality on purpose: flow_run stays in the line, not a label.
+		stage.labels {
+			values = {
+				level  = "",
+				source = "",
+				entity = "",
+			}
+		}
+
+		// Show the human message in Grafana, not the raw JSON envelope.
+		stage.output {
+			source = "text"
+		}
+	}
+
+	forward_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+	endpoint {
+		url = "http://loki:3100/loki/api/v1/push"
+	}
+
+	external_labels = {
+		env = "local",
+	}
+}
+
+// ── 2. metrics: OTLP in → VictoriaMetrics remote-write ───────────────────────
+// The pipeline is not instrumented yet (lane `core-pipeline` owns src/ogip + pipelines/).
+// This receiver is the contract it will push to: OTEL_EXPORTER_OTLP_ENDPOINT=localhost:4318.
+
+otelcol.receiver.otlp "default" {
+	grpc {
+		endpoint = "0.0.0.0:4317"
+	}
+
+	http {
+		endpoint = "0.0.0.0:4318"
+	}
+
+	output {
+		metrics = [otelcol.processor.batch.default.input]
+	}
+}
+
+otelcol.processor.batch "default" {
+	output {
+		metrics = [otelcol.exporter.prometheus.to_vm.input]
+	}
+}
+
+otelcol.exporter.prometheus "to_vm" {
+	forward_to = [prometheus.remote_write.vm.receiver]
+}
+
+prometheus.remote_write "vm" {
+	endpoint {
+		url = "http://victoriametrics:8428/api/v1/write"
+	}
+}
