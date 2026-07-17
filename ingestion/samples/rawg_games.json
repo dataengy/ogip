@@ -1,0 +1,67 @@
+[
+  {
+    "id": 3498,
+    "slug": "grand-theft-auto-v",
+    "name": "Grand Theft Auto V",
+    "released": "2013-09-17",
+    "rating": 4.47,
+    "ratings_count": 6942,
+    "metacritic": 92,
+    "playtime": 74,
+    "added": 21301,
+    "genres": [{"id": 4, "name": "Action"}, {"id": 3, "name": "Adventure"}],
+    "platforms": [{"platform": {"id": 4, "name": "PC"}}, {"platform": {"id": 187, "name": "PlayStation 5"}}]
+  },
+  {
+    "id": 3328,
+    "slug": "the-witcher-3-wild-hunt",
+    "name": "The Witcher 3: Wild Hunt",
+    "released": "2015-05-18",
+    "rating": 4.66,
+    "ratings_count": 7085,
+    "metacritic": 92,
+    "playtime": 46,
+    "added": 20911,
+    "genres": [{"id": 4, "name": "Action"}, {"id": 5, "name": "RPG"}],
+    "platforms": [{"platform": {"id": 4, "name": "PC"}}, {"platform": {"id": 7, "name": "Nintendo Switch"}}]
+  },
+  {
+    "id": 4200,
+    "slug": "portal-2",
+    "name": "Portal 2",
+    "released": "2011-04-18",
+    "rating": 4.61,
+    "ratings_count": 5701,
+    "metacritic": 95,
+    "playtime": 11,
+    "added": 18516,
+    "genres": [{"id": 2, "name": "Shooter"}, {"id": 7, "name": "Puzzle"}],
+    "platforms": [{"platform": {"id": 4, "name": "PC"}}, {"platform": {"id": 5, "name": "macOS"}}]
+  },
+  {
+    "id": 5286,
+    "slug": "tomb-raider",
+    "name": "Tomb Raider (2013)",
+    "released": "2013-03-05",
+    "rating": 4.05,
+    "ratings_count": 4009,
+    "metacritic": 86,
+    "playtime": 10,
+    "added": 16436,
+    "genres": [{"id": 4, "name": "Action"}, {"id": 3, "name": "Adventure"}],
+    "platforms": [{"platform": {"id": 4, "name": "PC"}}, {"platform": {"id": 1, "name": "Xbox One"}}]
+  },
+  {
+    "id": 13536,
+    "slug": "portal",
+    "name": "Portal",
+    "released": "2007-10-09",
+    "rating": 4.51,
+    "ratings_count": 5041,
+    "metacritic": 90,
+    "playtime": 5,
+    "added": 15668,
+    "genres": [{"id": 2, "name": "Shooter"}, {"id": 7, "name": "Puzzle"}],
+    "platforms": [{"platform": {"id": 4, "name": "PC"}}]
+  }
+]
