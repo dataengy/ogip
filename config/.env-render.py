@@ -79,10 +79,14 @@ def _derived(cfg: dict[str, Any]) -> dict[str, str]:
         "OGIP_PG_USER": str(pg["user"]),
         "OGIP_PG_DATABASE": str(pg["database"]),
         "POSTGRES_PORT": str(svc["postgres_port"]),
-        "PREFECT_PORT": str(svc["prefect_port"]),
         "MINIO_API_PORT": str(svc["minio_api_port"]),
         "MINIO_CONSOLE_PORT": str(svc["minio_console_port"]),
-        "PREFECT_API_URL": str(ep["prefect_api_url"]),
+        # NOTE: never emit bare PREFECT_* names — Prefect 3 loads .env through
+        # pydantic-settings, so PREFECT_API_URL would hijack its own setting and force
+        # client→server mode, breaking ephemeral runs. Ours stay OGIP_-prefixed; the
+        # `server` run-profile exports PREFECT_API_URL explicitly when a server is up.
+        "OGIP_PREFECT_PORT": str(svc["prefect_port"]),
+        "OGIP_PREFECT_API_URL": str(ep["prefect_api_url"]),
     }
 
 

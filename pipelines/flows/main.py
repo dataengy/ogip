@@ -2,6 +2,10 @@
 
 `ingest_transform_publish`: RAWG → raw Parquet (dlt) → SQLMesh (staging→core→fs) → ML-ready
 Parquet outputs. Runs ephemerally (no server needed); `integrations/prefect/` deploys it.
+
+Steps are declared with Prefect **Assets** (`@materialize`), so the platform's datasets — raw
+Parquet, warehouse relations, ML outputs — carry lineage in the Prefect UI instead of being
+opaque tasks. Keys are logical (stable across machines), not absolute paths.
 """
 
 from __future__ import annotations
@@ -10,7 +14,8 @@ import subprocess
 from pathlib import Path
 
 from ingestion.sources.rawg import RawgGames
-from prefect import flow, task
+from prefect import flow
+from prefect.assets import materialize
 
 from ogip.config import get_settings
 from ogip.logger import logger, setup_logging
@@ -21,8 +26,15 @@ REPO = Path(__file__).resolve().parents[2]
 SPEC_SQL = REPO / "spec" / "sql"
 SQLMESH_DIR = REPO / "transform" / "sqlmesh"
 
+# --- Assets (logical keys; lineage: raw → core/fs → ML outputs) ---
+RAW_GAMES = "file://ogip/raw/rawg__games"
+CORE_GAME = "duckdb://ogip/core.game"
+FS_MARKET_FEATURES = "duckdb://ogip/fs.market_features"
+OUT_GAMES = "file://ogip/outputs/games.parquet"
+OUT_MARKET_FEATURES = "file://ogip/outputs/market_features.parquet"
 
-@task
+
+@materialize(RAW_GAMES)
 def ingest() -> str:
     """Extract RAWG games via dlt → raw Parquet (Layer 0)."""
     settings = get_settings()
@@ -31,7 +43,7 @@ def ingest() -> str:
     return str(out)
 
 
-@task
+@materialize(CORE_GAME, FS_MARKET_FEATURES)
 def transform(_raw: str) -> list[str]:
     """Compile spec/ (Bruin) → SQLMesh models, then build the warehouse."""
     get_settings().platform.warehouse_path.parent.mkdir(parents=True, exist_ok=True)
@@ -45,7 +57,7 @@ def transform(_raw: str) -> list[str]:
     return models
 
 
-@task
+@materialize(OUT_GAMES, OUT_MARKET_FEATURES)
 def publish(_models: list[str]) -> dict[str, int]:
     """Export core/FS relations to ML-ready Parquet outputs."""
     settings = get_settings()
@@ -62,7 +74,7 @@ def publish(_models: list[str]) -> dict[str, int]:
 
 @flow(name="ingest_transform_publish")
 def ingest_transform_publish() -> dict[str, int]:
-    """The daily driver — ingest → transform → publish."""
+    """The daily driver — ingest → transform → publish (asset lineage via @materialize)."""
     setup_logging()
     raw = ingest()
     models = transform(raw)

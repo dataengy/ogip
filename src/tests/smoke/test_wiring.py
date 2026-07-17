@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 
@@ -29,10 +30,24 @@ def test_config_yml_has_core_sections() -> None:
     assert cfg["ingestion"]["engine"] == "dlt"
 
 
-def test_env_render_script_is_importable() -> None:
+def _env_render_module() -> Any:
     path = REPO / "config" / ".env-render.py"
     spec = importlib.util.spec_from_file_location("_env_render", path)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    assert callable(module.render)
+    return module
+
+
+def test_env_render_script_is_importable() -> None:
+    assert callable(_env_render_module().render)
+
+
+def test_rendered_env_never_uses_reserved_prefect_namespace() -> None:
+    """Prefect 3 reads .env via pydantic-settings: a bare PREFECT_* key would hijack its
+    own settings and force client→server mode, breaking ephemeral runs. Ours are OGIP_-prefixed.
+    """
+    module = _env_render_module()
+    derived = cast("dict[str, str]", module._derived(module._load()))
+    reserved = [k for k in derived if k.startswith("PREFECT_")]
+    assert reserved == [], f"reserved Prefect settings emitted into .env: {reserved}"
