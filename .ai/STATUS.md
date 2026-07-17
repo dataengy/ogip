@@ -4,9 +4,10 @@ _Last updated: 2026-07-17_
 
 ## Current phase
 
-**Phase 0 — Scaffold & identity: ✅ DONE.** `git init` (main); `make check` green (ruff clean ·
-pyright strict 0 errors · 6 tests); `uv sync` OK into `.run/venv`. Next: **M0 walking skeleton**.
-Detail: [tasks/phase-0-scaffold.md](tasks/phase-0-scaffold.md).
+**Phase 0 — Scaffold & identity: ✅ SHIPPED.** `make check` green locally (ruff · pyright strict
+0 errors · 6 tests); pushed to **[github.com/dataengy/ogip](https://github.com/dataengy/ogip)**
+(public); **CI green** — all 6 jobs (lint · typecheck · test · bash-lint · structure-validate ·
+secret-scan). Next: **M0 walking skeleton**. Detail: [tasks/phase-0-scaffold.md](tasks/phase-0-scaffold.md).
 
 ## Done
 
