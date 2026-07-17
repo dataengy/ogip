@@ -1,8 +1,9 @@
 # Task — S3 object storage (the `minio` / `s3` / `r2` lake profiles)
 
 **Status:** 🚧 in progress — the seam, the MinIO stack, tests and docs are shipped and verified
-green against a real MinIO; the two production call sites are blocked on the `core-pipeline`
-lane (see _Blocked on_). `local` remains the default, so nothing existing changed behaviour.
+green against a real MinIO; every remaining call site is blocked on the `core-pipeline` lane
+(see _Blocked on_ — 4 items, of which Layer-0 is the real one). `local` remains the default,
+so nothing existing changed behaviour.
 
 Lane: `s3` (parallel-session lock object). Scope: `src/ogip/storage.py`, MinIO in
 `deploy/docker-compose.yml`, the `storage-*` Makefile targets, storage tests and docs.
@@ -96,3 +97,5 @@ round-trip against a live container (`make storage-up`).
 - Wire R2 as the cloud of record (D9) — credentials only; no code change expected.
 - Consider a CI integration job with a MinIO service container (the round-trip test is
   already CI-shaped: it skips cleanly when MinIO is absent).
+
+<!-- github-issue: #6 -->

@@ -64,6 +64,32 @@ but a real deploy still stops at preflight on one missing artifact in **your** l
 block, not a landmine. Nothing else in `deploy/vps/` needs you: settings are read straight from
 `config/config.yml → deploy.vps.*` via `yq`, so `config/.env-render.py` needed **no** change.
 
+### Handoff: lane `s3` → lane `core-pipeline`
+
+Object storage is shipped and verified ([tasks/s3-object-storage.md](tasks/s3-object-storage.md)):
+`src/ogip/storage.py` resolves backend → bucket URL + credentials, `make storage-up` runs MinIO,
+and a round-trip test proves dlt → `s3://` → DuckDB-over-`httpfs` for real. But **every call site
+is in your lane**, so `local` is still the only backend the pipeline actually runs on. Nothing
+below changes current behaviour — `local` stays the default until you land it.
+
+1. **`ingestion/base/base_source.py:48`** hardcodes the local FS →
+   `destination=dlt_filesystem_destination(data_dir)` (from `ogip.storage`). `run()` then returns
+   the dataset **URL** (`str`, not `Path`); its only caller (`pipelines/flows/main.py:41`) already
+   does `str(out)`, so the flow and its asset key are unaffected.
+2. **`spec/sql/raw/*.sql` + the spec compiler** — ⚠️ **the real blocker.** Layer-0 hardcodes
+   `read_parquet('.run/data/raw/rawg__games/*.parquet')`, so SQLMesh keeps reading the local FS
+   no matter what dlt writes to `s3://`. The lake root must be **injected by the compiler**
+   (D0/D5) rather than being a literal; `ogip.storage.raw_bucket_url()` returns exactly the
+   prefix it needs.
+3. **`transform/sqlmesh/config.yaml`** — config, not code: SQLMesh's `DuckDBConnectionConfig`
+   supports both `extensions: [httpfs]` and `secrets:`, interpolated from the `OGIP_S3_*` slots.
+   SQLMesh opens its own connection, so our `configure_duckdb_s3()` cannot reach it.
+4. **`config/.env-render.py`** — add `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD` plus matching
+   `OGIP_S3_*` dev defaults to `DEMO_DEFAULTS` (the existing `OGIP_PG_PASSWORD` pattern), so
+   `make storage-up` + `backend: minio` works from a bare checkout without hand-filling slots.
+
+`src/ogip/warehouse.py` needs **nothing**: `export_table` reads the built warehouse, never `s3://`.
+
 ## Known-broken references
 
 - `just prefect-deploy` / `prefect-run` → `integrations/prefect/{deploy,trigger}.py` — **missing**
