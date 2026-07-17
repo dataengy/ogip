@@ -83,6 +83,7 @@ select = [
 "config/*.py" = ["T20"]      # CLI scripts — stdout IS the interface
 "deploy/**/*.py" = ["T20"]
 "dq/*.py" = ["T20"]          # data-quality CLI runner — stdout IS the interface
+"src/scripts/*.py" = ["T20"] # operator CLIs (tasks_sync, run-profile) — stdout IS the interface
 
 # ---------------------------------------------------------------------------
 # SQL lint — DuckDB house style. Scope to plain-SQL (`just sql-lint`); SQLMesh/dbt

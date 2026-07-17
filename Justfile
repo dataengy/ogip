@@ -19,9 +19,12 @@ prefect-deploy:
 prefect-run flow="ingest_transform_publish":
     uv run python integrations/prefect/trigger.py {{flow}}
 
-# --- Task sync: .ai/tasks/ ↔ GitHub Issues/Projects (A14) ---
+# --- Task sync: .ai/tasks/ → GitHub Issues (A14/D12). Mutating → has a -dry sibling. ---
 tasks-sync *args:
-    uv run python integrations/github/tasks_sync.py {{args}}
+    uv run python src/scripts/tasks_sync.py {{args}}
+
+tasks-sync-dry *args:
+    uv run python src/scripts/tasks_sync.py --dry-run {{args}}
 
 # --- Data quality: run spec/dq assertions ---
 dq-check:
