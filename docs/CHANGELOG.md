@@ -6,6 +6,16 @@ All notable changes to OGIP are documented here. Format follows
 
 ## [Unreleased]
 
+### Added — Dagster alt-orchestration (dbt + dlt + ingestr CDC)
+- `experimental/orchestration/dagster_ogip/` — self-contained `dg` CLI + Components project
+  ([ADR-0015](adr/ADR-0015-dagster-alt-orchestration-dg-components.md)): `DbtProjectComponent`
+  (`select: tag:daily`, dbt project generated from `spec/` via `to_dbt.py`), native
+  `DltLoadCollectionComponent` (RAWG → raw Parquet), and an ingestr **CDC** asset (D11).
+- dev/prod instances (SQLite vs Postgres, env-refs only).
+- **Combo e2e** `e2e/run_combo.sh` — drives source → FS layer through Dagster (dlt → dbt build +
+  tests → assert `fs.market_features`); a separate `dagster-e2e` GitHub workflow runs it.
+- Runbook [docs/runbooks/run-dagster.md](runbooks/run-dagster.md).
+
 ### Added — M0 walking skeleton
 - End-to-end vertical slice: **RAWG → raw Parquet (dlt) → SQLMesh (raw→stg→core→fs, compiled from
   Bruin spec) → ML-ready `games.parquet` + `market_features.parquet` → demo notebook**, on a Prefect flow.

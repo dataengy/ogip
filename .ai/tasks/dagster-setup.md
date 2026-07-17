@@ -53,6 +53,21 @@ continuously) is captured via **ingestr** logical replication, while batch API s
   `postgres`, group `ingestion`), so CDC sits in the same graph as the dlt load + dbt models.
 - `dg check defs` green with all four pieces; `dg list defs` shows `cdc_landing`.
 
+## Combo e2e (done)
+
+`e2e/run_combo.sh` drives the **whole pipeline through Dagster** — SOURCE → FINAL LAYER on the
+`dagster-dlt-dbt` combo (orchestrator Dagster · ingestion dlt · transform dbt · dq dbt tests):
+compile `spec/`→dbt → `dg launch` dlt ingest → `dg launch` dbt build (models **+** tests) →
+assert `fs.market_features` (rows>0, no null features). Green: `PASS=12`, `rows=5, nulls=0`.
+A separate **`dagster-e2e`** GitHub workflow runs it (nested uv project; not part of core `ci.yml`).
+`tests/test_e2e_combo.py` is a `pytest -m e2e` wrapper. Docs: [ADR-0015](../../docs/adr/ADR-0015-dagster-alt-orchestration-dg-components.md),
+[runbook](../../docs/runbooks/run-dagster.md).
+
+Fixes found while making it green: dagster-dlt defaulted to JSONL (pinned `file_format="parquet"`
+on the resource + added pyarrow); DuckDB won't create its parent dir (`mkdir -p`); dbt flattened
+layers into `main` (added `schema=<layer>` + a `generate_schema_name` macro), and the `raw` dbt
+model's key collided with the dlt asset (left `raw` schema-unqualified — it is only a registration view).
+
 ## Next
 
 - Verify **prod** + a live CDC run for real: needs Docker/Postgres with `wal_level=logical` +

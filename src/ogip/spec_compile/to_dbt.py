@@ -47,7 +47,13 @@ def _model_sql(asset: Asset, assets: list[Asset], repo_root: Path) -> str:
     tag_list = (
         [str(t) for t in cast("list[Any]", tags_value)] if isinstance(tags_value, list) else []
     )
-    config = f"{{{{ config(materialized='{materialized}', tags={tag_list!r}) }}}}"
+    # schema=<layer> + the generate_schema_name macro (below) → dbt materializes into the
+    # platform's layer schemas (stg/core/fs), matching the SQLMesh target instead of flattening
+    # into dbt's default `main`. The `raw` layer is left unqualified on purpose: it is only an
+    # external-registration view over the Parquet the dlt asset produces, and qualifying it as
+    # `raw` would collide with the dlt asset's Dagster key `raw/<table>`.
+    schema_cfg = "" if asset.schema == "raw" else f"schema='{asset.schema}', "
+    config = f"{{{{ config(materialized='{materialized}', {schema_cfg}tags={tag_list!r}) }}}}"
     body = _absolutize_runtime_paths(_rewrite_refs(asset.sql, assets), repo_root)
     return f"{config}\n\n{body}\n"
 
@@ -102,6 +108,17 @@ def compile_to_dbt(
 
     (models_dir / "schema.yml").write_text(
         yaml.safe_dump(_schema_yml(assets), sort_keys=False), encoding="utf-8"
+    )
+    # Use each model's configured `schema` verbatim (no `<target>_` prefix) so the layer
+    # schemas match the SQLMesh target and the platform contract (fs.market_features etc.).
+    macros_dir = project_dir / "macros"
+    macros_dir.mkdir(parents=True, exist_ok=True)
+    (macros_dir / "generate_schema_name.sql").write_text(
+        "{% macro generate_schema_name(custom_schema_name, node) -%}\n"
+        "    {%- if custom_schema_name is none -%}{{ target.schema }}"
+        "{%- else -%}{{ custom_schema_name | trim }}{%- endif -%}\n"
+        "{%- endmacro %}\n",
+        encoding="utf-8",
     )
     (project_dir / "dbt_project.yml").write_text(
         yaml.safe_dump(
