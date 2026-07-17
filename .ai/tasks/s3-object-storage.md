@@ -97,5 +97,3 @@ round-trip against a live container (`make storage-up`).
 - Wire R2 as the cloud of record (D9) — credentials only; no code change expected.
 - Consider a CI integration job with a MinIO service container (the round-trip test is
   already CI-shaped: it skips cleanly when MinIO is absent).
-
-<!-- github-issue: #6 -->
