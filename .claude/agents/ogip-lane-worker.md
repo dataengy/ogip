@@ -11,21 +11,25 @@ branch at the same time. Your job is to land your work without ever damaging the
 The lane table in [`.ai/STATUS.md`](../../.ai/STATUS.md) is the map: lane → scope → owner. Read
 it first, every time. It changes while you work.
 
-## 1. Claim before writing
+## 1. Claim before writing — `lane.sh`
 
 ```bash
-bash ~/.ai/skills/_scripts/session/settle-check.sh --repo .
-bash ~/.ai/skills/_scripts/session/agent-session-lock.sh acquire --repo . --object <lane> --reason "..."
+bash src/scripts/lane.sh settle  <lane>              # is the tree quiet enough to write?
+bash src/scripts/lane.sh acquire <lane> "reason"     # claim it
+bash src/scripts/lane.sh check   <lane>              # who holds it?
+bash src/scripts/lane.sh release <lane>              # hand it back
 ```
 
-Use the **direct script**, not `just -f … agent-lock`: the recipe re-parses `--reason` through
-`bash -c`, so parentheses break it.
+That script already wraps the global lock primitive — do not re-implement settle/acquire, and do
+not call `just lane …` (no such recipe exists yet, whatever `lane.sh`'s own header says).
 
 A `DIRTY` verdict is usually another session mid-edit, not a problem with your work. Read the
 blocking paths. If none of them touch your target, say so and ask the user to confirm — do not
 silently proceed, and do not "fix" the dirt (it is someone else's).
 
-Re-acquire periodically to refresh the TTL; release when the phase completes.
+Re-acquire periodically to refresh the TTL. Release when the phase completes — and do not rely
+on remembering: the SessionEnd hook sweeps every lock this session holds
+(`agent-session-lock.sh release-all-mine`), so a crash cannot strand a lane either.
 
 ## 2. Write only your lane
 
@@ -51,34 +55,56 @@ Never let "it should work" reach a commit message.
 When a verification result surprises you, chase it before believing either outcome — a passing
 check with a wrong premise is worth less than a failing one you understand.
 
-## 4. Commit without stealing
-
-Parallel sessions leave **staged files in the shared index**. A bare `git commit` sweeps them
-into your commit.
+## 4. Ship — `ship.sh`, not raw git
 
 ```bash
-git diff <shared-file>        # every hunk yours? if not, stop
+bash src/scripts/ship.sh "feat(alerting): add slack transport" src/ogip/alerting src/tests/unit/test_alerting.py
+```
+
+One command for the whole loop: lane guard → settle → `make check` → scoped commit → push →
+watch CI → tasks-sync → Telegram. **Always pass explicit paths** — that form stages exactly
+those and skips the lane allowlist, so it works for a lane `lane_paths()` has never heard of.
+The bare form (`LANE=<lane> ship.sh "msg"`) dies on an unregistered lane; registering it is a
+one-line handoff to `core-pipeline`, who own `ship.sh`.
+
+`ship.sh` refuses a **contested** file (`pyproject.toml`, `Justfile`, `Makefile`, `.gitignore`,
+`config/config.yml`, `deploy/docker-compose.yml`, `.ai/STATUS.md`) unless you hold that file's
+own object lock — they belong to no lane. Claim it, don't route around it.
+
+Raw git only when `ship.sh` genuinely does not fit. Then remember what it does for you:
+parallel sessions leave **staged files in the shared index**, so a bare `git commit` steals them.
+
+```bash
+git diff <shared-file>            # every hunk yours? if not, stop
 git add <your paths>
 git commit -o <your paths> -F -   # -o = ONLY these paths, ignore the rest of the index
 ```
 
-Split by category (Conventional Commits: `feat`/`fix`/`docs`/`chore`/`ci`/`test`). Every commit
-needs an issue reference — `Refs: #<n>` or `Closes: #<n>` (`.ci/steps/commit-binding.sh`
-enforces it). No issue yet? Create one; the task detail belongs in `.ai/tasks/<slug>.md`.
+Conventional Commits, split by category. Every commit needs `Refs: #<n>` or `Closes: #<n>`
+(`.ci/steps/commit-binding.sh` enforces it). No issue yet? Create one; the detail belongs in
+`.ai/tasks/<slug>.md`.
 
 ## 5. Push preconditions — all of them, every time
 
-Standing authorization, no per-push ask, but only when:
+`ship.sh` pushes for you; when you push by hand, standing authorization applies only when:
 
 1. Gates green locally for the files you own (`ruff`, `pyright --strict`, `pytest`).
 2. `git log origin/dev..HEAD` contains **nothing you did not write**. Never push a neighbour's
    commits, especially not a red one, to make yours land.
 3. Every commit carries `Refs: #<n>`.
-4. **Never force-push** a shared branch. A rewrite destroys in-flight work from four sessions.
+4. **Never force-push** a shared branch. A rewrite destroys in-flight work from several sessions.
 
 Work lands on `dev`; `dev → main` goes through a PR with CI green.
 
-## 6. The tree moves under you
+## 6. This repo is PUBLIC
+
+`bash src/scripts/public-hygiene.sh` fails on a private organisation's tracker ids, hosts,
+checkout paths or bot names. Run it before you ship prose — an agent file in this very repo
+leaked a private path to a public commit precisely because a careful grep is not a gate.
+Architecture may be reused; identifiers may not. `git subtree` from a private repo is never the
+answer: it imports that repo's whole history.
+
+## 7. The tree moves under you
 
 Re-read a shared file immediately before editing it — it may have changed since you last looked.
 If an edit lands cleanly but the file "had been modified on disk", re-read before the next one.

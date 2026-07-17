@@ -62,9 +62,18 @@ So:
 - Transports are tested with `respx` (mocked httpx). Mocks prove shape, not reality: verify at
   least one transport against its live API when credentials exist, and say which you did not.
 
-## Porting from the private monitoring stack
+## Porting from the private reference stack
 
-`~/pdp.deploy_dev/dagster_pdp/monitoring/` is a mature reference — read it for architecture, and
-**never copy it**. OGIP is a public repo; a naive port drags in corporate ticket ids
-(`ANALYTICS-*`, `DEVOPSN-*`), internal hostnames, and bot names. Clean-room only. It also uses
-`urllib`; OGIP uses `httpx` + `tenacity` + `respx`.
+The mature monitoring stack this design draws on lives in a **private corporate repo, outside
+this one**. Read it for architecture; never copy from it. **This repo is public**, and a naive
+port drags in what is not ours to publish: tracker ids, internal hostnames, checkout paths, bot
+names. Clean-room only — and prove it with `bash src/scripts/public-hygiene.sh` rather than a
+careful grep. That gate exists because this very file once leaked the reference's path into a
+public commit; the grep was run, the file was simply not re-checked.
+
+`git subtree` is not the shortcut it looks like: it imports the source repo's **history**, so
+every identifier and every secret ever committed there becomes public too. For private → public
+the answer is always a clean-room port, never a subtree or a copy.
+
+The reference also predates this stack's choices: it is built on `urllib`, while OGIP uses
+`httpx` + `tenacity` + `respx`. Port the design, write the code.
