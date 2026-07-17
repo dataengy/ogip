@@ -42,6 +42,9 @@ transform/sqlmesh/models/
 transform/sqlmesh/.cache/
 transform/sqlmesh/logs/
 
+# --- Notebooks: Jupyter autosaves (the .ipynb sources themselves stay tracked) ---
+.ipynb_checkpoints/
+
 # --- OS / editor ---
 .DS_Store
 .idea/
