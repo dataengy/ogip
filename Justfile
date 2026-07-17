@@ -41,3 +41,30 @@ secrets-render:
 # --- Repo hygiene: fail if stray files land in the root (root-lean rule) ---
 tidy-root:
     bash .ci/steps/structure-validate.sh
+
+# --- VPS: manual deploy (ADR-0012). Settings: config/config.yml -> deploy.vps.* ---
+# Each mutating recipe has a -dry sibling; both delegate to _vps-script (single body).
+_vps-script script *args:
+    bash deploy/vps/{{script}} {{args}}
+
+# Bootstrap a bare host over ssh (runs from here, as root on the host). Idempotent.
+vps-provision *args:
+    @just -f {{justfile()}} _vps-script provision.sh {{args}}
+
+vps-provision-dry *args:
+    @just -f {{justfile()}} _vps-script provision.sh --dry-run {{args}}
+
+# Deploy a ref ON the host (ssh + run deploy.sh there). `just vps-deploy <sha>` to pin/roll back.
+vps-deploy *args:
+    @bash deploy/vps/remote.sh deploy.sh {{args}}
+
+vps-deploy-dry *args:
+    @bash deploy/vps/remote.sh deploy.sh --dry-run {{args}}
+
+# Verify a deploy ON the host (read-only).
+vps-smoke *args:
+    @bash deploy/vps/remote.sh smoke.sh {{args}}
+
+# Show containers + deployed ref on the host (read-only, no -dry sibling needed).
+vps-status:
+    @bash deploy/vps/status.sh

@@ -101,5 +101,13 @@ raw: # Layer 0 — 1:1 AS-IS (only optional _ingested_at / etl_batch_id added)
 
 deploy:
   vps: # manual deploy (ADR-0012); DevOps handled separately
-    host: "" # set on the host / in .env
-    repo_url: ""
+    # Read directly by deploy/vps/*.sh via yq — NOT rendered into .env (the host is
+    # operator-specific, so it is supplied per-operator, not committed).
+    # Every value below may be overridden by an OGIP_VPS_* env var; see deploy/vps/README.md.
+    host: "" # target IP / hostname / ssh_config alias — blank on purpose: set OGIP_VPS_HOST
+    user: ogip # unprivileged service account created by provision.sh
+    port: 22 # ssh port
+    path: /opt/ogip # checkout location on the host
+    branch: main # git ref to deploy
+    repo_url: https://github.com/dataengy/ogip.git
+    compose_profiles: [] # extra compose profiles to enable on the host, e.g. [obs]
