@@ -23,5 +23,6 @@ These ADRs formalize the locked decisions in [`.ai/PLAN.md`](../../.ai/PLAN.md) 
 | [0012](ADR-0012-github-ci-manual-vps-deploy.md) | GitHub Actions CI + manual VPS deploy (DevOps separate) | D9 | Accepted |
 | [0013](ADR-0013-github-issues-projects-tasks.md) | GitHub Issues/Projects as the task tracker | D12 | Accepted |
 | [0014](ADR-0014-resilient-scraping-concurrency.md) | Resilient scraping: async-first, effectively-once landing | A6/D11 scraper pattern | Proposed |
+| [0015](ADR-0015-dagster-alt-orchestration-dg-components.md) | Dagster alt-orchestration via `dg` Components (dbt + dlt + ingestr CDC) | ADR-0007 alt setup, D1/D11 | Accepted |
 
 New ADRs are numbered sequentially (`ADR-NNNN-kebab-title.md`) and added to this table.

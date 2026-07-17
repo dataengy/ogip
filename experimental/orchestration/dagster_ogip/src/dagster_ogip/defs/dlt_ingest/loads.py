@@ -23,7 +23,10 @@ DATA_DIR = REPO / ".run" / "data"
 
 @dlt.source(name="rawg")
 def rawg_source() -> Any:
-    @dlt.resource(name="rawg__games", write_disposition="replace")
+    # file_format pinned on the RESOURCE: dagster-dlt calls `pipeline.run()` itself (no
+    # loader_file_format arg), so the filesystem destination would otherwise default to JSONL.
+    # The raw contract is Parquet, and the dbt/SQLMesh `read_parquet` model depends on it.
+    @dlt.resource(name="rawg__games", write_disposition="replace", file_format="parquet")
     def rawg__games() -> Iterator[dict[str, Any]]:
         batch_id = uuid.uuid4().hex
         ingested_at = datetime.now(UTC).isoformat()
