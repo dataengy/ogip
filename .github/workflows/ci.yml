@@ -50,6 +50,13 @@ jobs:
       - uses: actions/checkout@v4
       - run: .ci/run.sh bash-lint
 
+  commit-binding:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 } # needs history: the step walks base..HEAD
+      - run: .ci/run.sh commit-binding
+
   structure-validate:
     runs-on: ubuntu-latest
     steps:
