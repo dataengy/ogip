@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import yaml
 
@@ -41,8 +41,12 @@ def _absolutize_runtime_paths(sql: str, repo_root: Path) -> str:
 
 def _model_sql(asset: Asset, assets: list[Asset], repo_root: Path) -> str:
     materialized = _MATERIALIZATION.get(asset.materialization, "table")
-    tags = asset.meta.get("tags") or []
-    tag_list = [str(t) for t in tags] if isinstance(tags, list) else []
+    # `cast` rather than bare isinstance narrowing: YAML gives Any, and pyright strict rejects
+    # the resulting list[Unknown] element types.
+    tags_value = asset.meta.get("tags")
+    tag_list = (
+        [str(t) for t in cast("list[Any]", tags_value)] if isinstance(tags_value, list) else []
+    )
     config = f"{{{{ config(materialized='{materialized}', tags={tag_list!r}) }}}}"
     body = _absolutize_runtime_paths(_rewrite_refs(asset.sql, assets), repo_root)
     return f"{config}\n\n{body}\n"
@@ -51,24 +55,26 @@ def _model_sql(asset: Asset, assets: list[Asset], repo_root: Path) -> str:
 def _schema_yml(assets: list[Asset]) -> dict[str, Any]:
     models: list[dict[str, Any]] = []
     for asset in assets:
-        columns_meta = asset.meta.get("columns") or []
+        columns_value = asset.meta.get("columns")
+        columns_meta = cast("list[Any]", columns_value) if isinstance(columns_value, list) else []
         columns: list[dict[str, Any]] = []
-        if isinstance(columns_meta, list):
-            for col in columns_meta:
-                if not isinstance(col, dict):
-                    continue
-                checks = col.get("checks") or []
-                tests = [
-                    _TEST[c["name"]]
-                    for c in checks
-                    if isinstance(c, dict) and c.get("name") in _TEST
-                ]
-                entry: dict[str, Any] = {"name": str(col.get("name"))}
-                if col.get("description"):
-                    entry["description"] = str(col["description"])
-                if tests:
-                    entry["data_tests"] = tests
-                columns.append(entry)
+        for col_value in columns_meta:
+            if not isinstance(col_value, dict):
+                continue
+            col = cast("dict[str, Any]", col_value)
+            checks_value = col.get("checks")
+            checks = cast("list[Any]", checks_value) if isinstance(checks_value, list) else []
+            tests = [
+                _TEST[str(cast("dict[str, Any]", c)["name"])]
+                for c in checks
+                if isinstance(c, dict) and cast("dict[str, Any]", c).get("name") in _TEST
+            ]
+            entry: dict[str, Any] = {"name": str(col.get("name"))}
+            if col.get("description"):
+                entry["description"] = str(col["description"])
+            if tests:
+                entry["data_tests"] = tests
+            columns.append(entry)
         model: dict[str, Any] = {"name": asset.model}
         if asset.meta.get("description"):
             model["description"] = str(asset.meta["description"])
