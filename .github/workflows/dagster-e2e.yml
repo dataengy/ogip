@@ -32,6 +32,17 @@ jobs:
       - name: Sync the nested Dagster project
         working-directory: experimental/orchestration/dagster_ogip
         run: uv sync
+      - name: Generate the dbt project from spec/ (DbtProjectComponent needs it; it is gitignored)
+        working-directory: experimental/orchestration/dagster_ogip
+        run: |
+          PYTHONPATH="$GITHUB_WORKSPACE/src" .venv/bin/python - "$GITHUB_WORKSPACE" <<'PY'
+          import sys
+          from pathlib import Path
+          from ogip.spec_compile.to_dbt import compile_to_dbt
+          root = Path(sys.argv[1]).resolve()
+          compile_to_dbt(root / "spec" / "sql", Path("dbt"),
+                         warehouse=root / ".run" / "data" / "warehouse" / "ogip.duckdb", repo_root=root)
+          PY
       - name: Validate all definitions (jobs · schedules · sensors · checks · partitions)
         working-directory: experimental/orchestration/dagster_ogip
         run: uv run dg check defs
