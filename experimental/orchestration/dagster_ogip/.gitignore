@@ -204,3 +204,11 @@ __marimo__/
 
 # Generated from spec/ by ogip.spec_compile.to_dbt — spec/ is the SSoT, never commit the output
 /dbt/
+
+# Dagster instance runtime state (DAGSTER_HOME=deploy/dev|prod) — only dagster.yaml is tracked
+deploy/*/history/
+deploy/*/storage/
+deploy/*/.nux/
+deploy/*/.telemetry/
+deploy/*/*.db
+deploy/*/schedules/
