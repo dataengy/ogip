@@ -9,7 +9,7 @@ decisions live as [ADRs](../adr/); the full creation plan is [`.ai/PLAN.md`](../
 | data-flow.md | End-to-end data flow (source → landing → raw → warehouse → outputs) | _Phase 1_ |
 | ingestion.md | `BaseSource` family, dlt/ingestr, Postgres landing, watermarks | _Phase 2_ |
 | transformation.md | Spec → SQLMesh compiler, layer builds, portability | _Phase 3_ |
-| storage.md | Parquet/PyArrow, FS/R2/MinIO/S3, DuckDB warehouse | _Phase 3_ |
+| [storage.md](storage.md) | Parquet/PyArrow, FS/R2/MinIO/S3, DuckDB warehouse | draft |
 | data-quality.md | Contracts (ODCS), assertions, freshness, RI, severity | _Phase 4_ |
 | observability.md | Logging, metrics (VictoriaMetrics), Loki, Grafana, alerts | _Phase 7_ |
 

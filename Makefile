@@ -10,7 +10,7 @@ PREK := uvx prek --config config/.pre-commit-config.yaml
 
 .PHONY: help bootstrap render-env lint fmt typecheck sql-lint \
         test test-smoke test-unit test-integration test-e2e check ci hooks clean \
-        up down ps logs obs-up obs-down run notebook
+        up down ps logs obs-up obs-down storage-up storage-down run notebook
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -92,6 +92,17 @@ obs-up: .env ## Start observability stack (VictoriaMetrics, Loki, Alloy, Grafana
 
 obs-down: ## Stop observability stack
 	$(COMPOSE) --profile obs down
+
+# --- Object storage (D2 / ADR-0003): the `minio` lake profile ---
+# `make down` still stops these — compose removes every container in the project.
+storage-up: .env ## Start MinIO (S3-compatible lake) + create the raw bucket
+	$(COMPOSE) --profile storage up -d --wait minio
+	$(COMPOSE) --profile storage run --rm minio-init
+	@echo "MinIO console: http://localhost:$${MINIO_CONSOLE_PORT:-9001} — dev keys ogipminio / ogipminio123"
+	@echo "Use it:  set storage.backend=minio in config/config.yml → make render-env"
+
+storage-down: ## Stop MinIO (data volume preserved)
+	$(COMPOSE) --profile storage stop minio
 
 # --- Pipeline (default profile: prefect-sqlmesh) ---
 run: .env ## Run the pipeline on sample data (default run-profile)
