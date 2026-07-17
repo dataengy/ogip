@@ -29,6 +29,7 @@ bash ~/.ai/skills/_scripts/session/agent-session-lock.sh acquire --repo . --obje
 | `dagster` | `experimental/orchestration/dagster*`, `prefect-dagster-dlt-dbt` profile | parallel session |
 | `vps` | `deploy/vps/`, `vps-*` recipes, `config/config.yml → deploy.vps.*` | **parallel session** — tooling shipped; 1 handoff below |
 | `s3` | MinIO in `deploy/`, `storage` config, dlt/duckdb S3 destination | parallel session |
+| `alerting` | `src/ogip/alerting/`, `src/tests/unit/test_alerting.py` | **parallel session** — Notifier + tg/mm/slack shipped ([#11](https://github.com/dataengy/ogip/issues/11)); 1 handoff below |
 
 Use the **direct script**, not `just -f … agent-lock` — its recipe re-parses `--reason` through
 `bash -c`, so parentheses break it.
@@ -50,6 +51,23 @@ The Phase 7 stack is live (`make obs-up`), but its pipeline-facing half sits in 
 Optional later: export OTLP metrics to `localhost:4318` (prefix `ogip_`) — Alloy already
 receives them and the dashboard panel is waiting. Detail:
 [docs/architecture/observability.md](../docs/architecture/observability.md) → "Not wired yet".
+
+### Handoff: lane `alerting` → lane `core-pipeline`
+
+`src/ogip/alerting/` ships the `Notifier` + Telegram/Mattermost/Slack ([#11](https://github.com/dataengy/ogip/issues/11),
+[tasks/alerting.md](tasks/alerting.md)) — verified against the live Telegram API. New files only;
+nothing of yours was edited. One thing is deliberately off-SSoT and needs you:
+
+- **Routing lives in env vars, not `config/config.yml`** — because that file and
+  `config/.env-render.py` are yours. To close it: add an `alerting:` section (`backend`,
+  `fallback_backend`, `dry_run`), map it in `_derived()`, add the secret slots
+  (`OGIP_TG_BOT_TOKEN`, `OGIP_MM_TOKEN`, `OGIP_MM_WEBHOOK_URL`, `OGIP_SLACK_TOKEN`,
+  `OGIP_SLACK_WEBHOOK_URL`), then swap the literal defaults in `alerting/settings.py` for
+  `_yaml("alerting", …)`. The env names are already `OGIP_`-prefixed, so no namespace clash.
+
+Also yours when you want alerts to actually fire: `pipelines/flows/` has no failure hook, so
+nothing calls the `Notifier` yet. `make_notifier()` returns `None` without credentials, so
+wiring it is safe — a credential-free run stays green and quiet.
 
 ### Handoff: lane `vps` → lane `core-pipeline`
 
