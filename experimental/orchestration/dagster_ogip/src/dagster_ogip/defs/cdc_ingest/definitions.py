@@ -18,9 +18,7 @@ _CDC_SCRIPT = Path(__file__).resolve().parents[4] / "cdc" / "ingestr_cdc.sh"
 @dg.asset(group_name="ingestion", kinds={"ingestr", "postgres"})
 def cdc_landing() -> dg.MaterializeResult:
     """Merge Postgres `landing.*` CDC changes into the lake via ingestr."""
-    proc = subprocess.run(
-        ["bash", str(_CDC_SCRIPT)], capture_output=True, text=True, check=False
-    )
+    proc = subprocess.run(["bash", str(_CDC_SCRIPT)], capture_output=True, text=True, check=False)
     if proc.returncode != 0:
         raise dg.Failure(description=f"ingestr CDC failed: {proc.stderr.strip()}")
     return dg.MaterializeResult(metadata={"source": "postgres:landing.*", "loader": "ingestr"})
