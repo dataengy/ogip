@@ -32,11 +32,29 @@ other's gates, and duplicate work. Two real incidents already happened:
 - commit-msg hook: rejects unbound, accepts `Refs: #N`, rejects a comment-only `#12`, exempts merges.
 - All 4 task files carry issues (#1 #2 #3 #8) via `just tasks-sync`.
 
-## Open / proposed
+## Worktrees — the structural fix (done)
 
-- **git worktrees per session** (strong recommendation): one checkout+branch per lane removes
-  shared-tree hazards structurally — no cross-lane gate breakage, no `add -A` risk, no contested
-  staging. Locks would then guard only merges.
+`src/scripts/worktree.sh` gives **each lane its own working directory + branch** over the same
+`.git`. This removes the shared-tree hazards at the root rather than mitigating them.
+
+```bash
+bash src/scripts/worktree.sh add <lane>     # ../OGIP.worktrees/<lane> on branch lane/<lane> off dev
+bash src/scripts/worktree.sh list|path|remove <lane>
+cd "$(bash src/scripts/worktree.sh path obs)" && make bootstrap
+```
+
+| Lane | Worktree | Branch |
+|---|---|---|
+| core-pipeline | `OGIP/` (integration checkout) | `dev` |
+| obs · evidence · dagster · s3 · vps | `OGIP.worktrees/<lane>` | `lane/<lane>` |
+
+**Flow:** `lane/<x>` → PR → `dev` → PR → `main`. Each lane gets its own gate (a red file in one
+lane can no longer block another), its own HEAD (`git checkout` stops moving under other
+sessions), and `git add -A` is safe again inside a lane. Locks now guard **merges**, not files.
+
+Cheap: worktrees share the object store, and uv hardlinks each venv from its shared cache.
+
+## Open / proposed
 - Upstream bug: `/agent-session-lock`'s `just agent-lock` recipe re-parses `--reason` via
   `bash -c`, so parentheses crash it; the direct script is fine.
 - **D20**: upsert these scaffold standards into `~/.ai/skills/.settings/code_specs/`.
