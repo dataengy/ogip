@@ -12,6 +12,15 @@ Detail: [tasks/m0-walking-skeleton.md](tasks/m0-walking-skeleton.md).
 
 Phase 0 (scaffold) also ✅ shipped — [tasks/phase-0-scaffold.md](tasks/phase-0-scaffold.md).
 
+**Reprioritized 2026-07-17** (SWOT against the target use-case brief):
+**P1 — resilient scraping slice** ([tasks/scraping-resilient.md](tasks/scraping-resilient.md),
+lane `ingestion`, [ADR-0014](../docs/adr/ADR-0014-resilient-scraping-concurrency.md)) ·
+**P1 — finalize R2 + VPS deploy** ([tasks/r2-vps-finalize.md](tasks/r2-vps-finalize.md) —
+every remaining item sits in lane `core-pipeline`) · **P2 — sources backlog**
+([tasks/sources-backlog.md](tasks/sources-backlog.md)). M1–M4 toolset replication is demoted
+below the P1s. Open requirement questions (scraping · volumes · serving/FS/semantic ·
+SQL+Python): [docs/OPEN-QUESTIONS.md](../docs/OPEN-QUESTIONS.md).
+
 ## Parallel-session lanes (claim a lock before writing!)
 
 Work is split across concurrent agent sessions. **Claim your lane** with an object lock before
@@ -23,7 +32,8 @@ bash ~/.ai/skills/_scripts/session/agent-session-lock.sh acquire --repo . --obje
 
 | Lane (lock object) | Scope | Owner |
 |---|---|---|
-| `core-pipeline` | `spec/` `src/ogip/` `ingestion/` `transform/` `pipelines/` `config/` `.ci/` | **this session** — M1 `prefect-bruin` · `prefect-dbt` · `prefect-sqlmesh-over-dbt` |
+| `core-pipeline` | `spec/` `src/ogip/` `transform/` `pipelines/` `config/` `.ci/` | parallel session — M1 alt profiles; **lock STALE since 16:00** (see lock audit below); also owns every `r2-vps-finalize` item |
+| `ingestion` | `ingestion/` (sources registry, connectors, raw landing) — **carved out of `core-pipeline` 2026-07-17** | parallel session (live) — home of the **P1 scraping slice** |
 | `obs` | `deploy/obs/`, `src/scripts/obs-*.sh`, `docs/architecture/observability.md` | **parallel session** — Phase 7 stack shipped; 2 handoffs below |
 | `evidence` | `experimental/bi/evidence/` | parallel session |
 | `dagster` | `experimental/orchestration/dagster*`, `prefect-dagster-dlt-dbt` profile | parallel session |
@@ -33,6 +43,13 @@ bash ~/.ai/skills/_scripts/session/agent-session-lock.sh acquire --repo . --obje
 
 Use the **direct script**, not `just -f … agent-lock` — its recipe re-parses `--reason` through
 `bash -c`, so parentheses break it.
+
+**Lock audit 2026-07-17 ~21:00.** `core-pipeline` and `dagster` locks are **STALE** (TTL
+expired 16:00 / 16:36; the holder session runs from outside this repo and both lanes belong
+to it) — `break` and re-acquire before touching those lanes, and note `ingestion/` no longer
+belongs to `core-pipeline`'s scope. The `ingestion` lock is also past TTL but its session is
+**live** — coordinate, don't steal. Holder details (session ids, resume commands): local
+`.ai/.locks/*/owner.env` (gitignored).
 
 ### Handoffs: lane `obs` → lane `core-pipeline`
 
@@ -177,13 +194,14 @@ flagged for the user; alternative is authoring natively in SQLMesh.
 
 ## Next steps
 
-Plan finalized (D0–D14) incl. the walking-skeleton delivery strategy. Awaiting **go** to start building.
+Reprioritized 2026-07-17 — driver checklist in [TODO.md](TODO.md), map in
+[docs/ROADMAP.md](../docs/ROADMAP.md):
 
-1. **Phase 0 — Scaffold & identity**: git init, pyproject/uv, tooling, config SSoT, secrets,
-   CI, task-sync, `.run/`/`.tmp/`.
-2. **M0 — walking skeleton**: RAWG → raw Parquet → 1st ODCS contract + Bruin SQL → SQLMesh
-   (stg→core→mart/fs) → 1 ML `*.parquet` → 1 notebook + 1 Evidence page, on a Prefect flow (dlt).
-   Then `make up` (Docker) + run the Prefect job green.
-3. **M1–M4** — replicate the slice across the alt toolsets; broaden per Phases 4–10.
-
-Open call: spec compiler kept (thin shim in M0, grown later) unless you say author-native-SQLMesh.
+1. **P1 — resilient scraping slice** (lane `ingestion`): async `ScraperSource` + landing +
+   HLTB end to end, per [ADR-0014](../docs/adr/ADR-0014-resilient-scraping-concurrency.md)
+   → [tasks/scraping-resilient.md](tasks/scraping-resilient.md).
+2. **P1 — finalize R2 + VPS deploy** (lane `core-pipeline`): staged s3 items →
+   `integrations/prefect/deploy.py` → real R2 bucket → host deploy + smoke
+   → [tasks/r2-vps-finalize.md](tasks/r2-vps-finalize.md).
+3. **P2** — groom [tasks/sources-backlog.md](tasks/sources-backlog.md); then M1–M4 toolset
+   replication; broaden per Phases 4–10.
