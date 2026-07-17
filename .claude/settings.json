@@ -1,0 +1,27 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.ai/skills/_scripts/session/session-lock-hook.sh\" on-start",
+            "timeout": 10,
+            "statusMessage": "session-lock"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.ai/skills/_scripts/session/session-lock-hook.sh\" on-end",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
