@@ -32,5 +32,8 @@ jobs:
       - name: Sync the nested Dagster project
         working-directory: experimental/orchestration/dagster_ogip
         run: uv sync
+      - name: Validate all definitions (jobs · schedules · sensors · checks · partitions)
+        working-directory: experimental/orchestration/dagster_ogip
+        run: uv run dg check defs
       - name: Combo e2e — source → FS layer via Dagster (dlt → dbt build)
         run: bash experimental/orchestration/dagster_ogip/e2e/run_combo.sh
