@@ -117,6 +117,18 @@ include = ["src", "ingestion", "transform", "pipelines", "dq"]
 venvPath = ".run"
 venv = "venv"
 
+# Tests stay strict, minus two rules that fire on normal pytest idioms rather than on
+# defects: a unit test may exercise a module's internals (`_credentials`), and an
+# `@pytest.fixture(autouse=True)` is invoked by pytest, so a static checker always reads
+# it as unused. Production code keeps both rules.
+# extraPaths keeps the repo root importable from this root — `pipelines`/`ingestion` are
+# top-level packages, and declaring an execution environment otherwise re-roots resolution.
+[[tool.pyright.executionEnvironments]]
+root = "src/tests"
+extraPaths = ["."]
+reportPrivateUsage = false
+reportUnusedFunction = false
+
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
