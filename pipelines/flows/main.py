@@ -14,6 +14,7 @@ import subprocess
 from pathlib import Path
 
 from ingestion.sources.rawg import RawgGames
+from pipelines.alerting_hooks import notify_flow_failure
 from prefect import flow
 from prefect.assets import materialize
 
@@ -72,7 +73,7 @@ def publish(_models: list[str]) -> dict[str, int]:
     return counts
 
 
-@flow(name="ingest_transform_publish")
+@flow(name="ingest_transform_publish", on_failure=[notify_flow_failure])
 def ingest_transform_publish() -> dict[str, int]:
     """The daily driver — ingest → transform → publish (asset lineage via @materialize)."""
     setup_logging()

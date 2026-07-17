@@ -82,9 +82,12 @@ nothing of yours was edited. One thing is deliberately off-SSoT and needs you:
   `OGIP_SLACK_WEBHOOK_URL`), then swap the literal defaults in `alerting/settings.py` for
   `_yaml("alerting", …)`. The env names are already `OGIP_`-prefixed, so no namespace clash.
 
-Also yours when you want alerts to actually fire: `pipelines/flows/` has no failure hook, so
-nothing calls the `Notifier` yet. `make_notifier()` returns `None` without credentials, so
-wiring it is safe — a credential-free run stays green and quiet.
+~~Also yours when you want alerts to actually fire: `pipelines/flows/` has no failure hook.~~
+**Done 2026-07-18** (lane was FREE, held core-pipeline briefly): `pipelines/alerting_hooks.py`
+→ `notify_flow_failure` wired as `on_failure=[…]` on the flow. Verified by running — Prefect
+fires it on a real failure and it builds `🔴 OGIP flow failed: <flow> / run: <run> / state:
+<exception>`. Silent without creds (`make_notifier()` is `None`), never raises. Still SSoT-open:
+the routing-in-env-vars item above is unchanged.
 
 ### Handoff: lane `hygiene` → lane `core-pipeline`
 
