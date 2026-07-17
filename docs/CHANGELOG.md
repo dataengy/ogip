@@ -6,7 +6,15 @@ All notable changes to OGIP are documented here. Format follows
 
 ## [Unreleased]
 
-### Added
+### Added — M0 walking skeleton
+- End-to-end vertical slice: **RAWG → raw Parquet (dlt) → SQLMesh (raw→stg→core→fs, compiled from
+  Bruin spec) → ML-ready `games.parquet` + `market_features.parquet` → demo notebook**, on a Prefect flow.
+- `ingestion/` (BaseSource family + dlt), `spec/` (ODCS contract + Bruin SQL), `src/ogip/spec_compile`
+  (Bruin→SQLMesh), `src/ogip/warehouse` (Parquet export), `pipelines/flows/main.py` (Prefect).
+- e2e test runs the Prefect job and asserts outputs; CI gains an `e2e` job (runs the pipeline). CI green 7/7.
+- Shipped to [dataengy/ogip](https://github.com/dataengy/ogip).
+
+### Added — Phase 0 scaffold
 - Project inception at `~/gi/@dataengy/OGIP` (successor to OGAP).
 - Master creation plan (`.ai/PLAN.md`): target design + 11-phase build + locked decisions D0–D12.
 - Production stack locked: Prefect 3 + **dlt** (default ingestion) + **SQLMesh** (default engine,

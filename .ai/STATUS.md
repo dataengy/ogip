@@ -4,10 +4,15 @@ _Last updated: 2026-07-17_
 
 ## Current phase
 
-**Phase 0 — Scaffold & identity: ✅ SHIPPED.** `make check` green locally (ruff · pyright strict
-0 errors · 6 tests); pushed to **[github.com/dataengy/ogip](https://github.com/dataengy/ogip)**
-(public); **CI green** — all 6 jobs (lint · typecheck · test · bash-lint · structure-validate ·
-secret-scan). Next: **M0 walking skeleton**. Detail: [tasks/phase-0-scaffold.md](tasks/phase-0-scaffold.md).
+**M0 — walking skeleton: ✅ SHIPPED.** RAWG → raw Parquet (**dlt**) → **SQLMesh** (raw→stg→core→fs,
+compiled from Bruin spec) → ML-ready `games.parquet` + `market_features.parquet` → demo notebook,
+all driven by a **Prefect** flow (ephemeral, no Docker). `make check` green; **e2e test runs the
+Prefect job in CI**; CI green (7/7). Repo: [github.com/dataengy/ogip](https://github.com/dataengy/ogip).
+Detail: [tasks/m0-walking-skeleton.md](tasks/m0-walking-skeleton.md).
+
+Phase 0 (scaffold) also ✅ shipped — [tasks/phase-0-scaffold.md](tasks/phase-0-scaffold.md).
+Next: **M1–M4** — replicate the slice across toolsets (prefect-bruin, prefect-dbt,
+prefect-sqlmesh-over-dbt, prefect-dagster-dlt-dbt); Evidence visualizer over the outputs; broaden.
 
 ## Done
 

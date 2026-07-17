@@ -76,6 +76,7 @@ clean: ## Remove caches/artifacts (keeps .run/venv and data)
 up: .env ## Start core services (Postgres, Prefect) and wait for health
 	$(COMPOSE) up -d --wait postgres prefect
 	@echo "Prefect UI: http://localhost:4200"
+	open http://localhost:4200
 
 down: ## Stop services (volumes preserved)
 	$(COMPOSE) down
