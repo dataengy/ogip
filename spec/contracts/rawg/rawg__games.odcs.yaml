@@ -1,0 +1,73 @@
+# Open Data Contract Standard (ODCS) v3 — RAWG games, Layer-0 raw dataset.
+apiVersion: v3.0.0
+kind: DataContract
+id: rawg-games-raw
+name: rawg__games
+version: 0.1.0
+status: draft
+domain: games
+tenant: ogip
+description:
+  purpose: Immutable 1:1 AS-IS capture of RAWG /api/games (Layer 0).
+  usage: Source for staging.stg_games → core.game → fs.market_features.
+  limitations: Demo mode uses a synthetic fixture; live mode requires RAWG_API_KEY.
+
+servers:
+  - server: local-fs
+    type: local
+    format: parquet
+    path: .run/data/raw/rawg__games/
+
+schema:
+  - name: rawg__games
+    logicalType: object
+    physicalType: parquet
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        unique: true
+        description: RAWG game id (natural key).
+      - name: slug
+        logicalType: string
+      - name: name
+        logicalType: string
+        required: true
+      - name: released
+        logicalType: date
+      - name: rating
+        logicalType: number
+        description: Average user rating (0–5).
+      - name: ratings_count
+        logicalType: integer
+      - name: metacritic
+        logicalType: integer
+        description: Metacritic score (0–100), nullable.
+      - name: playtime
+        logicalType: integer
+      - name: added
+        logicalType: integer
+      - name: _ingested_at
+        logicalType: string
+        description: Layer-0 ingestion timestamp (ISO-8601 UTC).
+      - name: etl_batch_id
+        logicalType: string
+        description: Layer-0 batch id.
+
+quality:
+  - rule: unique
+    property: id
+    severity: error
+  - rule: not_null
+    property: name
+    severity: error
+
+slaProperties:
+  - property: freshness
+    value: 1
+    unit: d
+    element: rawg__games._ingested_at
+
+team:
+  - username: data-eng@ogip
+    role: owner

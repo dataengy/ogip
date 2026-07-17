@@ -1,0 +1,13 @@
+# SQLMesh project config — default transform engine (ADR-0004). Models under models/ are
+# GENERATED from spec/ by src/ogip/spec_compile (do not hand-edit). Runs on DuckDB.
+gateways:
+  duckdb:
+    connection:
+      type: duckdb
+      database: .run/data/warehouse/ogip.duckdb
+
+default_gateway: duckdb
+
+model_defaults:
+  dialect: duckdb
+  start: 2020-01-01
