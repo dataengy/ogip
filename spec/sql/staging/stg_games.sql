@@ -4,7 +4,7 @@ type: duckdb.sql
 materialization:
   type: table
 owner: data-eng@ogip
-tags: [staging, rawg]
+tags: [staging, rawg, daily]
 depends:
   - raw.rawg__games
 columns:
