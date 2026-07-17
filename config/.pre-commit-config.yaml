@@ -1,7 +1,7 @@
 # Pre-commit hooks — run via `prek` (fast, drop-in pre-commit replacement).
 # Install: `uvx prek --config config/.pre-commit-config.yaml install`  (done by `make bootstrap`).
 # Lints EVERYTHING (Python, SQL, Bash, YAML) + smoke tests on commit; data tests on push.
-default_install_hook_types: [pre-commit, pre-push]
+default_install_hook_types: [pre-commit, pre-push, commit-msg]
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.11.0
@@ -59,3 +59,8 @@ repos:
         language: system
         pass_filenames: false
         stages: [pre-push]
+      - id: commit-msg-task-binding
+        name: commit is bound to a task (#issue)
+        entry: bash src/scripts/check-commit-msg.sh
+        language: system
+        stages: [commit-msg]
