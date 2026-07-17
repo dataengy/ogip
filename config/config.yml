@@ -1,0 +1,105 @@
+# OGIP — application configuration (tracked). SINGLE SOURCE OF TRUTH for every
+# non-secret default: Python (src/ogip/config.py) reads it directly; docker compose
+# consumes it via the rendered .env (config/.env-render.py). Secrets NEVER live here.
+
+platform:
+  data_dir: .run/data # runtime zones: warehouse/, raw/, outputs/ (gitignored)
+  log_dir: .run/logs # canonical log home — never the repo root (gitignored)
+  log_level: INFO
+  log_json: false
+
+storage: # ADR-0003 / D2 — Parquet lake
+  backend: local # local (default, FS) | minio | s3 | r2
+  endpoint_url: "" # set for minio/s3/r2 via .env (e.g. Cloudflare R2 endpoint)
+  raw_bucket: ogip-raw
+  region: auto
+
+postgres: # ADR-0008 — landing zone + platform_meta + Prefect backend
+  host: localhost
+  port: 5432
+  user: ogip
+  database: ogip
+  landing_schema: landing # scraped/parsed intermediate (D11)
+  meta_schema: platform_meta # run stats, watermarks, DQ results
+
+services: # compose port mappings (rendered into .env)
+  postgres_port: 5432
+  prefect_port: 4200
+  minio_api_port: 9000
+  minio_console_port: 9001
+  victoriametrics_port: 8428
+  loki_port: 3100
+  grafana_port: 3300
+  evidence_port: 3400 # optional Evidence visualizer (experimental/bi, D8)
+
+endpoints:
+  prefect_api_url: http://localhost:4200/api
+
+transformation:
+  engine: sqlmesh # default transform engine (ADR-0004, D5); compiled from spec/
+
+ingestion:
+  engine: dlt # default (ADR-0006, D11)
+  cdc_loader: ingestr # optional — CDC from the Postgres landing zone
+
+secrets:
+  backend: env # ADR-0011 / D10 — env (default) | github (CI) | bitwarden | git-secret
+
+prefect:
+  runtime: ephemeral # ephemeral (default) | server (+ Postgres compose) — D3
+
+# Run profiles: `just run-profile <name>` — orchestrator × engine setups (A12).
+run_profiles:
+  prefect-sqlmesh: # DEFAULT / production
+    default: true
+    services: [postgres, prefect]
+    orchestrator: prefect
+    ingestion: dlt
+    transform: sqlmesh
+  prefect-sql:
+    services: [postgres, prefect]
+    orchestrator: prefect
+    ingestion: dlt
+    transform: plain_sql
+  prefect-bruin: # complete alternative setup
+    services: [postgres, prefect]
+    orchestrator: prefect
+    ingestion: dlt
+    transform: bruin
+  prefect-dbt:
+    services: [postgres, prefect]
+    orchestrator: prefect
+    ingestion: dlt
+    transform: dbt
+  prefect-sqlmesh-over-dbt:
+    services: [postgres, prefect]
+    orchestrator: prefect
+    ingestion: dlt
+    transform: sqlmesh_dbt
+  prefect-dagster-dlt-dbt: # complete alternative setup
+    services: [postgres, prefect]
+    orchestrator: dagster
+    ingestion: dlt
+    transform: dbt
+
+sources:
+  rawg: # M0 walking-skeleton source (clean documented REST)
+    enabled: true
+    entities: [games]
+  steam:
+    enabled: true
+    entities: [games, reviews]
+  igdb:
+    enabled: false
+    entities: [games]
+
+raw: # Layer 0 — 1:1 AS-IS (only optional _ingested_at / etl_batch_id added)
+  format: parquet
+  partitioning: "load_date={date}/etl_batch_id={uuid}"
+  add_ingested_at: true
+  add_etl_batch_id: true
+
+deploy:
+  vps: # manual deploy (ADR-0012); DevOps handled separately
+    host: "" # set on the host / in .env
+    repo_url: ""

@@ -1,0 +1,47 @@
+# --- Runtime (everything transient lives under .run/) ---
+.run/
+.venv/   # canonical venv is .run/venv (UV_PROJECT_ENVIRONMENT); ignore stray default
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+
+# --- Secrets & local config (root-anchored; tracked blank templates live in config/) ---
+/.env
+/.env.*
+.dlt/secrets.toml
+config/secrets/*.secret   # git-secret (opt-in) encrypted blobs stay, plaintext never
+
+# --- Temp: everything in .tmp/ is ignored EXCEPT the tracked README + Justfile ---
+/.tmp/*
+!/.tmp/README.md
+!/.tmp/Justfile
+
+# --- Warehouse artifacts (safety net; canonical home is .run/data/) ---
+*.duckdb
+*.duckdb.wal
+
+# --- Experimental engines / BI (off the production path) ---
+experimental/**/target/
+experimental/**/.cache/
+experimental/**/logs/
+experimental/**/.bruin/
+experimental/bi/evidence/node_modules/
+experimental/bi/evidence/.evidence/
+
+# --- Orchestration / tools ---
+.prefect/
+logs/   # stray CWD logs; canonical home is .run/logs/
+
+# --- OS / editor ---
+.DS_Store
+.idea/
+.vscode/
+
+# --- Integrations: local configs (templates are tracked) ---
+integrations/*/config.yml
+
+# --- .ai machine-specific symlinks (in-repo specs/scripts symlinks stay tracked) ---
+/.ai/memory
+/.ai/skills
+/.ai/.locks/

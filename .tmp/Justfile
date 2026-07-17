@@ -1,0 +1,21 @@
+# .tmp/Justfile — local recipes for temporary/working scripts.
+# Run with:  just -f .tmp/Justfile <recipe>
+# Everything in .tmp/ is gitignored except this file and README.md.
+# Graduate durable recipes → root Justfile / integrations/ / skills / src/ (see README.md).
+
+# List available temp recipes (default).
+default:
+    @just -f .tmp/Justfile --list
+
+# List working scripts currently in .tmp/.
+ls:
+    @ls -1 .tmp/*.sh .tmp/*.py 2>/dev/null || echo "(no temp scripts yet)"
+
+# Run a one-shot from .tmp/.once/ (e.g. `just -f .tmp/Justfile once bootstrap.sh`).
+once script:
+    @test -f ".tmp/.once/{{script}}" || { echo "not found: .tmp/.once/{{script}}"; exit 1; }
+    bash ".tmp/.once/{{script}}"
+
+# Reminder to graduate a durable script out of .tmp/ (see README.md graduation rule).
+graduate script:
+    @echo "Graduate .tmp/{{script}} → integrations/ | skills | src/ (then delete it from .tmp/)."

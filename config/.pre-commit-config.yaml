@@ -1,0 +1,60 @@
+# Pre-commit hooks — run via `prek` (fast, drop-in pre-commit replacement).
+# Install: `uvx prek --config config/.pre-commit-config.yaml install`  (done by `make bootstrap`).
+# Lints EVERYTHING (Python, SQL, Bash, YAML) + smoke tests on commit; data tests on push.
+default_install_hook_types: [pre-commit, pre-push]
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 3.3.0
+    hooks:
+      - id: sqlfluff-lint
+        files: ^spec/sql/.*\.sql$ # portable SQL only
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck # Bash lint
+
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.10.0-1
+    hooks:
+      - id: shfmt
+        args: [-i, "2", -ci] # Bash format
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args: [-c, config/.yamllint.yaml]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks # secret scan
+
+  - repo: local
+    hooks:
+      - id: ty
+        name: ty (fast type check)
+        entry: uv run ty check
+        language: system
+        pass_filenames: false
+        types: [python]
+      - id: pytest-smoke
+        name: pytest smoke
+        entry: uv run pytest -m smoke -q
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+      - id: dq-data-tests
+        name: data quality (spec/dq)
+        entry: uv run python dq/run.py --fast
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

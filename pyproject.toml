@@ -1,0 +1,131 @@
+[project]
+name = "ogip"
+version = "0.1.0"
+description = "Open Games Intelligence Platform — Market Intelligence Platform producing ML-ready datasets (Prefect + dlt + SQLMesh + DuckDB + Parquet)"
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "dataengy" }]
+requires-python = ">=3.13"
+keywords = ["data-engineering", "duckdb", "sqlmesh", "dlt", "prefect", "edw", "ml", "analytics"]
+dependencies = [
+    "dlt[duckdb,filesystem,parquet,postgres]>=1.10", # default ingestion engine
+    "sqlmesh[postgres]>=0.150",                      # default transform engine (from spec/)
+    "prefect>=3.4",                                  # orchestration
+    "duckdb>=1.2",
+    "pyarrow>=19",
+    "psycopg[binary]>=3.2",                          # Postgres landing + platform_meta
+    "httpx>=0.28",
+    "tenacity>=9.0",
+    "pydantic>=2.10",
+    "pydantic-settings>=2.8",
+    "pyyaml>=6.0",
+    "loguru>=0.7",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.11",
+    "pyright>=1.1.390",
+    "ty>=0.0.1a1",         # Astral type checker — pre-commit hook (CI gate stays pyright)
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "respx>=0.22",         # httpx mocking for source unit tests
+    "pre-commit>=4.0",
+    "sqlfluff>=3.3",       # SQL linter (DuckDB dialect; presets in config/sqlfluff/)
+    "yamllint>=1.35",
+    "types-pyyaml>=6.0",
+    "jupyterlab>=4.3",     # DS-facing notebooks (make notebook)
+]
+# Optional ingestion loader for CDC from the Postgres landing zone (D11).
+ingestr = ["ingestr>=0.13"]
+# Comparison transform engines — runnable alt setups, off the production path (experimental/).
+engines = ["dbt-core>=1.9", "dbt-duckdb>=1.9"]
+dagster = ["dagster>=1.10", "dagster-dbt>=0.26"]
+
+[tool.uv]
+default-groups = ["dev"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ogip"]
+
+# ---------------------------------------------------------------------------
+# Lint / format
+# ---------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+src = ["src", "ingestion", "transform", "pipelines", "dq"]
+cache-dir = ".run/ruff_cache"
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "I",        # isort
+    "N",        # pep8-naming
+    "UP",       # pyupgrade
+    "B",        # bugbear
+    "C4",       # comprehensions
+    "DTZ",      # naive datetimes are bugs in a data platform
+    "T20",      # no stray print()
+    "SIM",      # simplify
+    "PTH",      # pathlib over os.path
+    "RUF",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"src/tests/**" = ["T20"]
+"config/*.py" = ["T20"]      # CLI scripts — stdout IS the interface
+"deploy/**/*.py" = ["T20"]
+"dq/*.py" = ["T20"]          # data-quality CLI runner — stdout IS the interface
+
+# ---------------------------------------------------------------------------
+# SQL lint — DuckDB house style. Scope to plain-SQL (`just sql-lint`); SQLMesh/dbt
+# use their own tooling. Bruin-format `@bruin` headers are stripped before linting.
+# ---------------------------------------------------------------------------
+[tool.sqlfluff.core]
+dialect = "duckdb"
+templater = "raw"
+max_line_length = 100
+exclude_rules = "RF04, ST06, AM06"
+
+[tool.sqlfluff.indentation]
+indent_unit = "space"
+tab_space_size = 4
+
+[tool.sqlfluff.layout.type.comma]
+line_position = "leading"
+spacing_before = "touch"
+
+[tool.sqlfluff.rules."capitalisation.keywords"]
+capitalisation_policy = "lower"
+
+# ---------------------------------------------------------------------------
+# Types
+# ---------------------------------------------------------------------------
+[tool.pyright]
+typeCheckingMode = "strict"
+pythonVersion = "3.13"
+include = ["src", "ingestion", "transform", "pipelines", "dq"]
+venvPath = ".run"
+venv = "venv"
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["src/tests"]
+addopts = "-q --import-mode=importlib --strict-markers"
+cache_dir = ".run/pytest_cache"
+markers = [
+    "smoke: cheap wiring checks (config renders, imports) — no external services",
+    "integration: touches external services (Postgres, MinIO); excluded by default in CI unit job",
+    "e2e: full pipeline against the warehouse (slow); excluded by default in CI unit job",
+]
+
+[tool.coverage.run]
+data_file = ".run/.coverage"

@@ -1,0 +1,9 @@
+# Relaxed YAML lint — readability over strictness (config.yml has inline comments & long lines).
+extends: relaxed
+rules:
+  line-length: disable
+  comments:
+    min-spaces-from-content: 1
+  document-start: disable
+  truthy:
+    check-keys: false
