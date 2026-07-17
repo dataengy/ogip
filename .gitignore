@@ -1,6 +1,7 @@
 # --- Runtime (everything transient lives under .run/) ---
 .run/
-.venv/   # canonical venv is .run/venv (UV_PROJECT_ENVIRONMENT); ignore stray default
+# canonical venv is .run/venv (UV_PROJECT_ENVIRONMENT); ignore the stray default
+.venv/
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -10,7 +11,8 @@ dist/
 /.env
 /.env.*
 .dlt/secrets.toml
-config/secrets/*.secret   # git-secret (opt-in) encrypted blobs stay, plaintext never
+# git-secret (opt-in): encrypted *.secret blobs are committed; plaintext never
+config/secrets/*.secret
 
 # --- Temp: everything in .tmp/ is ignored EXCEPT the tracked README + Justfile ---
 /.tmp/*
@@ -31,8 +33,9 @@ experimental/bi/evidence/.evidence/
 
 # --- Orchestration / tools ---
 .prefect/
-logs/   # stray CWD logs; canonical home is .run/logs/
-.dlt/           # dlt pipeline state/secrets (local)
+# stray CWD logs (canonical home is .run/logs/) + dlt local state
+logs/
+.dlt/
 
 # --- SQLMesh: generated models + local cache/logs (spec/ is the SSoT) ---
 transform/sqlmesh/models/
