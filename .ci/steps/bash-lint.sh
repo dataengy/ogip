@@ -9,7 +9,8 @@ if [[ ${#sh_files[@]} -eq 0 ]]; then
 fi
 if command -v shellcheck >/dev/null 2>&1; then
   log "shellcheck (${#sh_files[@]} files)"
-  shellcheck "${sh_files[@]}"
+  # SC1091: can't follow the dynamic `source .../_common.sh` — expected, not a defect.
+  shellcheck -e SC1091 "${sh_files[@]}"
 else
   log "shellcheck not installed — skip (runs in pre-commit/CI image)"
 fi

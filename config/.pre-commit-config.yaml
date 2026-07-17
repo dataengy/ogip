@@ -20,6 +20,7 @@ repos:
     rev: v0.10.0.1
     hooks:
       - id: shellcheck # Bash lint
+        args: [-e, SC1091] # can't follow dynamic `source _common.sh` — expected
 
   - repo: https://github.com/scop/pre-commit-shfmt
     rev: v3.10.0-1
