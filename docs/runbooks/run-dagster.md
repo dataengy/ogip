@@ -46,6 +46,32 @@ root=Path('../../..').resolve()
 compile_to_dbt(root/'spec/sql', Path('dbt'), warehouse=root/'.run/data/warehouse/ogip.duckdb', repo_root=root)"
 ```
 
+## Orchestration entities (jobs · schedules · sensors · partitions)
+
+Defined in `defs/orchestration/definitions.py`; the deterministic shell work is in `jobs/dg-tasks.sh`.
+
+**Jobs** — *asset jobs* (idiomatic selection): `raw_ingest_job` · `staging_job` · `core_job` ·
+`fs_job` · `dwh_assets_job` (whole DWH) · `dlt_ingest_job` · `cdc_asset_job`. *Op jobs* (explicit
+control): `dwh_incremental_job` / `dwh_full_refresh_job` (full vs incremental) · `update_dbt_job`
+(regenerate spec→dbt + parse) · `update_dbt_changed_job` (run only `state:modified+`) ·
+`parsing_job` · `prefect_trigger_job` · `cdc_job` · `market_snapshot_job` (partitioned).
+
+**Schedules** — `daily_dwh_full_refresh` (3:00) · `hourly_dwh_incremental` · `quarter_hourly_cdc`
+· `daily_dbt_subproject_update` (2:00) · `daily_raw_ingest` (1:30) · `daily_market_snapshot`
+(partitioned).
+
+**Sensors** — `raw_landed_runs_dwh` (asset sensor: new raw → refresh DWH) · `new_postgres_raw_data`
+(landing rows → incremental; skips with no PG) · `spec_change_updates_dbt` (spec/sql mtime → run
+changed models) · `dwh_run_failure_alert` (run-failure hook for the alerting lane).
+
+**Partitions + backfills** — `market_snapshot` is a **daily-partitioned** asset (backfillable):
+
+```bash
+uv run dg launch --assets market_snapshot --partition 2026-07-15   # one partition
+# range backfill: the Dagster UI "Backfill" button, or
+uv run dagster asset backfill market_snapshot --partitions 2026-07-15,2026-07-16,2026-07-17
+```
+
 ## Prod (Postgres-backed)
 
 `deploy/prod/dagster.yaml` uses Postgres storage via `env` refs (no secret literals). A real run

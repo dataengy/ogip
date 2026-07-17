@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+# One dispatch script for the Dagster op-jobs — the deterministic side of the definitions.
+# The definitions module (defs/orchestration/) only wires ops/schedules/sensors to these tasks,
+# so all shell logic lives here (testable in isolation, one place to change).
+#
+#   jobs/dg-tasks.sh <task>
+#     build-dwh            full pipeline, INCREMENTAL dbt run (raw ensured → dbt build)
+#     build-dwh-full       full pipeline, FULL-REFRESH dbt run (raw ensured → dbt build --full-refresh)
+#     update-dbt           regenerate the dbt project from spec/ + parse (no run)
+#     update-dbt-changed   regenerate + run only models changed vs the last manifest (state:modified+)
+#     parsing              run the scraper/parser → Postgres landing (placeholder: ingestion lane P1)
+#     prefect              trigger the root Prefect flow (the alt orchestrator)
+#     cdc [--stream|--dry-run]   ingestr CDC from the Postgres landing zone (delegates to cdc/)
+set -euo pipefail
+
+PROJECT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO="$(cd "$PROJECT" && git rev-parse --show-toplevel)"
+cd "$PROJECT"
+
+task="${1:?usage: dg-tasks.sh <build-dwh|build-dwh-full|update-dbt|update-dbt-changed|parsing|prefect|cdc>}"
+DBT=(uv run dbt --project-dir dbt --profiles-dir dbt)
+
+# spec/ (Bruin) is the SSoT — the dbt project is generated, never hand-authored (ADR-0005/0015).
+compile_dbt() {
+  PYTHONPATH="$REPO/src" .venv/bin/python - "$REPO" <<'PY'
+import sys
+from pathlib import Path
+
+from ogip.spec_compile.to_dbt import compile_to_dbt
+
+root = Path(sys.argv[1]).resolve()
+compile_to_dbt(
+    root / "spec" / "sql", Path("dbt"),
+    warehouse=root / ".run" / "data" / "warehouse" / "ogip.duckdb", repo_root=root,
+)
+print("dbt project regenerated from spec/")
+PY
+}
+
+ensure_raw() {
+  mkdir -p "$REPO/.run/data/warehouse"
+  if ! ls "$REPO"/.run/data/raw/rawg__games/*.parquet >/dev/null 2>&1; then
+    echo "[dg-tasks] raw absent — running dlt ingestion first"
+    uv run dg launch --assets 'key:"raw/rawg__games"'
+  fi
+}
+
+case "$task" in
+  build-dwh)
+    compile_dbt
+    ensure_raw
+    "${DBT[@]}" build
+    ;;
+  build-dwh-full)
+    compile_dbt
+    ensure_raw
+    "${DBT[@]}" build --full-refresh
+    ;;
+  update-dbt)
+    compile_dbt
+    "${DBT[@]}" parse
+    ;;
+  update-dbt-changed)
+    compile_dbt
+    # state:modified needs a prior manifest; fall back to a full build on the first run.
+    if [[ -f dbt/target/manifest.json ]]; then
+      cp dbt/target/manifest.json dbt/.prev_manifest.json
+      "${DBT[@]}" build --select 'state:modified+' --state dbt || "${DBT[@]}" build
+    else
+      "${DBT[@]}" build
+    fi
+    ;;
+  parsing)
+    echo "[dg-tasks] parsing: scraper → Postgres landing is the ingestion lane's P1 (async ScraperSource, ADR-0014)."
+    echo "[dg-tasks] placeholder no-op — wire ingestion/sources/*scraper* here when it lands."
+    ;;
+  prefect)
+    if [[ -f "$REPO/pipelines/flows/main.py" ]]; then
+      echo "[dg-tasks] triggering the root Prefect flow (alt orchestrator)"
+      (cd "$REPO" && UV_PROJECT_ENVIRONMENT=.run/venv uv run python -m pipelines.flows.main)
+    else
+      echo "[dg-tasks] pipelines/flows/main.py absent — Prefect lane not present in this checkout."
+    fi
+    ;;
+  cdc)
+    bash "$PROJECT/cdc/ingestr_cdc.sh" "${@:2}"
+    ;;
+  *)
+    echo "[dg-tasks] unknown task: $task" >&2
+    exit 2
+    ;;
+esac
