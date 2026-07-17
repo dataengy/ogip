@@ -33,11 +33,16 @@ All of it lives in [`src/ogip/storage.py`](../../src/ogip/storage.py):
 |---|---|---|
 | `raw_bucket_url(data_dir)` | writers | `file://…` for `local`, else `s3://<raw_bucket>` |
 | `dlt_filesystem_destination(data_dir)` | `ingestion/base/base_source.py` | the dlt destination, credentials attached |
-| `configure_duckdb_s3(con)` | `src/ogip/warehouse.py` | loads `httpfs` + registers the S3 secret so DuckDB reads `s3://` |
+| `configure_duckdb_s3(con)` | ad-hoc DuckDB consumers | loads `httpfs` + registers the S3 secret so DuckDB reads `s3://` |
 
 `configure_duckdb_s3` is a **no-op on `local`** and idempotent, so it is safe to call
 unconditionally. Credentials are passed to DuckDB as **bound parameters** — never
 interpolated into SQL.
+
+It is for connections *we* open (notebooks, `dq/`). **SQLMesh is not one of them**: it opens
+its own connection, so it takes S3 through its own config — `extensions: [httpfs]` plus a
+`secrets:` entry in `transform/sqlmesh/config.yaml`, interpolated from the same `OGIP_S3_*`
+slots. `src/ogip/warehouse.py` needs nothing: it reads the built warehouse, never `s3://`.
 
 ## Configuration (SSoT)
 
@@ -58,11 +63,17 @@ Misconfiguration fails **early and explanatorily** rather than as a cryptic 403:
 
 ```bash
 make storage-up                      # MinIO + create the raw bucket; prints the dev keys
-# config/config.yml → storage.backend: minio
-make render-env
-make run                             # raw Parquet now lands in s3://ogip-raw
 make test-integration                # round-trips real Parquet through MinIO
 ```
+
+> **Status — `local` is the only backend the pipeline runs on today.** The seam, the MinIO
+> stack and the round-trip test are done and green, but two production call sites are not
+> wired yet: `ingestion/base/base_source.py` still targets the local FS, and Layer-0
+> (`spec/sql/raw/*.sql`) hardcodes `read_parquet('.run/data/raw/…')` — so SQLMesh would keep
+> reading the local FS no matter what dlt writes. Teaching the spec compiler to inject the
+> lake root is the remaining blocker; tracked in
+> [.ai/tasks/s3-object-storage.md](../../.ai/tasks/s3-object-storage.md). Setting
+> `backend: minio` today changes ingestion only — do not expect a green `make run` yet.
 
 MinIO console: `http://localhost:9001` (dev keys `ogipminio` / `ogipminio123` — throwaway
 local literals, **not** secrets). `make storage-down` stops it; the data volume survives.
