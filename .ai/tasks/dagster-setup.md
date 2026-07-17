@@ -41,9 +41,21 @@ self-contained uv project so Dagster's deps never touch the production env.
 - Asset graph spans both integrations: `raw/rawg__games` (dlt, group `ingestion`) → `stg_games`
   → `game` → `market_features` (dbt).
 
+## ingestr CDC (done)
+
+One pipeline uses **CDC**, deliberately (D11): the Postgres `landing` zone (where scrapers write
+continuously) is captured via **ingestr** logical replication, while batch API sources stay on dlt.
+
+- `cdc/ingestr_cdc.sh` — `ingestr ingest` with a replication-slot/publication source URI,
+  `--incremental-strategy merge`, `--stream` for continuous mode. Config from `OGIP_*` env only
+  (ADR-0011); the printed command **redacts the password**. Verified via `--dry-run` (no live PG).
+- `defs/cdc_ingest/definitions.py` — wraps it as the `cdc_landing` asset (kinds `ingestr`/
+  `postgres`, group `ingestion`), so CDC sits in the same graph as the dlt load + dbt models.
+- `dg check defs` green with all four pieces; `dg list defs` shows `cdc_landing`.
+
 ## Next
 
-- **ingestr for CDC** — load from the Postgres `landing` zone via ingestr in one pipeline (D11).
-- Verify **prod** for real: needs Docker/Postgres (unavailable in this environment).
+- Verify **prod** + a live CDC run for real: needs Docker/Postgres with `wal_level=logical` +
+  `CREATE PUBLICATION ogip_landing_pub FOR TABLES IN SCHEMA landing` (unavailable in this env).
 - Wire `just run-profile prefect-dagster-dlt-dbt` to this project.
 - Generated `dbt/` is a build artifact (gitignored) — regenerate via the compiler.
