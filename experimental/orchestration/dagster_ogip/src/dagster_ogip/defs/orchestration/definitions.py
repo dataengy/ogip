@@ -104,6 +104,11 @@ def _run_cdc(context: OpExecutionContext) -> None:
     _run_task(context, "cdc", "--dry-run")
 
 
+@dg.op
+def _dbt_evaluate(context: OpExecutionContext) -> None:
+    _run_task(context, "dbt-evaluate")
+
+
 @dg.job(tags={"pipeline": "dwh", "mode": "incremental"})
 def dwh_incremental_job() -> None:
     _build_dwh_incremental()
@@ -139,6 +144,11 @@ def cdc_job() -> None:
     _run_cdc()
 
 
+@dg.job(tags={"maintenance": "dbt", "package": "dbt_project_evaluator"})
+def dbt_project_evaluator_job() -> None:
+    _dbt_evaluate()
+
+
 # --------------------------------------------------------------------------- schedules
 schedules = [
     dg.ScheduleDefinition(
@@ -165,6 +175,11 @@ schedules = [
         name="daily_raw_ingest",
         job=raw_ingest_job,
         cron_schedule="30 1 * * *",
+    ),
+    dg.ScheduleDefinition(
+        name="weekly_dbt_project_evaluator",
+        job=dbt_project_evaluator_job,
+        cron_schedule="0 4 * * 1",  # Monday 04:00 — audit the dbt project
     ),
 ]
 
@@ -327,6 +342,7 @@ defs = dg.Definitions(
         parsing_job,
         prefect_trigger_job,
         cdc_job,
+        dbt_project_evaluator_job,
         market_snapshot_job,
     ],
     schedules=[*schedules, daily_snapshot_schedule],

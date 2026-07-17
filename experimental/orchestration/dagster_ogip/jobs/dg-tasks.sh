@@ -17,8 +17,11 @@ PROJECT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO="$(cd "$PROJECT" && git rev-parse --show-toplevel)"
 cd "$PROJECT"
 
-task="${1:?usage: dg-tasks.sh <build-dwh|build-dwh-full|update-dbt|update-dbt-changed|parsing|prefect|cdc>}"
-DBT=(uv run dbt --project-dir dbt --profiles-dir dbt)
+task="${1:?usage: dg-tasks.sh <build-dwh|dbt-evaluate|dbt-deps|build-dwh-full|update-dbt|update-dbt-changed|parsing|prefect|cdc>}"
+
+# dbt wants --project-dir/--profiles-dir AFTER the subcommand, so append them via a helper
+# rather than a prefix array.
+dbt_run() { uv run dbt "$@" --project-dir dbt --profiles-dir dbt; }
 
 # spec/ (Bruin) is the SSoT — the dbt project is generated, never hand-authored (ADR-0005/0015).
 compile_dbt() {
@@ -45,29 +48,49 @@ ensure_raw() {
   fi
 }
 
+# Install the dbt-hub packages once (packages.yml is emitted by the compiler). Idempotent —
+# dbt caches into dbt/dbt_packages/, so skip when already present.
+ensure_deps() {
+  [[ -d dbt/dbt_packages ]] || dbt_run deps
+}
+
 case "$task" in
   build-dwh)
     compile_dbt
+    ensure_deps
     ensure_raw
-    "${DBT[@]}" build
+    dbt_run build
     ;;
   build-dwh-full)
     compile_dbt
+    ensure_deps
     ensure_raw
-    "${DBT[@]}" build --full-refresh
+    dbt_run build --full-refresh
+    ;;
+  dbt-evaluate)
+    # Use a package: dbt_project_evaluator audits the project for modeling/testing/docs issues.
+    compile_dbt
+    ensure_deps
+    ensure_raw
+    dbt_run build --select package:dbt_project_evaluator
+    ;;
+  dbt-deps)
+    compile_dbt
+    dbt_run deps
     ;;
   update-dbt)
     compile_dbt
-    "${DBT[@]}" parse
+    ensure_deps
+    dbt_run parse
     ;;
   update-dbt-changed)
     compile_dbt
     # state:modified needs a prior manifest; fall back to a full build on the first run.
     if [[ -f dbt/target/manifest.json ]]; then
       cp dbt/target/manifest.json dbt/.prev_manifest.json
-      "${DBT[@]}" build --select 'state:modified+' --state dbt || "${DBT[@]}" build
+      dbt_run build --select 'state:modified+' --state dbt || dbt_run build
     else
-      "${DBT[@]}" build
+      dbt_run build
     fi
     ;;
   parsing)

@@ -19,6 +19,25 @@ _MATERIALIZATION = {"table": "table", "view": "view"}
 # Bruin check name -> dbt generic test name
 _TEST = {"not_null": "not_null", "unique": "unique"}
 
+# Well-known dbt-hub packages, emitted into the generated project's packages.yml (installed by
+# `dbt deps`). Version ranges, not pins, so dbt resolves the newest compatible release. These
+# are the widely DuckDB-compatible utilities; opinionated/heavier ones (automate_dv for Data
+# Vault, elementary for observability) are opt-in via OGIP_DBT_EXTRA_PACKAGES=1.
+_DBT_PACKAGES: list[dict[str, object]] = [
+    {"package": "dbt-labs/dbt_utils", "version": [">=1.1.1", "<2.0.0"]},
+    {"package": "dbt-labs/codegen", "version": [">=0.12.0", "<1.0.0"]},
+    {"package": "dbt-labs/audit_helper", "version": [">=0.12.0", "<1.0.0"]},
+    {"package": "dbt-labs/dbt_project_evaluator", "version": [">=0.14.0", "<1.0.0"]},
+    {"package": "dbt-labs/dbt_external_tables", "version": [">=0.9.0", "<1.0.0"]},
+    {"package": "godatadriven/dbt_date", "version": [">=0.10.0", "<1.0.0"]},
+    {"package": "metaplane/dbt_expectations", "version": [">=0.10.0", "<1.0.0"]},
+    {"package": "data-mie/dbt_profiler", "version": [">=0.8.0", "<1.0.0"]},
+]
+_DBT_PACKAGES_EXTRA: list[dict[str, object]] = [
+    {"package": "Datavault-UK/automate_dv", "version": [">=0.11.0", "<1.0.0"]},
+    {"package": "elementary-data/elementary", "version": [">=0.16.0", "<1.0.0"]},
+]
+
 
 def _rewrite_refs(sql: str, assets: list[Asset]) -> str:
     """`from staging.stg_games` -> `from {{ ref('stg_games') }}` for every known model."""
@@ -144,5 +163,13 @@ def compile_to_dbt(
             sort_keys=False,
         ),
         encoding="utf-8",
+    )
+    import os
+
+    packages = list(_DBT_PACKAGES)
+    if os.environ.get("OGIP_DBT_EXTRA_PACKAGES") == "1":
+        packages += _DBT_PACKAGES_EXTRA
+    (project_dir / "packages.yml").write_text(
+        yaml.safe_dump({"packages": packages}, sort_keys=False), encoding="utf-8"
     )
     return [asset.name for asset in assets]
