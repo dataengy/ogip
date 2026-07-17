@@ -69,6 +69,24 @@ Also yours when you want alerts to actually fire: `pipelines/flows/` has no fail
 nothing calls the `Notifier` yet. `make_notifier()` returns `None` without credentials, so
 wiring it is safe — a credential-free run stays green and quiet.
 
+### Handoff: lane `hygiene` → lane `core-pipeline`
+
+`src/scripts/public-hygiene.sh` refuses to publish another org's identifiers (tracker ids,
+internal hosts, private checkout paths, org/bot names) — the half of a leak gitleaks does not
+cover, since these are not secret, only not-ours. It exists because an agent file in this repo
+leaked a private path to a public commit despite a hand grep. New file, exercised (5/5 marker
+patterns unit-checked, and it caught the real leak, now fixed). It is not yet a gate — to wire
+it (both are your lane):
+
+1. **CI**: add `.ci/steps/public-hygiene.sh` (one line: `source _common.sh; exec bash
+   "$REPO_ROOT/src/scripts/public-hygiene.sh"`) and append `public-hygiene` to the step list in
+   `.ci/run.sh` and to `.github/workflows/ci.yml`.
+2. **prek**: add a local hook to `config/.pre-commit-config.yaml`
+   (`entry: bash src/scripts/public-hygiene.sh`, `language: system`, `pass_filenames: false`).
+
+Marker list is literal inside the script rather than in `config/config.yml` for the same reason
+as alerting — `config/` is yours. Fold it into the SSoT if you prefer it centralized.
+
 ### Handoff: lane `vps` → lane `core-pipeline`
 
 `deploy/vps/` is complete and verified ([tasks/vps-deploy-tooling.md](tasks/vps-deploy-tooling.md)),
