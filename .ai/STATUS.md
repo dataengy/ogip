@@ -11,8 +11,25 @@ Prefect job in CI**; CI green (7/7). Repo: [github.com/dataengy/ogip](https://gi
 Detail: [tasks/m0-walking-skeleton.md](tasks/m0-walking-skeleton.md).
 
 Phase 0 (scaffold) also ✅ shipped — [tasks/phase-0-scaffold.md](tasks/phase-0-scaffold.md).
-Next: **M1–M4** — replicate the slice across toolsets (prefect-bruin, prefect-dbt,
-prefect-sqlmesh-over-dbt, prefect-dagster-dlt-dbt); Evidence visualizer over the outputs; broaden.
+
+## Parallel-session lanes (claim a lock before writing!)
+
+Work is split across concurrent agent sessions. **Claim your lane** with an object lock before
+writing, and settle-check first (`git fetch` + `agent-lock check`):
+
+```bash
+bash ~/.ai/skills/_scripts/session/agent-session-lock.sh acquire --repo . --object <lane> --reason "..."
+```
+
+| Lane (lock object) | Scope | Owner |
+|---|---|---|
+| `core-pipeline` | `spec/` `src/ogip/` `ingestion/` `transform/` `pipelines/` `config/` `.ci/` | **this session** — M1 `prefect-bruin` · `prefect-dbt` · `prefect-sqlmesh-over-dbt` |
+| `obs` | `deploy/obs/`, observability stack | parallel session |
+| `evidence` | `experimental/bi/evidence/` | parallel session |
+| `dagster` | `experimental/orchestration/dagster*`, `prefect-dagster-dlt-dbt` profile | parallel session |
+
+Use the **direct script**, not `just -f … agent-lock` — its recipe re-parses `--reason` through
+`bash -c`, so parentheses break it.
 
 ## Done
 
