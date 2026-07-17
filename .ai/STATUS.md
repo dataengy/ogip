@@ -24,12 +24,30 @@ bash ~/.ai/skills/_scripts/session/agent-session-lock.sh acquire --repo . --obje
 | Lane (lock object) | Scope | Owner |
 |---|---|---|
 | `core-pipeline` | `spec/` `src/ogip/` `ingestion/` `transform/` `pipelines/` `config/` `.ci/` | **this session** — M1 `prefect-bruin` · `prefect-dbt` · `prefect-sqlmesh-over-dbt` |
-| `obs` | `deploy/obs/`, observability stack | parallel session |
+| `obs` | `deploy/obs/`, `src/scripts/obs-*.sh`, `docs/architecture/observability.md` | **parallel session** — Phase 7 stack shipped; 2 handoffs below |
 | `evidence` | `experimental/bi/evidence/` | parallel session |
 | `dagster` | `experimental/orchestration/dagster*`, `prefect-dagster-dlt-dbt` profile | parallel session |
 
 Use the **direct script**, not `just -f … agent-lock` — its recipe re-parses `--reason` through
 `bash -c`, so parentheses break it.
+
+### Handoffs: lane `obs` → lane `core-pipeline`
+
+The Phase 7 stack is live (`make obs-up`), but its pipeline-facing half sits in **your** lane —
+`config/` and `pipelines/` are locked to you, so the obs session did not touch them:
+
+1. **The flow writes no log file** → Alloy tails an empty dir, log panels stay blank.
+   `pipelines/flows/main.py:78` calls a bare `setup_logging()`; `src/ogip/config.py` already
+   exposes both knobs it needs —
+   `setup_logging(json_logs=settings.log_json, log_file=settings.log_file)`.
+   Parsed Loki labels additionally need `platform.log_json: true` in `config/config.yml`.
+2. **Obs ports never reach `.env`** → `config/config.yml` declares `victoriametrics_port`,
+   `loki_port`, `grafana_port`, but `config/.env-render.py` → `_derived()` does not map them, so
+   compose falls back to literals that duplicate the SSoT. Three lines close it.
+
+Optional later: export OTLP metrics to `localhost:4318` (prefix `ogip_`) — Alloy already
+receives them and the dashboard panel is waiting. Detail:
+[docs/architecture/observability.md](../docs/architecture/observability.md) → "Not wired yet".
 
 ## Done
 

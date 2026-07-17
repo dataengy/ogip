@@ -12,7 +12,7 @@ criteria live in [.ai/PLAN.md](../.ai/PLAN.md); this is the at-a-glance map.
 | 4 | **Data quality** — freshness · uniqueness · RI · business rules | ⬜ planned |
 | 5 | **ML-ready outputs + notebooks** — 6 `*.parquet` (marts + FS); DATASETS.md; JupyterLab demos | ⬜ planned |
 | 6 | **Orchestration (Prefect) + Postgres** — end-to-end `make run`; `platform_meta`; ephemeral + server profiles | ⬜ planned |
-| 7 | **Observability** — VictoriaMetrics + Loki + Alloy + Grafana; alerts abstraction | ⬜ planned |
+| 7 | **Observability** — VictoriaMetrics + Loki + Alloy + Grafana; alerts abstraction | 🟡 stack shipped ([deploy/obs/](../deploy/obs/), [docs](architecture/observability.md)); pipeline instrumentation + `Notifier` pending |
 | 8 | **Remaining sources + cloud storage** — Steam Reviews, IGDB, Reddit, Twitch, HLTB, Metacritic; R2/MinIO/S3 profiles | ⬜ planned |
 | 9 | **Comparisons + runnable profiles + research** — spec compiler → dbt/Bruin; engine/orchestration profiles; feature-store-tools + Evidence analyses | ⬜ planned |
 | 10 | **VPS deploy + README + polish** — manual VPS runbook (DevOps separate); outcome-first README; final audit | ⬜ planned |
