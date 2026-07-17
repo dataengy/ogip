@@ -35,6 +35,7 @@ dev = [
     "yamllint>=1.35",
     "types-pyyaml>=6.0",
     "jupyterlab>=4.3",     # DS-facing notebooks (make notebook)
+    "pandas>=2.2",         # notebook/DS ergonomics over the ML-ready parquet
 ]
 # Optional ingestion loader for CDC from the Postgres landing zone (D11).
 ingestr = ["ingestr>=0.13"]
@@ -91,7 +92,8 @@ select = [
 dialect = "duckdb"
 templater = "raw"
 max_line_length = 100
-exclude_rules = "RF04, ST06, AM06"
+# AM04: raw Layer-0 models are deliberate 1:1 `select *` passthroughs.
+exclude_rules = "RF04, ST06, AM06, AM04"
 
 [tool.sqlfluff.indentation]
 indent_unit = "space"
@@ -120,6 +122,7 @@ venv = "venv"
 [tool.pytest.ini_options]
 testpaths = ["src/tests"]
 addopts = "-q --import-mode=importlib --strict-markers"
+pythonpath = ["."] # repo root on sys.path so `ingestion`/`pipelines` import in tests
 cache_dir = ".run/pytest_cache"
 markers = [
     "smoke: cheap wiring checks (config renders, imports) — no external services",
