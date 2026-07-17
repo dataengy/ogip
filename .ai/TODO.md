@@ -11,7 +11,10 @@ Sync to GitHub Issues/Projects with `just tasks-sync`. Keep this list short.
       e2e in CI) — shipped, CI 7/7 → `tasks/m0-walking-skeleton.md` _(Evidence + Docker `make up` deferred to M1)_
 - [ ] **M1–M4 — replicate the slice** across `prefect-bruin` · `prefect-dbt` ·
       `prefect-sqlmesh-over-dbt` · `prefect-dagster-dlt-dbt`; add Evidence visualizer → `tasks/m1-m4-toolsets.md`
-- [ ] **Broaden (Phases 4–10)**: DQ, star/am/fs depth, more sources, observability, VPS deploy,
+- [ ] **VPS deploy tooling** — `deploy/vps/` provision·deploy·smoke shipped + `just tasks-sync`
+      fixed (tracker live) → `tasks/vps-deploy-tooling.md`. _Blocked on `integrations/prefect/deploy.py`
+      for a real host deploy; needs a host in `deploy.vps.host`._
+- [ ] **Broaden (Phases 4–10)**: DQ, star/am/fs depth, more sources, observability,
       README polish → `tasks/phase-*.md`
 
 _Detail per phase lives in `tasks/`; this is the driver checklist._

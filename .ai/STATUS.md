@@ -27,6 +27,8 @@ bash ~/.ai/skills/_scripts/session/agent-session-lock.sh acquire --repo . --obje
 | `obs` | `deploy/obs/`, `src/scripts/obs-*.sh`, `docs/architecture/observability.md` | **parallel session** — Phase 7 stack shipped; 2 handoffs below |
 | `evidence` | `experimental/bi/evidence/` | parallel session |
 | `dagster` | `experimental/orchestration/dagster*`, `prefect-dagster-dlt-dbt` profile | parallel session |
+| `vps` | `deploy/vps/`, `vps-*` recipes, `config/config.yml → deploy.vps.*` | **parallel session** — tooling shipped; 1 handoff below |
+| `s3` | MinIO in `deploy/`, `storage` config, dlt/duckdb S3 destination | parallel session |
 
 Use the **direct script**, not `just -f … agent-lock` — its recipe re-parses `--reason` through
 `bash -c`, so parentheses break it.
@@ -48,6 +50,27 @@ The Phase 7 stack is live (`make obs-up`), but its pipeline-facing half sits in 
 Optional later: export OTLP metrics to `localhost:4318` (prefix `ogip_`) — Alloy already
 receives them and the dashboard panel is waiting. Detail:
 [docs/architecture/observability.md](../docs/architecture/observability.md) → "Not wired yet".
+
+### Handoff: lane `vps` → lane `core-pipeline`
+
+`deploy/vps/` is complete and verified ([tasks/vps-deploy-tooling.md](tasks/vps-deploy-tooling.md)),
+but a real deploy still stops at preflight on one missing artifact in **your** lane:
+
+- **`integrations/prefect/deploy.py` does not exist** → `just prefect-deploy` and `deploy.sh`
+  step 5 have nothing to call. (`deploy/docker-compose.yml`, the other prerequisite, landed
+  with the obs/compose lane on 2026-07-17.)
+
+`deploy.sh` preflights and refuses to start rather than half-deploying, so this is a clean
+block, not a landmine. Nothing else in `deploy/vps/` needs you: settings are read straight from
+`config/config.yml → deploy.vps.*` via `yq`, so `config/.env-render.py` needed **no** change.
+
+## Known-broken references
+
+- `just prefect-deploy` / `prefect-run` → `integrations/prefect/{deploy,trigger}.py` — **missing**
+  (core-pipeline lane; `integrations/` does not exist yet). `deploy/vps/smoke.sh` calls `trigger.py`.
+- ~~`just tasks-sync` → `integrations/github/tasks_sync.py`~~ — **fixed** 2026-07-17: rewritten as
+  `src/scripts/tasks_sync.py` (pyright-covered, unlike `integrations/`). Tracker is live:
+  [issues #1–#3](https://github.com/dataengy/ogip/issues).
 
 ## Done
 
