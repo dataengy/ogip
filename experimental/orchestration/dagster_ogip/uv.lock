@@ -575,6 +575,7 @@ dependencies = [
     { name = "dagster-dlt" },
     { name = "dagster-postgres" },
     { name = "dbt-duckdb" },
+    { name = "ingestr" },
 ]
 
 [package.dev-dependencies]
@@ -590,6 +591,7 @@ requires-dist = [
     { name = "dagster-dlt", specifier = ">=0.29.14" },
     { name = "dagster-postgres", specifier = ">=0.29.14" },
     { name = "dbt-duckdb", specifier = ">=1.10.1" },
+    { name = "ingestr", specifier = ">=1.1.1" },
 ]
 
 [package.metadata.requires-dev]
@@ -1303,6 +1305,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/e7/72/c600ae4f68c28fc19f9c31b9403053e5dbb8cace2e6842c7b7c3e4d42fe9/importlib_metadata-8.9.0.tar.gz", hash = "sha256:58850626cef4bd2df100378b0f2aea9724a7b92f10770d547725b047078f99ee", size = 56140, upload-time = "2026-03-20T16:56:26.362Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7d/f9/97f2ca8bb3ec6e4b1d64f983ebe98b9a192faddff67fac3d6303a537e670/importlib_metadata-8.9.0-py3-none-any.whl", hash = "sha256:e0f761b6ea91ced3b0844c14c9d955224d538105921f8e6754c00f6ca79fba7f", size = 27220, upload-time = "2026-03-20T16:56:25.07Z" },
+]
+
+[[package]]
+name = "ingestr"
+version = "1.1.1"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/18/9b/d8ef7a54aa25667d2c1bd1da8cf7ef92c89605cad100a9043861ec95edb4/ingestr-1.1.1-py3-none-macosx_10_15_x86_64.whl", hash = "sha256:1ffcc55449d704817fae3a2a9184c1243d305e42ef01ca61fa64d016fd5d4110", size = 78112486, upload-time = "2026-07-17T11:20:00.746Z" },
+    { url = "https://files.pythonhosted.org/packages/15/eb/c3d9e3031a65292a874cb3b4aebe09726ceb6504dba96e3e4d7e14aad649/ingestr-1.1.1-py3-none-macosx_11_0_arm64.whl", hash = "sha256:88caa94d3aa19629addfe2757fc906c6cb17db35e7d57ed71344a14c4e6239c4", size = 71085927, upload-time = "2026-07-17T11:20:04.063Z" },
+    { url = "https://files.pythonhosted.org/packages/c5/b0/4a25edbd4a24f2c7197fe5cd969ba5dfcb53a0b377fce3b5c13e38943f14/ingestr-1.1.1-py3-none-manylinux2014_aarch64.whl", hash = "sha256:ffef65ef8b2223a28c0ad9126085d2303378625c4505440bd7fd92379561d59c", size = 69446154, upload-time = "2026-07-17T11:20:07.315Z" },
+    { url = "https://files.pythonhosted.org/packages/c4/54/939a5a4bcc0fe4d270f2d8259da1184c6d43a4e93abb9cfd4eeeebe62393/ingestr-1.1.1-py3-none-manylinux2014_x86_64.whl", hash = "sha256:2bf796243d519df85c7e9842f5ff92fd6afa093831354f2733aef6bd284ed0e5", size = 78325280, upload-time = "2026-07-17T11:20:10.59Z" },
+    { url = "https://files.pythonhosted.org/packages/9b/3a/7a0c69bbe4c4be09c303aa83d2fdc04ac53c8bb342f304872eb2608fd8fe/ingestr-1.1.1-py3-none-win_amd64.whl", hash = "sha256:206a46835138ddf913e2264bc6e9d1975dac89d9c1347c9c5c85d58ccbcf7e3a", size = 79632001, upload-time = "2026-07-17T11:20:14.429Z" },
 ]
 
 [[package]]
