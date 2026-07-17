@@ -4,7 +4,7 @@ type: duckdb.sql
 materialization:
   type: table
 owner: data-eng@ogip
-tags: [fs, feature-store]
+tags: [fs, feature-store, daily]
 depends:
   - core.game
 columns:

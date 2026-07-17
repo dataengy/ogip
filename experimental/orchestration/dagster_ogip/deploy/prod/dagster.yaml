@@ -1,0 +1,42 @@
+# PROD instance — PostgreSQL-backed, queued, non-dev tooling.
+#
+#   export DAGSTER_HOME=/opt/ogip/dagster        # this file must be copied to $DAGSTER_HOME
+#   dagster-webserver / dagster-daemon           # long-running services (not `dg dev`)
+#
+# Secrets come from the environment (ADR-0011: gitignored .env locally, GitHub Actions
+# secrets in CI) — never inlined here. Reuses the SAME Postgres as the platform's landing
+# zone + platform_meta (ADR-0008), on its own database.
+storage:
+  postgres:
+    postgres_db:
+      username:
+        env: DAGSTER_PG_USERNAME
+      password:
+        env: DAGSTER_PG_PASSWORD
+      hostname:
+        env: DAGSTER_PG_HOST
+      db_name:
+        env: DAGSTER_PG_DB
+      port: 5432
+
+# Queue runs instead of firing them immediately — the prod difference that keeps a small VPS
+# from being trampled by a backfill.
+run_coordinator:
+  module: dagster.core.run_coordinator.queued_run_coordinator
+  class: QueuedRunCoordinator
+  config:
+    max_concurrent_runs: 4
+
+# Isolate each run in its own process, so one failing asset cannot take the daemon with it.
+run_launcher:
+  module: dagster.core.launcher
+  class: DefaultRunLauncher
+
+retention:
+  schedule:
+    purge_after_days: 30
+  sensor:
+    purge_after_days: 7
+
+telemetry:
+  enabled: false

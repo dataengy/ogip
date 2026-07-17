@@ -4,7 +4,7 @@ type: duckdb.sql
 materialization:
   type: table
 owner: data-eng@ogip
-tags: [core, entity]
+tags: [core, entity, daily]
 depends:
   - staging.stg_games
 columns:
