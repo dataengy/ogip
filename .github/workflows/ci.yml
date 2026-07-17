@@ -35,6 +35,14 @@ jobs:
         with: { enable-cache: true }
       - run: .ci/run.sh test
 
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with: { enable-cache: true }
+      - run: .ci/run.sh e2e # runs the Prefect pipeline end-to-end on the demo fixture
+
   bash-lint:
     runs-on: ubuntu-latest
     steps:
