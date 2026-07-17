@@ -22,5 +22,6 @@ These ADRs formalize the locked decisions in [`.ai/PLAN.md`](../../.ai/PLAN.md) 
 | [0011](ADR-0011-minimal-secrets.md) | Minimal secrets: `.env` + GitHub Actions secrets | D10 | Accepted |
 | [0012](ADR-0012-github-ci-manual-vps-deploy.md) | GitHub Actions CI + manual VPS deploy (DevOps separate) | D9 | Accepted |
 | [0013](ADR-0013-github-issues-projects-tasks.md) | GitHub Issues/Projects as the task tracker | D12 | Accepted |
+| [0014](ADR-0014-resilient-scraping-concurrency.md) | Resilient scraping: async-first, effectively-once landing | A6/D11 scraper pattern | Proposed |
 
 New ADRs are numbered sequentially (`ADR-NNNN-kebab-title.md`) and added to this table.

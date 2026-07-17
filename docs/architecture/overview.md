@@ -6,7 +6,9 @@ ML Engineers, and Analysts. The production path is deliberately lean; every expe
 quarantined into `experimental/` or [`docs/comparisons/`](../comparisons/).
 
 > This overview is the entry point; [`.ai/PLAN.md`](../../.ai/PLAN.md) Part A is the fuller
-> reference until the per-topic sub-docs are written. Decisions are recorded as [ADRs](../adr/).
+> reference until the per-topic sub-docs are written. Decisions are recorded as [ADRs](../adr/);
+> unresolved requirement questions (with defaults + decision triggers) in
+> [OPEN-QUESTIONS](../OPEN-QUESTIONS.md).
 
 ## Production pipeline
 
@@ -37,6 +39,7 @@ flowchart LR
 | Transform | SQLMesh (default), from spec | [0004](../adr/ADR-0004-sqlmesh-default-transform-engine.md) |
 | Spec SSoT | Bruin format + ODCS + compiler | [0005](../adr/ADR-0005-spec-ssot-bruin-odcs-compiler.md) |
 | Ingestion | dlt default + Postgres landing; ingestr/CDC opt. | [0006](../adr/ADR-0006-dlt-default-ingestion-postgres-landing.md) |
+| Scraping | async-first `ScraperSource`; effectively-once landing | [0014](../adr/ADR-0014-resilient-scraping-concurrency.md) |
 | Orchestration | Prefect 3 + runnable alt setups | [0007](../adr/ADR-0007-prefect-orchestration.md) |
 | Product | ML outputs + Feature Store (no BI/semantic core) | [0009](../adr/ADR-0009-ml-outputs-feature-store.md) |
 | Modeling | 3NF · Data Vault · Kimball · Activity Schema | [0010](../adr/ADR-0010-activity-model-layer.md) |
