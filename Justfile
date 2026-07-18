@@ -50,6 +50,14 @@ tidy-root:
 _vps-script script *args:
     bash deploy/vps/{{script}} {{args}}
 
+# Create (or reuse) the Hetzner box, then print the OGIP_VPS_HOST export for vps-provision.
+# Idempotent by deploy.hetzner.server_name — re-running reuses the box, never bills a second.
+vps-hetzner *args:
+    @just -f {{justfile()}} _vps-script hetzner.sh {{args}}
+
+vps-hetzner-dry *args:
+    @just -f {{justfile()}} _vps-script hetzner.sh --dry-run {{args}}
+
 # Bootstrap a bare host over ssh (runs from here, as root on the host). Idempotent.
 vps-provision *args:
     @just -f {{justfile()}} _vps-script provision.sh {{args}}
