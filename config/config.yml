@@ -6,7 +6,7 @@ platform:
   data_dir: .run/data # runtime zones: warehouse/, raw/, outputs/ (gitignored)
   log_dir: .run/logs # canonical log home — never the repo root (gitignored)
   log_level: INFO
-  log_json: false
+  log_json: true # JSON logs → Loki parsed labels (obs)
 
 storage: # ADR-0003 / D2 — Parquet lake
   backend: local # local (default, FS) | minio | s3 | r2

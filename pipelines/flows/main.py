@@ -76,7 +76,10 @@ def publish(_models: list[str]) -> dict[str, int]:
 @flow(name="ingest_transform_publish", on_failure=[notify_flow_failure])
 def ingest_transform_publish() -> dict[str, int]:
     """The daily driver — ingest → transform → publish (asset lineage via @materialize)."""
-    setup_logging()
+    settings = get_settings()
+    # Write a structured log file so the obs stack (Alloy → Loki) has something to tail, and
+    # honor the SSoT json/level knobs instead of a bare default.
+    setup_logging(json_logs=settings.platform.log_json, log_file=settings.platform.log_file)
     raw = ingest()
     models = transform(raw)
     return publish(models)

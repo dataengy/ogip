@@ -81,6 +81,11 @@ def _derived(cfg: dict[str, Any]) -> dict[str, str]:
         "POSTGRES_PORT": str(svc["postgres_port"]),
         "MINIO_API_PORT": str(svc["minio_api_port"]),
         "MINIO_CONSOLE_PORT": str(svc["minio_console_port"]),
+        # Observability stack ports — the obs compose reads these (else it falls back to
+        # literals that duplicate the config.yml SSoT).
+        "VICTORIAMETRICS_PORT": str(svc["victoriametrics_port"]),
+        "LOKI_PORT": str(svc["loki_port"]),
+        "GRAFANA_PORT": str(svc["grafana_port"]),
         # NOTE: never emit bare PREFECT_* names — Prefect 3 loads .env through
         # pydantic-settings, so PREFECT_API_URL would hijack its own setting and force
         # client→server mode, breaking ephemeral runs. Ours stay OGIP_-prefixed; the
