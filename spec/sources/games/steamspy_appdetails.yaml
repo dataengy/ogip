@@ -1,0 +1,31 @@
+# ── GENERATED FILE — DO NOT EDIT ──────────────────────────────────────────────
+# Projected from the ingestion registry (the SSoT):
+#   ~/.ai/skills/.settings/de/ingestion/sources/games/steamspy_appdetails.yml
+# Edit THAT file, then regenerate:
+#   just -f ~/.ai/skills/_scripts/de/ingestion/Justfile spec-emit /Users/nk.myg/gi/@dataengy/OGIP
+# Hand edits here WILL be overwritten and were measured to be unsyncable by
+# hardlink (git checkout severs the link) — hence this one-way projection.
+# ──────────────────────────────────────────────────────────────────────────────
+# Source: steamspy_appdetails
+# Split from ingestion.yml — edit HERE, this is the SSoT.
+  steamspy_appdetails:
+    system: steamspy
+    entity: appdetails
+    url: https://steamspy.com/api.php
+    auth: none
+    tier: direct
+    publishable: true
+    license: steamspy-unstated
+    license_note: "robots.txt = Allow: /. No key, no stated license or attribution terms."
+    key_param: null
+    slot: null
+    records_path: null # flat object, 17 fields
+    probe_params:
+      request: appdetails
+      appid: 440
+    rate_limit_note: "1 req/sec documented (NOT enforced in testing — honour it anyway)"
+    traps: >
+      Returns HTTP 200 for GARBAGE appids — appid=99999999 → {"name": null, "positive": 0,
+      "owners": "0 .. 20,000"}. NO error signal. Guard on `name is null` or you ingest
+      phantom zero-rows that look like real games.
+    docs: https://steamspy.com/api.php

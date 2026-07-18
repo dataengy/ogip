@@ -1,6 +1,22 @@
-# Task — Resilient scraping: `ScraperSource` + landing + first scraped source (HLTB)
+# Task — Resilient scraping: `ScraperSource` + landing + first scraped source (~~HLTB~~ → Metacritic)
 
 **Status:** 📋 planned · **Priority:** **P1**
+
+> **⛔ 2026-07-18 — HLTB is legally blocked; first scraped source is now Metacritic.**
+> HowLongToBeat (Ziff Davis) robots.txt prohibits automated retrieval outright and names
+> AI/ML databases and dataset-sharing as prohibited uses — OGIP publishes ML-ready
+> datasets, so this is disqualifying regardless of `publishable: false` (that protects
+> the data, not the fetch). Evidence + verbatim quote:
+> [`spec/sources/games/hltb_games.yaml`](../../spec/sources/games/hltb_games.yaml)
+> (`do_not_fetch: true` — the probe returns FORBIDDEN without opening a connection).
+> Metacritic — planned below as merely "next after" — is robots-permitted for `/game/`
+> and its scrape contract is live-verified (JSON-LD, 6/6 fields):
+> [`spec/sources/games/metacritic_game.yaml`](../../spec/sources/games/metacritic_game.yaml).
+> SteamCharts (css markers) and OpenCritic (JSON-LD) are also probe-verified and ready.
+> Game-length data needs a licensed or permissive substitute (licensing@ziffdavis.com, or
+> IGDB/Wikidata fields) — tracked in the backlog. Everything else in this task
+> (ScraperSource, landing, politeness, resilience) stands unchanged; only the target
+> source swaps.
 
 Lane: `ingestion` (claim the lock object before writing). Scope:
 `ingestion/base/scraper_source.py`, `ingestion/common/{http,throttle,cache,watermark}.py`,

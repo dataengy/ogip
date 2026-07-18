@@ -1,0 +1,61 @@
+# ── GENERATED FILE — DO NOT EDIT ──────────────────────────────────────────────
+# Projected from the ingestion registry (the SSoT):
+#   ~/.ai/skills/.settings/de/ingestion/sources/games/metacritic_game.yml
+# Edit THAT file, then regenerate:
+#   just -f ~/.ai/skills/_scripts/de/ingestion/Justfile spec-emit /Users/nk.myg/gi/@dataengy/OGIP
+# Hand edits here WILL be overwritten and were measured to be unsyncable by
+# hardlink (git checkout severs the link) — hence this one-way projection.
+# ──────────────────────────────────────────────────────────────────────────────
+# Source: metacritic_game
+# Split from ingestion.yml — edit HERE, this is the SSoT.
+  # ── Games: quality dimension (the `landed` / scraped tier) ──────────────────
+
+  metacritic_game:
+    system: metacritic
+    entity: game
+    # The scrape exemplar for the `landed` tier — chosen over HLTB on ROBOTS EVIDENCE
+    # (see hltb_games below, which is forbidden outright). Verified 2026-07-18 by one
+    # polite GET to /game/hades/: HTTP 200, 830KB.
+    url: https://www.metacritic.com/game/hades/
+    auth: none
+    tier: landed
+    publishable: false
+    license: metacritic-tou-unreviewed
+    license_note: >
+      robots.txt PERMITS /game/ (see scrape.robots). That clears the mechanical gate only —
+      the Fandom/Metacritic Terms of Use have NOT been reviewed for redistribution of
+      critic aggregates. publishable stays false until that review is written down here.
+      robots.txt is permission to fetch, never permission to republish.
+    key_param: null
+    slot: null
+    records_path: null # HTML page; the record is the embedded JSON-LD
+    probe_params: {}
+    rate_limit_note: "unstated; be conservative — 1 req/2s per domain, honour Retry-After"
+    traps: >
+      The site was REBUILT: every `class=*metascore*` selector from older scrapers/tutorials
+      now matches ZERO nodes (verified — 0 hits on a live page). Scraping visible markup here
+      is already broken. Extract the schema.org JSON-LD instead; it is published deliberately
+      for machines and survives re-skins.
+    scrape:
+      fetch_tier: httpx # static HTML — no JS render needed; do NOT escalate without evidence
+      render: false
+      url_template: https://www.metacritic.com/game/{slug}/
+      discovery: >
+        slugs from games already in raw (rawg__games / steam__appdetails name → slug), or
+        the site's own published sitemap https://www.metacritic.com/games.xml
+      row_selector: 'script[type="application/ld+json"]' # ONE block per page
+      parser: json_ld # stdlib json — no bs4/selectolax dependency needed
+      fields:
+        name: .name
+        released: .datePublished
+        genre: .genre
+        publisher: .publisher[0].name
+        metascore: .aggregateRating.ratingValue
+        review_count: .aggregateRating.reviewCount
+      landing_table: landing.metacritic__game
+      politeness: { per_domain_conns: 1, min_interval_ms: 2000, respect_retry_after: true }
+      robots: >
+        VERIFIED 2026-07-18 — `User-agent: *` disallows only /search /signup /login /user
+        /jl/ /8264/ /7336/. `/game/` is NOT disallowed, and the site publishes
+        https://www.metacritic.com/games.xml as a sitemap. Re-check before each new path.
+    docs: https://www.metacritic.com/
