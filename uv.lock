@@ -2607,6 +2607,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "pyyaml" },
+    { name = "sqlglot" },
     { name = "sqlmesh", extra = ["postgres"] },
     { name = "tenacity" },
 ]
@@ -2650,6 +2651,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.10" },
     { name = "pydantic-settings", specifier = ">=2.8" },
     { name = "pyyaml", specifier = ">=6.0" },
+    { name = "sqlglot", specifier = ">=26" },
     { name = "sqlmesh", extras = ["postgres"], specifier = ">=0.150" },
     { name = "tenacity", specifier = ">=9.0" },
 ]
