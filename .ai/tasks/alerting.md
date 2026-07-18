@@ -50,7 +50,9 @@ happened and never learns *where* it goes. The obs stack (VictoriaMetrics/Loki/G
 map it in `config/.env-render.py` (incl. secret slots), then swap the literal defaults in
 `settings.py` for `_yaml("alerting", …)`. Detail: [STATUS.md](../STATUS.md).
 
-Deferred until the parallel lanes finish:
+Deferred items, updated 2026-07-18:
 
-- Flow-failure alerts wired into `pipelines/` (lane `core-pipeline`).
-- Grafana/VM alert rules → webhook receiver → `Notifier` (lane `obs`).
+- ~~Flow-failure alerts wired into `pipelines/`~~ — **done** (`pipelines/alerting_hooks.py`,
+  `on_failure` on the flow; verified against a real failing Prefect run; commit `9793517`).
+- Grafana/VM alert rules → webhook receiver → `Notifier` (lane `obs`) —
+  [#26](https://github.com/dataengy/ogip/issues/26).
