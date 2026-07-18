@@ -11,6 +11,18 @@ branch at the same time. Your job is to land your work without ever damaging the
 The lane table in [`.ai/STATUS.md`](../../.ai/STATUS.md) is the map: lane → scope → owner. Read
 it first, every time. It changes while you work.
 
+## 0. Read the field first — `lane-status.sh`
+
+```bash
+bash src/scripts/lane-status.sh                      # locks (live/STALE + holder) · git drift · settle · VERDICT
+bash src/scripts/lane-status.sh <lane>               # exit 0 = claimable, 1 = held by a live session
+bash src/scripts/lane-status.sh --wait <lane> --timeout 1800   # block until claimable (exit 3 = timed out)
+```
+
+One read-only command answers "check env, parallel sessions & locks, go or wait" — locks are
+read from disk (`.ai/.locks/`), never from a table that drifts. `--wait` replaces re-running
+the snapshot by hand when your lane is held: it returns the moment the lock is gone or stale.
+
 ## 1. Claim before writing — `lane.sh`
 
 ```bash
