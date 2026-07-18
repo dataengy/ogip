@@ -45,9 +45,13 @@ def ingest() -> str:
 
 
 @materialize(CORE_GAME, FS_MARKET_FEATURES)
-def transform(_raw: str) -> list[str]:
-    """Compile spec/ (Bruin) → SQLMesh models, then build the warehouse."""
+def transform(_raw: str, engine: str = "sqlmesh") -> list[str]:
+    """Build the warehouse — SQLMesh (production) or a comparison engine (A12 profiles)."""
     get_settings().platform.warehouse_path.parent.mkdir(parents=True, exist_ok=True)
+    if engine != "sqlmesh":  # comparison profiles only; the default path never leaves SQLMesh
+        from transform.engines import run_transform_engine
+
+        return run_transform_engine(engine)
     models = compile_to_sqlmesh(SPEC_SQL, SQLMESH_DIR / "models")
     logger.info("compiled {n} SQLMesh models: {m}", n=len(models), m=models)
     subprocess.run(
@@ -74,11 +78,15 @@ def publish(_models: list[str]) -> dict[str, int]:
 
 
 @flow(name="ingest_transform_publish", on_failure=[notify_flow_failure])
-def ingest_transform_publish() -> dict[str, int]:
-    """The daily driver — ingest → transform → publish (asset lineage via @materialize)."""
+def ingest_transform_publish(transform_engine: str = "sqlmesh") -> dict[str, int]:
+    """The daily driver — ingest → transform → publish (asset lineage via @materialize).
+
+    `transform_engine` comes from the run profile (`just run-profile <name>`): "sqlmesh"
+    (default, production) or a comparison engine from `transform/engines.py`.
+    """
     setup_logging()
     raw = ingest()
-    models = transform(raw)
+    models = transform(raw, transform_engine)
     return publish(models)
 
 

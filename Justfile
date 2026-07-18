@@ -16,6 +16,10 @@ run-profile name="prefect-sqlmesh":
 spec-compile engine="all":
     uv run python -m ogip.spec_compile {{engine}}
 
+# Cross-engine parity: every generated engine builds the SAME data from one spec.
+spec-verify *args:
+    uv run python src/scripts/spec-compile-verify.py {{args}}
+
 # --- Prefect (integrations/prefect: deploy + trigger via CLI/API) ---
 prefect-deploy:
     uv run python integrations/prefect/deploy.py
