@@ -61,8 +61,17 @@ vps-provision-dry *args:
 vps-deploy *args:
     @bash deploy/vps/remote.sh deploy.sh {{args}}
 
+# On-HOST preview: ssh in, then deploy.sh --dry-run there. Needs a reachable host (it previews
+# what the deploy would do on that specific box). For a host-free check, use vps-deploy-preview.
 vps-deploy-dry *args:
     @bash deploy/vps/remote.sh deploy.sh --dry-run {{args}}
+
+# OFFLINE preview: run deploy.sh --dry-run locally, no ssh (opens no connection). Validates the
+# deploy logic + the preflight gate for missing cross-lane artifacts. Still needs a host VALUE
+# (OGIP_VPS_HOST or deploy.vps.host) since settings load first — but any placeholder works; it
+# is never contacted. Use this while the box is still being provisioned.
+vps-deploy-preview *args:
+    @bash deploy/vps/deploy.sh --dry-run {{args}}
 
 # Verify a deploy ON the host (read-only).
 vps-smoke *args:
