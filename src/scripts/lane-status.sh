@@ -74,6 +74,7 @@ probe() {
     at="$(sed -n "s/^OWNER_AT=//p" "$meta" | head -1 | tr -d "'\"")"
     ttl="$(sed -n "s/^OWNER_TTL=//p" "$meta" | head -1 | tr -d "'\"")"
     # owner.env values are printf-%q quoted — strip the escaping for display
+    # shellcheck disable=SC1003  # `tr -d '\\'` deletes backslashes; not a quote-escape typo
     reason="$(sed -n "s/^OWNER_REASON=//p" "$meta" | head -1 | tr -d '\\' | tr -d "'\"" | cut -c1-60)"
   fi
   now="$(date +%s)"
