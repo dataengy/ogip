@@ -1,0 +1,13 @@
+{
+  "$comment": "Project MCP config — lets Claude Code / Cursor drive the running Dagster instance (dg dev at :3000) through dagster-mcp (21 tools: runs, assets, jobs, schedules/sensors, launch_job, backfill_assets, reload_code_location). READ-ONLY by default; set DAGSTER_READ_ONLY=false to allow launches/backfills/terminations. See docs/runbooks/run-dagster.md.",
+  "mcpServers": {
+    "dagster": {
+      "command": "uvx",
+      "args": ["dagster-mcp"],
+      "env": {
+        "DAGSTER_URL": "http://localhost:3000",
+        "DAGSTER_READ_ONLY": "true"
+      }
+    }
+  }
+}
