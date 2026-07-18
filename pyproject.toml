@@ -12,6 +12,7 @@ dependencies = [
     "sqlmesh[postgres]>=0.150",                      # default transform engine (from spec/)
     "prefect>=3.4",                                  # orchestration
     "duckdb>=1.2",
+    "sqlglot>=26",                                   # spec SQL: AST rewriting + dialect transpile
     "pyarrow>=19",
     "psycopg[binary]>=3.2",                          # Postgres landing + platform_meta
     "httpx>=0.28",
