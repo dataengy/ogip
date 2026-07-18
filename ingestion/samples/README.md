@@ -10,3 +10,8 @@ credentials** (demo mode / CI). These are **not** captured API responses.
 **dlt still does the ingest** — in demo mode dlt loads *these records*; in live mode dlt loads
 records fetched from the real API. To capture a **real** sample instead, set a RAWG API key in
 `.env` and run `just capture-sample rawg` (fetches live via dlt and overwrites the fixture).
+
+**Size rule (Git LFS):** small text fixtures (like `rawg_games.json`) stay plain git —
+diffable, reviewable. Binary/large samples (`*.parquet`, `*.zip`, `*.gz`) go through
+**Git LFS** automatically via `.gitattributes`; run `make lfs-install` once per clone or
+`git add` silently stores a raw blob and `.ci/run.sh lfs-guard` fails the build.

@@ -12,6 +12,10 @@ default:
 run-profile name="prefect-sqlmesh":
     uv run python src/scripts/run-profile.py {{name}}
 
+# --- Spec compiler (ADR-0005): regenerate transform/ engine projects from spec/sql ---
+spec-compile engine="all":
+    uv run python -m ogip.spec_compile {{engine}}
+
 # --- Prefect (integrations/prefect: deploy + trigger via CLI/API) ---
 prefect-deploy:
     uv run python integrations/prefect/deploy.py
@@ -44,6 +48,10 @@ secrets-render:
 # --- Repo hygiene: fail if stray files land in the root (root-lean rule) ---
 tidy-root:
     bash .ci/steps/structure-validate.sh
+
+# --- Repo hygiene: large test datasets must be LFS pointers, not raw blobs ---
+lfs-guard:
+    bash .ci/steps/lfs-guard.sh
 
 # --- VPS: manual deploy (ADR-0012). Settings: config/config.yml -> deploy.vps.* ---
 # Each mutating recipe has a -dry sibling; both delegate to _vps-script (single body).

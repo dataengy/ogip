@@ -77,6 +77,7 @@ projects are **generated from `spec/`** by the compiler, never hand-forked.
 | `Makefile` | thin: main short commands; delegates heavy bodies to Justfile |
 | `Justfile` | spec ops + heavy logic: run-profile, CI steps, generators |
 | `.ai/` | agentic hub: AGENTS/CLAUDE/README/STATUS/PLAN + `tasks/`; root `AGENTS.md` is a symlink here |
+| **Git LFS** | **large test datasets** (recorded fixtures, sampled dumps, parquet cases) are LFS pointers, never raw blobs — patterns in `.gitattributes` (format-scoped: binary formats on fixture paths; small JSON/text fixtures stay plain git so diffs read). One-time per clone: `make lfs-install`. Enforced un-skippably by `.ci/run.sh lfs-guard` (>512KB raw blob or LFS-attributed raw blob → CI red); local: `just lfs-guard` |
 
 Workflow: **phased delivery with user approval gates** (plan in [PLAN.md](PLAN.md), near-term
 actions in [TODO.md](TODO.md), status in [STATUS.md](STATUS.md), per-phase task files in

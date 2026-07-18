@@ -67,6 +67,10 @@ ci: ## Run the shared CI steps exactly as GitHub Actions runs them
 	bash .ci/run.sh lint
 	bash .ci/run.sh typecheck
 	bash .ci/run.sh test
+	bash .ci/run.sh lfs-guard
+
+lfs-install: ## One-time per clone: enable Git LFS hooks (large test datasets)
+	git lfs install --local
 
 hooks: ## Run all pre-commit hooks over the whole tree
 	$(PREK) run --all-files
