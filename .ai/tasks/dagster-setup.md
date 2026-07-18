@@ -68,6 +68,17 @@ on the resource + added pyarrow); DuckDB won't create its parent dir (`mkdir -p`
 layers into `main` (added `schema=<layer>` + a `generate_schema_name` macro), and the `raw` dbt
 model's key collided with the dlt asset (left `raw` schema-unqualified — it is only a registration view).
 
+## AI / MCP / tooling (done — evaluated with real facts)
+
+- **Dagster MCP** — wired `dagster-mcp` (0.6.0) via `.mcp.json` → the running `dg dev` (:3000),
+  21 tools, read-only by default. Verified it installs + starts. Agents can now inspect/launch/
+  backfill the instance over MCP.
+- **dagster-io/skills** — official Agent-Skills pack; install per-user via the Claude plugin
+  marketplace (`/plugin marketplace add dagster-io/skills`), not committed here. Noted in runbook.
+- **dagster-odp** — evaluated (config-driven Dagster framework, PyPI 0.1.4). **Not adopted** — it
+  overlaps our spec→compiler SSoT and is Dagster-specific. Kept as
+  [docs/comparisons/dagster-odp-vs-spec-compiler.md](../../docs/comparisons/dagster-odp-vs-spec-compiler.md).
+
 ## Next
 
 - Verify **prod** + a live CDC run for real: needs Docker/Postgres with `wal_level=logical` +

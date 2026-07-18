@@ -79,6 +79,33 @@ needs `DAGSTER_HOME` pointed at it, `DAGSTER_PG_*` env, and long-running `dagste
 `dagster-daemon` (not `dg dev`). CDC additionally needs `wal_level=logical` +
 `CREATE PUBLICATION ogip_landing_pub FOR TABLES IN SCHEMA landing` — a DBA/VPS step.
 
+## AI / MCP integration
+
+**MCP — drive the running instance from an agent.** [`dagster-mcp`](https://pypi.org/project/dagster-mcp/)
+wraps the Dagster GraphQL API (21 tools: runs, assets, jobs, schedules/sensors, `launch_job`,
+`backfill_assets`, `reload_code_location`). It is declared in `.mcp.json` here, pointed at the
+`dg dev` webserver:
+
+```jsonc
+// .mcp.json → mcpServers.dagster → uvx dagster-mcp, DAGSTER_URL=http://localhost:3000
+```
+
+Start `dg dev` first, then the MCP client (Claude Code / Cursor) picks up `.mcp.json`. It is
+**read-only by default** (`DAGSTER_READ_ONLY=true`); flip to `false` to allow launches/backfills/
+terminations. Verified: `uvx dagster-mcp` installs and starts against the local instance.
+
+**Skills — build Dagster faster.** [`dagster-io/skills`](https://github.com/dagster-io/skills) is
+Dagster's official Agent-Skills pack (Claude Code / Cursor / Codex compatible). Install per-user,
+not in this repo:
+
+```
+/plugin marketplace add dagster-io/skills
+```
+
+**Config-driven Dagster (evaluated, not adopted):** see
+[docs/comparisons/dagster-odp-vs-spec-compiler.md](../comparisons/dagster-odp-vs-spec-compiler.md) —
+dagster-odp overlaps our spec→compiler SSoT, so it stays a reference.
+
 ## Escalation
 
 - Stuck/queued runs → the `/dagster-zombie-runs` skill. Infra (Postgres/Docker) → DevOps (separate).
