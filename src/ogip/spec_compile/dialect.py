@@ -13,10 +13,17 @@ made executable rather than merely documented.
 
 from __future__ import annotations
 
+from typing import cast
+
 import sqlglot
 import sqlglot.expressions as exp  # module: value access (exp.Table, exp.alias_) needs no re-export
 from sqlglot.errors import ParseError
-from sqlglot.expressions.core import Expr  # the base node type, from its defining module
+
+# Base node type. `exp.Expression` (attribute access) is stable across every sqlglot version —
+# unlike `sqlglot.expressions.core`, which only exists once 30.x split expressions into a package
+# (the Dagster project's older sqlglot has it as a plain module, so that import path ImportErrors).
+# pyright flags the star-re-exported name as private — a stub quirk, not a real issue.
+Expr = exp.Expression  # pyright: ignore[reportPrivateImportUsage]
 
 SPEC_DIALECT = "duckdb"  # the dialect spec/sql is authored in
 
@@ -30,7 +37,8 @@ def parse(sql: str, *, read: str = SPEC_DIALECT) -> Expr:
     if not sql.strip():  # parse_one returns None here — guard up front so the type stays Expr
         raise SqlSpecError("empty SQL statement")
     try:
-        return sqlglot.parse_one(sql, read=read)
+        # sqlglot types parse_one as its internal base node; cast to our stable Expr alias.
+        return cast("Expr", sqlglot.parse_one(sql, read=read))
     except ParseError as err:
         raise SqlSpecError(f"unparseable {read} SQL: {err}") from err
 
@@ -69,7 +77,8 @@ def rewrite_refs(
             if target is not None:
                 # `alias_` keeps `from staging.stg_games s` working after the swap.
                 replacement = exp.to_identifier(target, quoted=False)
-                return exp.alias_(replacement, node.alias) if node.alias else replacement
+                out = exp.alias_(replacement, node.alias) if node.alias else replacement
+                return cast("Expr", out)
         return node
 
     # pretty: the generated projects are read by humans during engine comparisons.
