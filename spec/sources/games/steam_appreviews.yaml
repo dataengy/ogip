@@ -32,3 +32,14 @@
       Cursor MUST be URL-encoded (`AoJ4ltLetp8Dc4Ps7wY=` → `...%3D`) or pagination silently
       repeats page 1.
     docs: https://partner.steamgames.com/doc/store/getreviews
+    # Creation metadata — who registered this and on what evidence (audit trail;
+    # the verdicts themselves are still re-probed live, never trusted from here).
+    provenance:
+      added: 2026-07-17
+      actor: Claude (Opus 4.8) agent session — OGIP ingestion lane
+      directive: >
+        add real data sources for the games pilot + legality-checked cinema alternatives (TMDB ruled out: ToS bans ML/AI use)
+      evidence_verified: 2026-07-17
+      registered_in: skills 2c75e9b
+      refs: []
+      batch: 2026-07-17-games-cinema

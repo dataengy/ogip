@@ -230,3 +230,15 @@ obs-smoke-log:
 # Tail the obs stack's own container logs.
 obs-logs *args:
     docker compose -f deploy/obs/docker-compose.obs.yml logs -f --tail=100 {{args}}
+
+# --- Agentic usage (epic #33) — standard OSS reporter over ~/.claude/projects JSONL. ---
+# Live per-project/agentic dashboards are Grafana (ogip-agentic); this is the offline/history
+# view. ccusage has no per-project filter — use --since/--until, or the session view below.
+
+# Token/cost by day across local agent sessions (args pass through, e.g. --since 20260701).
+agentic-usage *args:
+    npx -y ccusage@latest daily {{args}}
+
+# Token/cost by session (project paths visible — pick out OGIP rows).
+agentic-usage-sessions *args:
+    npx -y ccusage@latest session {{args}}

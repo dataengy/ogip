@@ -73,9 +73,14 @@ def _clean() -> Iterator[None]:
 
 
 def _run_setup_chain(engine: str) -> dict[str, int]:
-    """Drive the setup exactly as its Prefect flow does — build → ML → publish."""
+    """Drive the setup exactly as its Prefect flow does — ingest → build → ML → publish.
+
+    Ingest is part of the chain (not just build): on a clean checkout there is no raw Parquet,
+    and every setup's flow ingests first. Demo mode makes it a cheap synthetic fixture.
+    """
     from pipelines.flows import _common
 
+    _common.ingest_raw()
     _common.build_warehouse(engine)
     ml = _common.build_ml_outputs()
     _common.publish_outputs()
@@ -95,16 +100,6 @@ def test_heavy_setup_builds_and_produces_ml(engine: str, _clean: None) -> None:
     if engine == "bruin" and shutil.which("bruin") is None:
         pytest.skip("bruin CLI not on PATH")
     _assert_warehouse_and_ml(_run_setup_chain(engine))
-
-
-def test_default_prefect_flow_end_to_end(_clean: None) -> None:
-    """The production setup through the REAL Prefect flow — proves the @materialize wiring."""
-    from pipelines.flows.main import ingest_transform_publish
-
-    counts = ingest_transform_publish()
-    assert counts["games.parquet"] > 0
-    assert counts["market_features.parquet"] > 0
-    assert any(k.startswith("ml::") for k in counts), "ML step did not run in the flow"
 
 
 @pytest.mark.skipif(

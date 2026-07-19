@@ -59,3 +59,14 @@ opencritic_game:
       VERIFIED 2026-07-18 — `User-agent: *` disallows ONLY /profile; /game/ is permitted;
       Sitemap: https://opencritic.com/sitemap.xml is published. Re-check before new paths.
   docs: https://opencritic.com/
+  # Creation metadata — who registered this and on what evidence (audit trail;
+  # the verdicts themselves are still re-probed live, never trusted from here).
+  provenance:
+    added: 2026-07-18
+    actor: Claude (Opus 4.8) agent session — OGIP ingestion lane
+    directive: >
+      new scraping-tier sources with machine-checkable contracts (json_ld / css markers)
+    evidence_verified: 2026-07-18
+    registered_in: skills cafd66c
+    refs: [OGIP#18, OGIP#19]
+    batch: 2026-07-18-scrape-verified

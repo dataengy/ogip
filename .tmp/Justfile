@@ -20,7 +20,26 @@ once script:
 graduate script:
     @echo "Graduate .tmp/{{script}} → integrations/ | skills | src/ (then delete it from .tmp/)."
 
+# --- Agentic-observability spike (#33; README.md § One-shot bundles; contents gitignored) ---
+
+# Phase-0 OTel spike: one throwaway telemetry-enabled haiku session, then all checks.
+agentic-otel-spike:
+    @test -f "{{justfile_directory()}}/agentic-otel-spike.sh" \
+      || { echo "spike absent — see MANIFEST.agentic-obs.md"; exit 1; }
+    bash "{{justfile_directory()}}/agentic-otel-spike.sh"
+
+# Read-only re-check: did agent telemetry land in VM / Alloy / Loki? Idempotent.
+agentic-otel-check:
+    @test -f "{{justfile_directory()}}/agentic-otel-check.sh" \
+      || { echo "check absent — see MANIFEST.agentic-obs.md"; exit 1; }
+    bash "{{justfile_directory()}}/agentic-otel-check.sh"
+
 # --- One-shot bundles (documented in README.md § One-shot bundles; contents gitignored) ---
+
+# Run the 2026-07-19 sources batch (difficult-scraping + Airbyte registry entries).
+# Idempotent; see .tmp/.once/MANIFEST.sources-batch-scrape-airbyte.md for context/evidence.
+once-sources-batch *args:
+    python3 "{{justfile_directory()}}/.once/sources-batch-scrape-airbyte.py" {{args}}
 
 # Verify the VPS-provisioning + skills bundle is intact (read-only; no box, no token, no writes).
 # Path via justfile_directory(): `just` runs recipes from the Justfile's own dir, so a bare

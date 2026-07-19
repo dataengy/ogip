@@ -35,3 +35,14 @@
       (2) Invalid appid → 200 with {"success": false} and NO `data` key at all (3rd shape).
       (3) Multiple appids only work WITH `filters`; `appids=440,570` alone → HTTP 400.
     docs: https://partner.steamgames.com/doc/webapi
+    # Creation metadata — who registered this and on what evidence (audit trail;
+    # the verdicts themselves are still re-probed live, never trusted from here).
+    provenance:
+      added: 2026-07-17
+      actor: Claude (Opus 4.8) agent session — OGIP ingestion lane
+      directive: >
+        add real data sources for the games pilot + legality-checked cinema alternatives (TMDB ruled out: ToS bans ML/AI use)
+      evidence_verified: 2026-07-17
+      registered_in: skills 2c75e9b
+      refs: []
+      batch: 2026-07-17-games-cinema
