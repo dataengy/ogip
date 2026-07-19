@@ -35,6 +35,7 @@ and intent are documented here (tracked); the contents are gitignored per the ru
 | Bundle | Intent | Verify | Actor · date |
 |---|---|---|---|
 | `setup-vps-provisioning.sh` + `MANIFEST.vps-provisioning.md` | Reproduce/verify the VPS-provisioning tooling (`deploy/vps/hetzner.sh`, GUI secret ask, `deploy.hetzner` config) and the global skills it graduated into (`/provision-vps`, `/ask-secret-gui`). | `just -f .tmp/Justfile verify-vps-provisioning` (read-only: no box, no token, no writes) | Claude `claude-opus-4-8`, session `702f2198` · 2026-07-19 |
+| `agentic-otel-{spike,check}.sh` + `MANIFEST.agentic-obs.md` | Prove Claude Code native OTel telemetry lands in the obs stack (VM series names, Loki event labels/attrs) — gates the agentic-observability epic #33; probes graduate into `obs-verify.sh`, names into alerting rules + `ogip-agentic` dashboard. | `just -f .tmp/Justfile agentic-otel-check` (read-only) · full spike: `agentic-otel-spike` (runs one throwaway haiku session) | Claude `claude-fable-5` (xhigh), session `ca32d350` · 2026-07-19 |
 
 Verify is **read-only and idempotent** — safe to re-run after a checkout/rebase to confirm the
 bundle is intact. Once reviewed, a bundle can be deleted (`.tmp/.once/` is gitignored); the
