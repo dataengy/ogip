@@ -19,3 +19,13 @@ once script:
 # Reminder to graduate a durable script out of .tmp/ (see README.md graduation rule).
 graduate script:
     @echo "Graduate .tmp/{{script}} → integrations/ | skills | src/ (then delete it from .tmp/)."
+
+# --- One-shot bundles (documented in README.md § One-shot bundles; contents gitignored) ---
+
+# Verify the VPS-provisioning + skills bundle is intact (read-only; no box, no token, no writes).
+# Path via justfile_directory(): `just` runs recipes from the Justfile's own dir, so a bare
+# `.tmp/.once/…` would double-prefix. The script cd's to the repo root itself.
+verify-vps-provisioning:
+    @test -f "{{justfile_directory()}}/.once/setup-vps-provisioning.sh" \
+      || { echo "bundle absent — see README.md § One-shot bundles"; exit 1; }
+    bash "{{justfile_directory()}}/.once/setup-vps-provisioning.sh"

@@ -24,3 +24,18 @@ let it rot here:
 - product/runtime logic → `src/ogip/` (typed, tested) or `src/scripts/` (common utilities)
 
 Durable interfaces belong in `Makefile` / root `Justfile` + docs — never left as a `.tmp/` script.
+
+## One-shot bundles
+
+A bundle is a self-contained one-shot (`.tmp/.once/`) plus a gitignored `MANIFEST.*.md`
+carrying its **context, requirements, actor, and metadata** — the record of *how* a body of
+work was created, kept out of history but reproducible/verifiable on demand. The entry point
+and intent are documented here (tracked); the contents are gitignored per the rule above.
+
+| Bundle | Intent | Verify | Actor · date |
+|---|---|---|---|
+| `setup-vps-provisioning.sh` + `MANIFEST.vps-provisioning.md` | Reproduce/verify the VPS-provisioning tooling (`deploy/vps/hetzner.sh`, GUI secret ask, `deploy.hetzner` config) and the global skills it graduated into (`/provision-vps`, `/ask-secret-gui`). | `just -f .tmp/Justfile verify-vps-provisioning` (read-only: no box, no token, no writes) | Claude `claude-opus-4-8`, session `702f2198` · 2026-07-19 |
+
+Verify is **read-only and idempotent** — safe to re-run after a checkout/rebase to confirm the
+bundle is intact. Once reviewed, a bundle can be deleted (`.tmp/.once/` is gitignored); the
+durable artifacts already live in `deploy/vps/`, `src/`, and `~/.ai/skills/`.
