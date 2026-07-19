@@ -1,8 +1,9 @@
 // OGIP — Grafana Alloy collector (Phase 7 · lock lane `obs`).
 //
-// Two jobs:
+// Three jobs:
 //   1. tail the pipeline's log file  → Loki
 //   2. receive OTLP metrics (pipeline runs on the host) → VictoriaMetrics
+//   3. receive OTLP logs (agent-session events; Claude Code native telemetry) → Loki
 //
 // Alloy's own /metrics is scraped BY VictoriaMetrics (see ../victoriametrics/scrape.yml),
 // so there is no self-scrape here.
@@ -86,6 +87,7 @@ otelcol.receiver.otlp "default" {
 
 	output {
 		metrics = [otelcol.processor.batch.default.input]
+		logs    = [otelcol.processor.attributes.loki_hints.input]
 	}
 }
 
@@ -93,6 +95,35 @@ otelcol.processor.batch "default" {
 	output {
 		metrics = [otelcol.exporter.prometheus.to_vm.input]
 	}
+}
+
+// ── 3. logs over OTLP (agent-session events) → Loki ──────────────────────────
+// Claude Code's native telemetry (OTEL_LOGS_EXPORTER=otlp) sends events — user_prompt,
+// api_request, api_error, tool_result — as OTLP log records. The hint attributes below tell
+// otelcol.exporter.loki which fields to promote to Loki LABELS; everything else stays in the
+// line. Only service.name + event.name are promoted — session/user ids would explode
+// cardinality (same rule as flow_run_id in the file pipeline above).
+
+otelcol.processor.attributes "loki_hints" {
+	action {
+		key    = "loki.resource.labels"
+		action = "insert"
+		value  = "service.name"
+	}
+
+	action {
+		key    = "loki.attribute.labels"
+		action = "insert"
+		value  = "event.name"
+	}
+
+	output {
+		logs = [otelcol.exporter.loki.default.input]
+	}
+}
+
+otelcol.exporter.loki "default" {
+	forward_to = [loki.write.default.receiver]
 }
 
 otelcol.exporter.prometheus "to_vm" {
