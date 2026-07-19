@@ -1,0 +1,44 @@
+# ── GENERATED FILE — DO NOT EDIT ──────────────────────────────────────────────
+# Projected from the ingestion registry (the SSoT):
+#   ~/.ai/skills/.settings/de/ingestion/sources/games/reddit_posts.yml
+# Edit THAT file, then regenerate:
+#   just -f ~/.ai/skills/_scripts/de/ingestion/Justfile spec-emit /Users/nk.myg/gi/@dataengy/OGIP
+# Hand edits here WILL be overwritten and were measured to be unsyncable by
+# hardlink (git checkout severs the link) — hence this one-way projection.
+# ──────────────────────────────────────────────────────────────────────────────
+# Source: reddit_posts
+# Split from ingestion.yml — edit HERE, this is the SSoT.
+reddit_posts:
+  system: reddit
+  entity: posts
+  # Community-traction signal (PLAN A6 committed core; backlog row 10). THE Airbyte case:
+  # see airbyte.why — this is where a maintained connector beats hand-rolling dlt.
+  url: https://oauth.reddit.com/r/gamedev/new
+  auth: oauth2
+  tier: direct
+  publishable: false
+  license: reddit-data-api-terms
+  license_note: >
+    Reddit's Data API Terms (post-2023) restrict commercial use and EXPLICITLY prohibit
+    using API data to train ML models without a separate license. OGIP ships ML-ready
+    datasets -> reddit-derived columns must stay out of published Parquet: publishable
+    false is LOAD-BEARING here, not a formality. Free tier: <=100 QPM per OAuth client.
+  key_param: null # bearer token in Authorization header
+  slot: REDDIT_CLIENT_ID # + REDDIT_CLIENT_SECRET for the token exchange
+  records_path: data.children
+  probe_params: {}
+  rate_limit_note: "100 queries/min per OAuth client (free tier); 10/min unauthenticated — always authenticate"
+  traps: >
+    Unauthenticated www.reddit.com/.json endpoints work in a browser but are throttled to
+    uselessness and violate the Data API terms for products — do not prototype on them.
+  airbyte:
+    connector: source-reddit
+    streams: [posts, comments]
+    sync_mode: incremental
+    cursor: created_utc
+    why: >
+      OAuth2 token refresh + N incremental streams + backfill windows are exactly what the
+      maintained connector already implements; hand-rolling that in dlt is code we then own.
+      OGAP (the predecessor) made the same call. Runs in the experimental/ Airbyte lane —
+      AGENTS.md keeps Airbyte off the default path, so this source ships only there.
+  docs: https://www.redditinc.com/policies/data-api-terms

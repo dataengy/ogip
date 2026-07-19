@@ -1,0 +1,44 @@
+# ── GENERATED FILE — DO NOT EDIT ──────────────────────────────────────────────
+# Projected from the ingestion registry (the SSoT):
+#   ~/.ai/skills/.settings/de/ingestion/sources/games/steamdb_app.yml
+# Edit THAT file, then regenerate:
+#   just -f ~/.ai/skills/_scripts/de/ingestion/Justfile spec-emit /Users/nk.myg/gi/@dataengy/OGIP
+# Hand edits here WILL be overwritten and were measured to be unsyncable by
+# hardlink (git checkout severs the link) — hence this one-way projection.
+# ──────────────────────────────────────────────────────────────────────────────
+# Source: steamdb_app
+# Split from ingestion.yml — edit HERE, this is the SSoT.
+steamdb_app:
+  system: steamdb
+  entity: app
+  # ⛔ DO NOT IMPLEMENT — the backlog's "difficult scraping" candidate (row 9) resolved to
+  # a prohibition, not a technique. Present to record the evidence so nobody re-derives it.
+  url: https://steamdb.info/app/440/
+  auth: none
+  tier: landed
+  publishable: false
+  # Hard gate: the probe returns FORBIDDEN without opening a connection.
+  do_not_fetch: true
+  license: FORBIDDEN-steamdb-faq
+  license_note: >
+    BLOCKING — do not scrape, do not ship a connector. Three independent walls, all
+    verified 2026-07-19: (1) FAQ, VERBATIM: "No, there's a chance you'll get automatically
+    banned for doing so. We also do not allow scraping/crawling on SteamDB." Academic use:
+    "Not without permission … Selling or publishing the data in its entirety or using it
+    to train artificial intelligence models is strictly prohibited." OGIP publishes
+    ML-ready datasets — squarely prohibited. (2) Infrastructure: /app/ pages return 403 to
+    an honestly-identified bot even though robots.txt Allows them — the server refuses
+    what robots permits; escalating past that (curl_cffi/playwright) would be evasion.
+    (3) robots.txt Disallow: /*?cc=* — regional-price queries are explicitly hidden.
+    The FAQ names the sanctioned alternative itself: "Please get the information from
+    Steam itself" — which is exactly steam_appdetails_regional in this registry.
+  key_param: null
+  slot: null
+  records_path: null
+  probe_params: {}
+  rate_limit_note: "n/a — must not be fetched"
+  traps: >
+    Text pages (faq, blog) return 200 while /app/ pages 403 — a probe that only checks a
+    text page would wrongly conclude the site is scrapeable. The blocker is stated policy
+    plus an active bot wall, not a technical gap.
+  docs: https://steamdb.info/faq/

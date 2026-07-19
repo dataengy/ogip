@@ -1,0 +1,63 @@
+# ── GENERATED FILE — DO NOT EDIT ──────────────────────────────────────────────
+# Projected from the ingestion registry (the SSoT):
+#   ~/.ai/skills/.settings/de/ingestion/sources/games/psn_store_concept.yml
+# Edit THAT file, then regenerate:
+#   just -f ~/.ai/skills/_scripts/de/ingestion/Justfile spec-emit /Users/nk.myg/gi/@dataengy/OGIP
+# Hand edits here WILL be overwritten and were measured to be unsyncable by
+# hardlink (git checkout severs the link) — hence this one-way projection.
+# ──────────────────────────────────────────────────────────────────────────────
+# Source: psn_store_concept
+# Split from ingestion.yml — edit HERE, this is the SSoT.
+psn_store_concept:
+  system: psn
+  entity: concept
+  # Console regional pricing — the difficult-scraping slot that PASSED the gates (unlike
+  # steamdb_app/hltb_games). Hushcrasher's scope is premium PC AND CONSOLE; PSN list/sale
+  # prices per region extend the pricing dimension beyond Steam. Verified 2026-07-19:
+  # honest-UA GET returns 200 with SERVER-RENDERED data — no JS engine needed.
+  url: https://store.playstation.com/en-us/concept/232093
+  auth: none
+  tier: landed
+  publishable: false
+  license: psn-tos-unreviewed
+  license_note: >
+    robots.txt clears the FETCH only (see scrape.robots). Sony's ToS have NOT been
+    reviewed for republication of derived price datasets — publishable stays false until
+    that review is written down here. Connector + pipeline public, data local.
+  key_param: null
+  slot: null
+  records_path: null # HTML; the record is the embedded schema.org Product JSON-LD
+  probe_params: {}
+  rate_limit_note: "unstated; Sony-grade anti-abuse assumed — 1 req/2s, single connection, back off on any 429/403"
+  traps: >
+    (1) /product/<sku> URLs 302 through region/age gates — use /{locale}/concept/{id}
+    URLs, which return 200 directly (verified).
+    (2) The full payload lives in __NEXT_DATA__ (Next.js) — rich but BRITTLE across site
+    builds. The schema.org JSON-LD block is the stable subset; extract THAT (price,
+    currency, sku, name) and treat __NEXT_DATA__ as optional enrichment.
+    (3) Regional prices need locale-path sweeps (/en-us/, /de-de/, /ja-jp/ ...) — each
+    locale is a separate page fetch, so the sweep economics mirror steam regional: scope
+    to a curated concept-id set, not the full catalog.
+    (4) Page is ~400KB — within max_html_bytes (4MB), but do not shrink that cap.
+  scrape:
+    fetch_tier: httpx # verified server-rendered: JSON-LD + prices present without JS
+    render: false
+    url_template: https://store.playstation.com/{locale}/concept/{concept_id}
+    discovery: >
+      concept ids from a curated cross-platform title list (match by name against
+      rawg/steam catalogs) — PSN publishes no usable public index; do NOT enumerate ids.
+    row_selector: 'script[type="application/ld+json"]'
+    parser: json_ld
+    fields:
+      name: .name
+      sku: .sku
+      category: .category
+      price: .offers.price
+      currency: .offers.priceCurrency
+    landing_table: landing.psn__concept
+    politeness: { per_domain_conns: 1, min_interval_ms: 2000, respect_retry_after: true }
+    robots: >
+      VERIFIED 2026-07-19 — store.playstation.com/robots.txt `User-agent: *` disallows
+      ONLY /chihiro-api/ and /event/batch; /{locale}/concept/ paths are permitted.
+      Re-check before touching any other path.
+  docs: https://store.playstation.com/
