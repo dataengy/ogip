@@ -24,6 +24,11 @@ hand-authored. Production stays **SQLMesh** ([ADR-0004](../../docs/adr/ADR-0004-
 - **`transform/runner.py`** — plain-SQL runner (`prefect-sql`): topo-sort `depends`,
   `create or replace` on DuckDB, no framework.
 - **`transform/engines.py`** — launcher: regenerate the engine's project from `spec/`, then run it.
+- **OpenDBT** (`prefect-opendbt`) — the same generated dbt project run through **OpenDBT**
+  (dbt-core extended: local-python/DLT models, cross-project mesh refs, custom adapters). Its
+  own `opendbt` dep group (declared conflicting with `engines`): OpenDBT 0.14 pins dbt <1.10
+  and needs sqlglot <30, so it resolves separately. Generated `with_packages=False` — the hub
+  versions we track refuse to install under dbt 1.9. Verified: parity OK vs plain-SQL.
 - **`src/scripts/run-profile.py`** — resolves `config/config.yml → run_profiles` and drives the
   flow with the profile's engine; the Dagster profile is pointed to its own project.
 - **`pipelines/flows/main.py`** — `transform_engine` param threads the profile's engine through

@@ -110,9 +110,20 @@ def _schema_yml(assets: list[Asset]) -> dict[str, Any]:
 
 
 def compile_to_dbt(
-    spec_sql_dir: Path, project_dir: Path, *, warehouse: Path, repo_root: Path
+    spec_sql_dir: Path,
+    project_dir: Path,
+    *,
+    warehouse: Path,
+    repo_root: Path,
+    with_packages: bool = True,
 ) -> list[str]:
-    """Generate a runnable dbt (duckdb) project from `spec/sql`; return model names."""
+    """Generate a runnable dbt (duckdb) project from `spec/sql`; return model names.
+
+    ``with_packages=False`` emits an empty ``packages.yml``. Needed by every flavor that does
+    not run stock dbt-core: SQLMesh's dbt loader cannot render the hub packages' runtime jinja,
+    and OpenDBT pins dbt <1.10 where the hub versions we track refuse to install. Those
+    comparisons target *our* models, not dbt's tooling.
+    """
     assets = load_assets(spec_sql_dir)
     models_dir = project_dir / "models"
     models_dir.mkdir(parents=True, exist_ok=True)
@@ -166,9 +177,11 @@ def compile_to_dbt(
     )
     import os
 
-    packages = list(_DBT_PACKAGES)
-    if os.environ.get("OGIP_DBT_EXTRA_PACKAGES") == "1":
-        packages += _DBT_PACKAGES_EXTRA
+    packages: list[dict[str, object]] = []
+    if with_packages:
+        packages = list(_DBT_PACKAGES)
+        if os.environ.get("OGIP_DBT_EXTRA_PACKAGES") == "1":
+            packages += _DBT_PACKAGES_EXTRA
     (project_dir / "packages.yml").write_text(
         yaml.safe_dump({"packages": packages}, sort_keys=False), encoding="utf-8"
     )

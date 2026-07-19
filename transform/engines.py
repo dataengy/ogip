@@ -19,7 +19,7 @@ from ogip.config import get_settings
 from ogip.logger import logger
 from ogip.spec_compile import compile_to_bruin, compile_to_dbt, compile_to_sqlmesh_over_dbt
 
-COMPARISON_ENGINES = ("plain_sql", "dbt", "sqlmesh_dbt", "bruin")
+COMPARISON_ENGINES = ("plain_sql", "dbt", "opendbt", "sqlmesh_dbt", "bruin")
 
 _REPO = Path(__file__).resolve().parents[1]
 _SPEC_SQL = _REPO / "spec" / "sql"
@@ -41,6 +41,28 @@ def _run_dbt(project: Path, engine: str) -> None:
     _run(["uv", "run", "--group", "engines", "dbt", "build", *where], engine=engine)
 
 
+# OpenDBT has no console script — it is driven through its Python API, so the runner is a
+# `-c` program rather than a CLI call.
+_OPENDBT_PROGRAM = """
+import sys
+from pathlib import Path
+from opendbt import OpenDbtProject
+
+project = Path(sys.argv[1])
+OpenDbtProject(project_dir=project, profiles_dir=project, target="dev").run("build")
+"""
+
+
+def _run_opendbt(project: Path, engine: str) -> None:
+    # `--group opendbt`, not `engines`: OpenDBT patches dbt internals and supports dbt <1.10,
+    # so it resolves its own dbt (declared conflicting in pyproject) rather than sharing one.
+    # The project carries no hub packages, so there is no `dbt deps` step.
+    _run(
+        ["uv", "run", "--group", "opendbt", "python", "-c", _OPENDBT_PROGRAM, str(project)],
+        engine=engine,
+    )
+
+
 def run_transform_engine(engine: str) -> list[str]:
     """Regenerate the engine's project from `spec/`, run it, return built model names."""
     warehouse = get_settings().platform.warehouse_path
@@ -50,6 +72,16 @@ def run_transform_engine(engine: str) -> list[str]:
         project = _TRANSFORM / "dbt"
         names = compile_to_dbt(_SPEC_SQL, project, warehouse=warehouse, repo_root=_REL_ROOT)
         _run_dbt(project, engine)
+        return names
+    if engine == "opendbt":
+        # OpenDBT is dbt-core *extended* (python/dlt models, mesh refs, custom adapters) — the
+        # same models, a different runtime. It gets its own project only because it pins
+        # dbt <1.10, where the hub package set we track refuses to install.
+        project = _TRANSFORM / "opendbt"
+        names = compile_to_dbt(
+            _SPEC_SQL, project, warehouse=warehouse, repo_root=_REL_ROOT, with_packages=False
+        )
+        _run_opendbt(project, engine)
         return names
     if engine == "sqlmesh_dbt":
         project = _TRANSFORM / "sqlmesh_dbt"

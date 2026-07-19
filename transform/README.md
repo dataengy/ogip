@@ -12,6 +12,7 @@ The rest exist so `docs/comparisons/*` measures real runs. Builds `staging → c
 | `sqlmesh/` | `prefect-sqlmesh` **(default, production)** | native SQLMesh models |
 | `runner.py` | `prefect-sql` | plain-SQL runner — no framework: topo-sort `depends`, `create or replace` on DuckDB |
 | `dbt/` | `prefect-dbt`, `prefect-dagster-dlt-dbt` | generated dbt project (+ dbt-hub packages, `schema.yml` tests from Bruin checks) |
+| `opendbt/` | `prefect-opendbt` | same models via **OpenDBT** (dbt-core extended: python/dlt models, mesh refs, custom adapters) — own dep group, pins dbt <1.10 |
 | `sqlmesh_dbt/` | `prefect-sqlmesh-over-dbt` | the dbt project + `config.py` so SQLMesh plans/applies it natively |
 | `bruin/` | `prefect-bruin` | pass-through — `spec/` *is* Bruin, so assets are copied verbatim + a project shell |
 | `engines.py` | — | launcher: regenerates the engine's project from `spec/`, then runs it |

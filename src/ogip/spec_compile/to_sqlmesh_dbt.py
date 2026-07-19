@@ -50,16 +50,15 @@ def compile_to_sqlmesh_over_dbt(
     spec_sql_dir: Path, project_dir: Path, *, warehouse: Path, repo_root: Path
 ) -> list[str]:
     """Generate a dbt project + SQLMesh dbt-loader config; return model names."""
-    names = compile_to_dbt(spec_sql_dir, project_dir, warehouse=warehouse, repo_root=repo_root)
+    names = compile_to_dbt(
+        spec_sql_dir, project_dir, warehouse=warehouse, repo_root=repo_root, with_packages=False
+    )
     project_yml = project_dir / "dbt_project.yml"
     project = cast("dict[str, Any]", yaml.safe_load(project_yml.read_text(encoding="utf-8")))
     project["models"]["+start"] = _START  # SQLMesh's dbt loader checks the top-level block
     project_yml.write_text(yaml.safe_dump(project, sort_keys=False), encoding="utf-8")
-    # No dbt-hub packages in THIS flavor: introspection packages (dbt_project_evaluator)
-    # need dbt-runtime jinja (`graph`, run hooks) that SQLMesh's loader cannot render, and
-    # the SQLMesh-over-dbt comparison targets our models, not dbt tooling. No `dbt deps`
-    # step needed as a result.
-    (project_dir / "packages.yml").write_text(yaml.safe_dump({"packages": []}), encoding="utf-8")
+    # `with_packages=False` above: SQLMesh's dbt loader cannot render the hub packages'
+    # runtime jinja. Drop any stale install so `dbt deps` is not needed here.
     shutil.rmtree(project_dir / "dbt_packages", ignore_errors=True)
     (project_dir / "config.py").write_text(_CONFIG, encoding="utf-8")
     (project_dir / "README.md").write_text(_README, encoding="utf-8")

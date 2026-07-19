@@ -71,6 +71,25 @@ def _build_dbt(scratch: Path, warehouse: Path) -> list[Row]:
     return _rows(warehouse)
 
 
+def _build_opendbt(scratch: Path, warehouse: Path) -> list[Row]:
+    from ogip.spec_compile import compile_to_dbt
+
+    project = scratch / "opendbt"
+    # No hub packages: OpenDBT pins dbt <1.10, where the versions we track refuse to install.
+    compile_to_dbt(SPEC_SQL, project, warehouse=warehouse, repo_root=REPO, with_packages=False)
+    program = (
+        "from pathlib import Path;from opendbt import OpenDbtProject;"
+        "import sys;p=Path(sys.argv[1]);"
+        "OpenDbtProject(project_dir=p,profiles_dir=p,target='dev').run('build')"
+    )
+    subprocess.run(
+        ["uv", "run", "--group", "opendbt", "python", "-c", program, str(project)],
+        check=True,
+        cwd=REPO,
+    )
+    return _rows(warehouse)
+
+
 def _build_bruin(scratch: Path, warehouse: Path) -> list[Row]:
     from ogip.spec_compile import compile_to_bruin
 
@@ -93,6 +112,7 @@ Builder = Callable[[Path, Path], list[Row]]
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="spec-compile-verify", description=__doc__)
     parser.add_argument("--no-dbt", action="store_true", help="skip the dbt engine")
+    parser.add_argument("--no-opendbt", action="store_true", help="skip the OpenDBT engine")
     parser.add_argument("--no-bruin", action="store_true", help="skip the Bruin engine")
     args = parser.parse_args(argv)
 
@@ -101,8 +121,12 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     sys.path.insert(0, str(REPO))  # `transform`/`ingestion` are repo-root packages
-    engines: list[tuple[str, Builder]] = [("dbt", _build_dbt), ("bruin", _build_bruin)]
-    skip = {"dbt": args.no_dbt, "bruin": args.no_bruin}
+    engines: list[tuple[str, Builder]] = [
+        ("dbt", _build_dbt),
+        ("opendbt", _build_opendbt),
+        ("bruin", _build_bruin),
+    ]
+    skip = {"dbt": args.no_dbt, "opendbt": args.no_opendbt, "bruin": args.no_bruin}
 
     # Scratch lives under .run/ (gitignored) rather than the system temp dir: Bruin walks up
     # for a git root and refuses to run outside one, and it resolves a project-relative

@@ -19,7 +19,7 @@ from .to_dbt import compile_to_dbt
 from .to_sqlmesh import compile_to_sqlmesh
 from .to_sqlmesh_dbt import compile_to_sqlmesh_over_dbt
 
-ENGINES = ("sqlmesh", "dbt", "sqlmesh-dbt", "bruin")
+ENGINES = ("sqlmesh", "dbt", "opendbt", "sqlmesh-dbt", "bruin")
 
 _REPO = Path(__file__).resolve().parents[3]
 _SPEC_SQL = _REPO / "spec" / "sql"
@@ -33,6 +33,15 @@ def _generate(engine: str, out: Path, warehouse: Path) -> list[str]:
         return compile_to_sqlmesh(_SPEC_SQL, out / "sqlmesh" / "models")
     if engine == "dbt":
         return compile_to_dbt(_SPEC_SQL, out / "dbt", warehouse=warehouse, repo_root=rel_root)
+    if engine == "opendbt":
+        # Same models as `dbt`, no hub packages — OpenDBT pins dbt <1.10, where they won't install.
+        return compile_to_dbt(
+            _SPEC_SQL,
+            out / "opendbt",
+            warehouse=warehouse,
+            repo_root=rel_root,
+            with_packages=False,
+        )
     if engine == "sqlmesh-dbt":
         return compile_to_sqlmesh_over_dbt(
             _SPEC_SQL, out / "sqlmesh_dbt", warehouse=warehouse, repo_root=rel_root

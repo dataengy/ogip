@@ -121,8 +121,27 @@ def test_cli_generates_every_engine_project(tmp_path: Path) -> None:
     assert spec_compile_main(["all", "--out", str(tmp_path)]) == 0
     assert (tmp_path / "sqlmesh" / "models" / "core" / "game.sql").is_file()
     assert (tmp_path / "dbt" / "dbt_project.yml").is_file()
+    assert (tmp_path / "opendbt" / "dbt_project.yml").is_file()
     assert (tmp_path / "sqlmesh_dbt" / "config.py").is_file()
     assert (tmp_path / "bruin" / "pipeline.yml").is_file()
+
+
+def test_opendbt_project_carries_no_hub_packages(tmp_path: Path) -> None:
+    """OpenDBT pins dbt <1.10; the hub versions we track won't install there — so no packages."""
+    from ogip.spec_compile import compile_to_dbt
+
+    project = tmp_path / "opendbt"
+    compile_to_dbt(
+        SPEC_SQL,
+        project,
+        warehouse=Path(".run/data/warehouse/ogip.duckdb"),
+        repo_root=Path(),
+        with_packages=False,
+    )
+    packages = yaml.safe_load((project / "packages.yml").read_text(encoding="utf-8"))
+    assert packages == {"packages": []}
+    # the models themselves are identical to the dbt flavor (same generator)
+    assert (project / "models" / "fs" / "market_features.sql").is_file()
 
 
 def test_ref_rewriting_ignores_matches_inside_string_literals() -> None:

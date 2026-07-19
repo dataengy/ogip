@@ -71,6 +71,11 @@ run_profiles:
     orchestrator: prefect
     ingestion: dlt
     transform: dbt
+  prefect-opendbt: # dbt-core extended (opendbt) over the SAME generated dbt project
+    services: [postgres, prefect]
+    orchestrator: prefect
+    ingestion: dlt
+    transform: opendbt
   prefect-sqlmesh-over-dbt:
     services: [postgres, prefect]
     orchestrator: prefect
