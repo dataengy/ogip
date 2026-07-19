@@ -20,9 +20,23 @@ cdc_asset_job = dg.define_asset_job(
 )
 
 
+class CdcConfig(dg.Config):
+    """`dry_run` prints the ingestr command and touches nothing — for demos off a live DB.
+
+    Defaults to FALSE so the job actually performs CDC. It was previously hardcoded to
+    `--dry-run`, which made every run a silent no-op that still reported success — the job
+    could not do real CDC even when triggered by hand, and a green run meant nothing.
+    """
+
+    dry_run: bool = False
+
+
 @dg.op
-def _run_cdc(context: OpExecutionContext) -> None:
-    run_task(context, "cdc", "--dry-run")
+def _run_cdc(context: OpExecutionContext, config: CdcConfig) -> None:
+    if config.dry_run:
+        run_task(context, "cdc", "--dry-run")
+    else:
+        run_task(context, "cdc")
 
 
 @dg.op
@@ -33,7 +47,9 @@ def _run_parsing(context: OpExecutionContext) -> None:
 @dg.job(
     tags={"ingestion": "cdc"},
     description="ingestr CDC catch-up — capture INSERT/UPDATE/DELETE on the Postgres `landing` "
-    "schema via logical replication and merge into the lake. Runs `--dry-run` off a live DB.",
+    "schema via logical replication and merge into the lake. Performs REAL CDC by default; pass "
+    "op config `_run_cdc: {dry_run: true}` to only print the command. Fails loudly when CDC is "
+    "unconfigured (blank OGIP_PG_PASSWORD), same as cdc_asset_job.",
 )
 def cdc_job() -> None:
     _run_cdc()
@@ -53,7 +69,11 @@ schedules = [
         name="quarter_hourly_cdc",
         job=cdc_job,
         cron_schedule="*/15 * * * *",
-        description="Frequent (every 15 min) CDC catch-up from the landing zone.",
+        description="Frequent (every 15 min) CDC catch-up from the landing zone. STOPPED by "
+        "default (Dagster's default status) and must stay so until the CDC prerequisites exist: "
+        "a reachable landing DB with `wal_level=logical` and "
+        "`CREATE PUBLICATION ogip_landing_pub FOR TABLES IN SCHEMA landing` (a DBA/VPS step, see "
+        "docs/runbooks/run-dagster.md). Enabled before that, every tick fails on purpose.",
     ),
 ]
 
