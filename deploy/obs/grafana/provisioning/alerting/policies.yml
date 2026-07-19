@@ -1,0 +1,12 @@
+# Notification routing: everything → the Telegram contact point (epic #33).
+# One receiver, grouped by alertname; 4h repeat keeps an unresolved alert visible without
+# turning the chat into a siren. Tune per-rule with mute timings later if needed.
+apiVersion: 1
+
+policies:
+  - orgId: 1
+    receiver: ogip-telegram
+    group_by: ["alertname"]
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 4h
