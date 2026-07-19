@@ -71,6 +71,11 @@ run_profiles:
     orchestrator: prefect
     ingestion: dlt
     transform: dbt
+  prefect-opendbt: # dbt-core extended (opendbt) over the SAME generated dbt project
+    services: [postgres, prefect]
+    orchestrator: prefect
+    ingestion: dlt
+    transform: opendbt
   prefect-sqlmesh-over-dbt:
     services: [postgres, prefect]
     orchestrator: prefect
@@ -81,6 +86,11 @@ run_profiles:
     orchestrator: dagster
     ingestion: dlt
     transform: dbt
+  prefect-over-dagster: # Prefect wraps Dagster (dlt+dbt only); Prefect owns ML/scraping/obs/alerting
+    services: [postgres, prefect]
+    orchestrator: prefect
+    ingestion: dlt
+    transform: dagster
 
 sources:
   rawg: # M0 walking-skeleton source (clean documented REST)
@@ -111,3 +121,17 @@ deploy:
     branch: main # git ref to deploy
     repo_url: https://github.com/dataengy/ogip.git
     compose_profiles: [] # extra compose profiles to enable on the host, e.g. [obs]
+
+  hetzner: # creates the box that deploy.vps then targets (deploy/vps/hetzner.sh)
+    # Only used to CREATE/reuse the server; the bootstrap itself is provision.sh. Idempotent
+    # by server_name — a second run reuses the existing box rather than billing a second one.
+    # Each key is overridable via an OGIP_HETZNER_* env var.
+    server_name: ogip-1
+    server_type: cx32 # 4 vCPU / 8 GB / 80 GB — DuckDB transform peaks at 2-4 GB (ADR-0008)
+    image: ubuntu-24.04
+    location: fsn1 # Falkenstein, DE
+    ssh_key_path: ~/.ssh/id_ed25519.pub
+    ssh_key_name: ogip-deploy # name the key is registered under in the Hetzner project
+    api_base: https://api.hetzner.cloud/v1
+    token_url: https://console.hetzner.cloud/ # project → Security → API tokens (Read & Write)
+    ssh_wait_secs: 300 # bound the post-create wait for sshd; fail loudly instead of hanging

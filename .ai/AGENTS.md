@@ -46,7 +46,9 @@ semantic/BI/feature-store *tool* (MetricFlow, Cube, Evidence, Feast, Airbyte) li
 3. **SSoT config**: every non-secret default is declared ONCE, in `config/config.yml`;
    `.env` is rendered by `config/.env-render.py`. Never duplicate a value another surface owns.
 4. **Quality bar**: Ruff clean, Pyright **strict** 0 errors, pytest green (`make check` = CI).
-   Typed Python, Pydantic v2 at boundaries, httpx + tenacity, loguru.
+   Typed Python, Pydantic v2 at boundaries, httpx + tenacity, loguru. **Logging: use the house
+   alias `log`** — `from ogip.logger import log` and `log.info(...)` everywhere (never `logger.`);
+   `logger` stays exported only for third-party compat.
 5. **Secrets** (minimal & lightest): slot names declared once in `config/config.yml`; rendered
    `.env` always gitignored (templates carry blank slots only). Default = **gitignored `.env`**
    locally/VPS + **GitHub Actions secrets** in CI — no vault, no GPG. Bitwarden CLI & git-secret
@@ -80,9 +82,10 @@ projects are **generated from `spec/`** by the compiler, never hand-forked.
 | `.run/` | ALL runtime: venv (`UV_PROJECT_ENVIRONMENT=.run/venv`), caches, DuckDB warehouse, outputs (gitignored) |
 | `.tmp/` | ALL temp/working scripts **and other temp files** (gitignored) + tracked `README.md` + `Justfile`; one-shots in `.tmp/.once/`; **graduate** durable ones → `integrations/`, skills, or `src/`/common |
 | `../Hushcrasher.attic/` | External graveyard for removed legacy (never delete in place) |
-| `Makefile` | thin: main short commands; delegates heavy bodies to Justfile |
-| `Justfile` | spec ops + heavy logic: run-profile, CI steps, generators |
+| `Makefile` | **pipeline launcher**: one target per pipeline (`run-<engine>`, 1 op = 1 pipeline); a catch-all forwards any other `make <op>` → `just <op>` |
+| `Justfile` | **every** developer/infra/spec op: gates (lint/typecheck/test/check/ci), up/down/obs/storage, run-profile, spec-compile, CI steps, generators |
 | `.ai/` | agentic hub: AGENTS/CLAUDE/README/STATUS/PLAN + `tasks/`; root `AGENTS.md` is a symlink here |
+| **Git LFS** | **large test datasets** (recorded fixtures, sampled dumps, parquet cases) are LFS pointers, never raw blobs — patterns in `.gitattributes` (format-scoped: binary formats on fixture paths; small JSON/text fixtures stay plain git so diffs read). One-time per clone: `make lfs-install`. Enforced un-skippably by `.ci/run.sh lfs-guard` (>512KB raw blob or LFS-attributed raw blob → CI red); local: `just lfs-guard` |
 
 Workflow: **phased delivery with user approval gates** (plan in [PLAN.md](PLAN.md), near-term
 actions in [TODO.md](TODO.md), status in [STATUS.md](STATUS.md), per-phase task files in

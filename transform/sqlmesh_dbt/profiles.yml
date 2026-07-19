@@ -1,0 +1,7 @@
+ogip:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: .run/data/warehouse/ogip.duckdb
+      threads: 4

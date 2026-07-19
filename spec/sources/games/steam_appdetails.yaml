@@ -1,0 +1,37 @@
+# ── GENERATED FILE — DO NOT EDIT ──────────────────────────────────────────────
+# Projected from the ingestion registry (the SSoT):
+#   ~/.ai/skills/.settings/de/ingestion/sources/games/steam_appdetails.yml
+# Edit THAT file, then regenerate:
+#   just -f ~/.ai/skills/_scripts/de/ingestion/Justfile spec-emit /Users/nk.myg/gi/@dataengy/OGIP
+# Hand edits here WILL be overwritten and were measured to be unsyncable by
+# hardlink (git checkout severs the link) — hence this one-way projection.
+# ──────────────────────────────────────────────────────────────────────────────
+# Source: steam_appdetails
+# Split from ingestion.yml — edit HERE, this is the SSoT.
+  steam_appdetails:
+    system: steam
+    entity: appdetails
+    url: https://store.steampowered.com/api/appdetails
+    auth: none
+    tier: direct
+    publishable: true
+    license: steam-store-undocumented
+    license_note: >
+      Undocumented store endpoint; robots.txt permits /api/. No stated license. Publish
+      derived aggregates, not verbatim bulk copies. Valve ToS: do not degrade Steam.
+    key_param: null
+    slot: null
+    records_path: null # response is keyed by appid: {"440": {success, data}}
+    probe_params:
+      appids: 440
+    rate_limit_note: >
+      MEASURED: ~200 UNCACHED requests / 5-min rolling window per IP, then HTTP 429.
+      Same-appid repeats are edge-cached (max-age=3600) and never throttle — so a naive
+      health check MISSES the throttle. No Retry-After / RateLimit-* headers: back off blind.
+      Budget ~57.6k appids/day => a full ~87k enrichment pass is a >36h single-IP job.
+    traps: >
+      (1) `data` CHANGES JSON TYPE: paid game → object; FREE game (440, 570) → `"data": []`,
+      an empty ARRAY. A dict-typed schema crashes or silently drops every free game.
+      (2) Invalid appid → 200 with {"success": false} and NO `data` key at all (3rd shape).
+      (3) Multiple appids only work WITH `filters`; `appids=440,570` alone → HTTP 400.
+    docs: https://partner.steamgames.com/doc/webapi

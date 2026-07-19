@@ -1,0 +1,32 @@
+# ── GENERATED FILE — DO NOT EDIT ──────────────────────────────────────────────
+# Projected from the ingestion registry (the SSoT):
+#   ~/.ai/skills/.settings/de/ingestion/sources/games/steamspy_all.yml
+# Edit THAT file, then regenerate:
+#   just -f ~/.ai/skills/_scripts/de/ingestion/Justfile spec-emit /Users/nk.myg/gi/@dataengy/OGIP
+# Hand edits here WILL be overwritten and were measured to be unsyncable by
+# hardlink (git checkout severs the link) — hence this one-way projection.
+# ──────────────────────────────────────────────────────────────────────────────
+# Source: steamspy_all
+# Split from ingestion.yml — edit HERE, this is the SSoT.
+  steamspy_all:
+    system: steamspy
+    entity: all
+    # The keyless DISCOVERY spine — a ~87k-app owners-ranked SUBSET of the Steam catalog,
+    # NOT a full-catalog substitute. Document the coverage gap wherever this feeds a dataset.
+    url: https://steamspy.com/api.php
+    auth: none
+    tier: direct
+    publishable: true
+    license: steamspy-unstated
+    license_note: "robots.txt = Allow: /. No key, no stated license or attribution terms."
+    key_param: null
+    slot: null
+    records_path: null # {appid: {...}} map, 1000 per page
+    probe_params:
+      request: all
+      page: 0
+    rate_limit_note: "1 req/60s documented for `all` (NOT enforced in testing — honour it anyway)"
+    traps: >
+      Page boundary is flaky: page 88 → 500 while 87/89 → 200 with a 39-byte empty body.
+      Treat 500 as retryable; treat empty-body as end-of-range.
+    docs: https://steamspy.com/api.php

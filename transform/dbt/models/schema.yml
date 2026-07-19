@@ -1,0 +1,29 @@
+version: 2
+models:
+- name: game
+  columns:
+  - name: game_sk
+    data_tests:
+    - not_null
+    - unique
+  - name: title
+    data_tests:
+    - not_null
+- name: market_features
+  columns:
+  - name: game_sk
+    data_tests:
+    - not_null
+    - unique
+  - name: popularity_score
+- name: rawg__games
+  description: Layer-0 registration of the immutable RAWG games Parquet (1:1 AS-IS).
+- name: stg_games
+  columns:
+  - name: game_id
+    data_tests:
+    - not_null
+    - unique
+  - name: name
+    data_tests:
+    - not_null

@@ -1,0 +1,44 @@
+# ── GENERATED FILE — DO NOT EDIT ──────────────────────────────────────────────
+# Projected from the ingestion registry (the SSoT):
+#   ~/.ai/skills/.settings/de/ingestion/sources/games/rawg_games.yml
+# Edit THAT file, then regenerate:
+#   just -f ~/.ai/skills/_scripts/de/ingestion/Justfile spec-emit /Users/nk.myg/gi/@dataengy/OGIP
+# Hand edits here WILL be overwritten and were measured to be unsyncable by
+# hardlink (git checkout severs the link) — hence this one-way projection.
+# ──────────────────────────────────────────────────────────────────────────────
+# Source: rawg_games
+# Split from ingestion.yml — edit HERE, this is the SSoT.
+  # ── Games: catalog + entity-resolution backbone ─────────────────────────────
+
+  rawg_games:
+    system: rawg
+    entity: games
+    # Already SHIPPED in OGIP (ingestion/sources/rawg.py, the M0 walking skeleton) but was
+    # missing from this registry. Every field below is transcribed from that working
+    # connector, not from RAWG's docs — shipped code outranks documentation.
+    url: https://api.rawg.io/api/games
+    auth: api_key_query
+    tier: direct
+    publishable: false
+    license: rawg-api-tos
+    license_note: >
+      RAWG's API is free for non-commercial use with attribution; the ToS does not grant
+      redistribution of bulk derived datasets. Connector + pipeline are public; DATA stays
+      local and each user regenerates it with their own free key. Revisit only with a
+      written grant.
+    key_param: key
+    slot: RAWG_API_KEY
+    records_path: results
+    probe_params:
+      page_size: 3
+      ordering: "-added"
+    rate_limit_note: "unstated for the free tier; shipped connector uses tenacity backoff (4 attempts, exp to 20s)"
+    traps: >
+      Pagination ends when `next` is null — do NOT trust a fixed page count. The shipped
+      connector breaks on falsy `next` (ingestion/sources/rawg.py:60).
+    dlt:
+      resource: rawg__games
+      primary_key: id
+      write_disposition: replace # matches BaseSource.run today; merge needs a stable cursor
+      paginator: { type: json_link, next_url_path: next }
+    docs: https://api.rawg.io/docs/

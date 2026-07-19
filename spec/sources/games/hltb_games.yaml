@@ -1,0 +1,47 @@
+# ── GENERATED FILE — DO NOT EDIT ──────────────────────────────────────────────
+# Projected from the ingestion registry (the SSoT):
+#   ~/.ai/skills/.settings/de/ingestion/sources/games/hltb_games.yml
+# Edit THAT file, then regenerate:
+#   just -f ~/.ai/skills/_scripts/de/ingestion/Justfile spec-emit /Users/nk.myg/gi/@dataengy/OGIP
+# Hand edits here WILL be overwritten and were measured to be unsyncable by
+# hardlink (git checkout severs the link) — hence this one-way projection.
+# ──────────────────────────────────────────────────────────────────────────────
+# Source: hltb_games
+# Split from ingestion.yml — edit HERE, this is the SSoT.
+  hltb_games:
+    system: hltb
+    entity: games
+    # ⛔ DO NOT IMPLEMENT. Present ONLY to record the prohibition, because OGIP's own task
+    # files nominate HLTB as the P1 scraped source
+    # (.ai/tasks/scraping-resilient.md, .ai/tasks/sources-backlog.md row 3).
+    # That plan predates this robots.txt check and must not be executed as written.
+    url: https://howlongtobeat.com/
+    auth: none
+    tier: landed
+    publishable: false
+    # Hard gate: the probe returns FORBIDDEN without opening a connection. Removing this
+    # line makes `probe-all` scrape a site that forbids scraping — do not remove it.
+    do_not_fetch: true
+    license: FORBIDDEN-ziff-davis
+    license_note: >
+      BLOCKING — do not scrape, do not ship a connector. HowLongToBeat is Ziff Davis. Its
+      robots.txt (verified 2026-07-18) prohibits, VERBATIM: "Use of any robot, crawler, or
+      other tool to scrape, harvest, extract, or retrieve any content on this website using
+      automated means is prohibited without written permission", and names as prohibited
+      uses: "(2) development or operation of artificial intelligence or machine learning
+      software or databases, including by training, fine-tuning, embedding, and
+      retrieval-augmented generation; (3) creating data sets containing our content or
+      sharing it with others; and (4) any commercial purposes."
+      OGIP's product IS a published ML-ready dataset — that is squarely (2)+(3).
+      `Disallow: /api` also covers the unofficial JSON endpoint, and the AI-scraper
+      blocklist explicitly names `anthropic-ai`. Unlike IMDb (where redistribution is the
+      only restriction), here the AUTOMATED ACCESS ITSELF is prohibited — so
+      `publishable: false` does NOT rescue it. Licensing contact: licensing@ziffdavis.com.
+      Game-length data must come from a licensed or permissive source instead.
+    key_param: null
+    slot: null
+    records_path: null
+    probe_params: {}
+    rate_limit_note: "n/a — must not be fetched"
+    traps: "The blocker is legal, not technical. The endpoint works; using it is the problem."
+    docs: https://www.ziffdavis.com/terms-of-use

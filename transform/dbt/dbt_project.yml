@@ -1,0 +1,8 @@
+name: ogip
+version: 0.1.0
+profile: ogip
+model-paths:
+- models
+models:
+  ogip:
+    +materialized: table

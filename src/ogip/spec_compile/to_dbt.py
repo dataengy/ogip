@@ -8,19 +8,22 @@ dbt `{{ ref('stg_games') }}`, and Bruin column checks become dbt tests in `schem
 from __future__ import annotations
 
 import logging
-import re
 from pathlib import Path
 from typing import Any, cast
 
 import yaml
 
 from .bruin import Asset, load_assets
+from .dialect import rewrite_refs
 
-# stdlib logging, not loguru: this compiler is imported by the nested Dagster subproject's venv
-# (experimental/orchestration/dagster_ogip), which does not depend on loguru.
-logger = logging.getLogger(__name__)
+# stdlib logging (named `log` per the house convention), NOT loguru/ogip.logger: this compiler is
+# imported by the nested Dagster subproject's venv (experimental/orchestration/dagster_ogip), which
+# does not depend on loguru — so it cannot import ogip.logger.
+log = logging.getLogger(__name__)
 
 _MATERIALIZATION = {"table": "table", "view": "view"}
+
+
 # Bruin column-check name -> dbt generic test. A str is a builtin generic test; a dict is a
 # package test with args (dbt_utils is always installed — see _DBT_PACKAGES). Unknown names map
 # to None and are dropped WITH A WARNING (see _column_test callers) rather than silently — a
@@ -32,6 +35,7 @@ def _column_test(name: str) -> str | dict[str, Any] | None:
         # a value >= 0; dbt_utils.accepted_range with only min_value is the idiomatic spelling.
         "non_negative": {"dbt_utils.accepted_range": {"min_value": 0}},
     }.get(name)
+
 
 # Well-known dbt-hub packages, emitted into the generated project's packages.yml (installed by
 # `dbt deps`). Version ranges, not pins, so dbt resolves the newest compatible release. These
@@ -54,12 +58,12 @@ _DBT_PACKAGES_EXTRA: list[dict[str, object]] = [
 
 
 def _rewrite_refs(sql: str, assets: list[Asset]) -> str:
-    """`from staging.stg_games` -> `from {{ ref('stg_games') }}` for every known model."""
-    out = sql
-    for other in assets:
-        pattern = re.compile(rf"\b{re.escape(other.name)}\b")
-        out = pattern.sub(f"{{{{ ref('{other.model}') }}}}", out)
-    return out
+    """`from staging.stg_games` -> `from {{ ref('stg_games') }}` for every known model.
+
+    AST-scoped (see `dialect.py`): a text substitution would also rewrite the name where it
+    appears inside a string literal or a comment, producing silently wrong SQL.
+    """
+    return rewrite_refs(sql, {a.name: f"{{{{ ref('{a.model}') }}}}" for a in assets})
 
 
 def _absolutize_runtime_paths(sql: str, repo_root: Path) -> str:
@@ -110,7 +114,7 @@ def _schema_yml(assets: list[Asset]) -> dict[str, Any]:
                 name = str(cast("dict[str, Any]", c).get("name"))
                 test = _column_test(name)
                 if test is None:
-                    logger.warning(
+                    log.warning(
                         "spec check %r on %s.%s has no dbt mapping — dropped",
                         name,
                         asset.model,
@@ -134,9 +138,20 @@ def _schema_yml(assets: list[Asset]) -> dict[str, Any]:
 
 
 def compile_to_dbt(
-    spec_sql_dir: Path, project_dir: Path, *, warehouse: Path, repo_root: Path
+    spec_sql_dir: Path,
+    project_dir: Path,
+    *,
+    warehouse: Path,
+    repo_root: Path,
+    with_packages: bool = True,
 ) -> list[str]:
-    """Generate a runnable dbt (duckdb) project from `spec/sql`; return model names."""
+    """Generate a runnable dbt (duckdb) project from `spec/sql`; return model names.
+
+    ``with_packages=False`` emits an empty ``packages.yml``. Needed by every flavor that does
+    not run stock dbt-core: SQLMesh's dbt loader cannot render the hub packages' runtime jinja,
+    and OpenDBT pins dbt <1.10 where the hub versions we track refuse to install. Those
+    comparisons target *our* models, not dbt's tooling.
+    """
     assets = load_assets(spec_sql_dir)
     models_dir = project_dir / "models"
     models_dir.mkdir(parents=True, exist_ok=True)
@@ -190,10 +205,22 @@ def compile_to_dbt(
     )
     import os
 
-    packages = list(_DBT_PACKAGES)
-    if os.environ.get("OGIP_DBT_EXTRA_PACKAGES") == "1":
-        packages += _DBT_PACKAGES_EXTRA
+    packages: list[dict[str, object]] = []
+    if with_packages:
+        packages = list(_DBT_PACKAGES)
+        if os.environ.get("OGIP_DBT_EXTRA_PACKAGES") == "1":
+            packages += _DBT_PACKAGES_EXTRA
     (project_dir / "packages.yml").write_text(
         yaml.safe_dump({"packages": packages}, sort_keys=False), encoding="utf-8"
+    )
+    # dbt writes run artifacts + its user cookie into the project dir — never commit those.
+    (project_dir / ".gitignore").write_text(
+        "target/\ndbt_packages/\nlogs/\n.user.yml\n", encoding="utf-8"
+    )
+    (project_dir / "README.md").write_text(
+        "# GENERATED dbt project — from `spec/` (ADR-0005), do not hand-edit\n\n"
+        "Regenerate via `src/ogip/spec_compile` (`just spec-compile dbt`); "
+        "edit `spec/sql/` instead.\n",
+        encoding="utf-8",
     )
     return [asset.name for asset in assets]

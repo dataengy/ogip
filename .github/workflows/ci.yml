@@ -62,6 +62,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: .ci/run.sh structure-validate
+      - run: .ci/run.sh lfs-guard # large test datasets must be LFS pointers, not raw blobs
 
   secret-scan:
     runs-on: ubuntu-latest

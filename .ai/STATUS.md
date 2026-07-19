@@ -120,6 +120,28 @@ but a real deploy still stops at preflight on one missing artifact in **your** l
 block, not a landmine. Nothing else in `deploy/vps/` needs you: settings are read straight from
 `config/config.yml → deploy.vps.*` via `yq`, so `config/.env-render.py` needed **no** change.
 
+**The decision `deploy.py` carries (not just a missing file — flagged from the vps lane, 2026-07-18):**
+Writing it means choosing a Prefect **run model**, and the repo currently under-specifies it —
+worth resolving before you write, because the choice reaches into the compose lane too.
+
+- `deploy.sh` step 5 is a **one-shot** (`uv run python integrations/prefect/deploy.py`), so
+  `deploy.py` must **register a deployment and return** — `flow.serve()` blocks forever and
+  would hang the deploy step. Register, don't serve.
+- The compose stack (`deploy/docker-compose.yml`) runs a **Prefect server but no worker**, and
+  `pipelines/flows/main.py` documents the flow as *"runs ephemerally (no server needed)"* —
+  those two facts contradict, so the intended runtime isn't yet pinned. Prefect 3.7.8.
+- Two coherent resolutions:
+  - **serve()-based** (vps lane's recommendation — simplest, self-contained): `deploy.py`
+    creates a scheduled deployment and a **separate** long-lived `flow.serve(cron=…)` process
+    runs as one compose/systemd service. No work pool, no worker. Fewest moving parts; the
+    server stays UI-only. Matches "no extra infra".
+  - **worker + work-pool** (more scale, more parts): `deploy.py` does `flow.deploy(work_pool_name=…)`
+    against the server, and a **new `prefect-worker` service** is added to compose (that half is
+    the compose lane's). Only pick this if horizontal execution is actually wanted.
+- Either way this is **~1 file + 1 compose service**, not just `deploy.py` alone — the worker/
+  serve process is what actually executes runs; `deploy.py` on its own registers a deployment
+  that nothing would pick up. Confirm the model, then the file is small.
+
 ### Handoff: lane `s3` → lane `core-pipeline`
 
 Object storage is shipped and verified ([tasks/s3-object-storage.md](tasks/s3-object-storage.md)):

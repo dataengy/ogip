@@ -2,7 +2,7 @@
 
 **Status:** 📋 planned · **Priority:** mid
 
-Lane: `spec`. Scope: `spec/`. Issue: — (create via `just tasks-sync`).
+Lane: `spec`. Scope: `spec/`. Issue: [#20](https://github.com/dataengy/ogip/issues/20).
 Part of the `spec/` SSoT track ([PLAN](../PLAN.md) A2 · A4): semantic *frameworks* stay in
 `experimental/semantic/` (MetricFlow/Cube demos) and consume `spec/`, so the semantic
 *definitions* themselves belong in the agnostic spec layer.

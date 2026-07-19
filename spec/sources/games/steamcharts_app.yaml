@@ -1,0 +1,64 @@
+# ── GENERATED FILE — DO NOT EDIT ──────────────────────────────────────────────
+# Projected from the ingestion registry (the SSoT):
+#   ~/.ai/skills/.settings/de/ingestion/sources/games/steamcharts_app.yml
+# Edit THAT file, then regenerate:
+#   just -f ~/.ai/skills/_scripts/de/ingestion/Justfile spec-emit /Users/nk.myg/gi/@dataengy/OGIP
+# Hand edits here WILL be overwritten and were measured to be unsyncable by
+# hardlink (git checkout severs the link) — hence this one-way projection.
+# ──────────────────────────────────────────────────────────────────────────────
+# Source: steamcharts_app
+# Split from ingestion.yml — edit HERE, this is the SSoT.
+steamcharts_app:
+  system: steamcharts
+  entity: app
+  # Traction time series (backlog row 11): concurrent-player peaks per app. Fills the gap
+  # left by Steam's own charts needing JS. Static server-rendered HTML, 51KB/page.
+  # robots.txt VERIFIED 2026-07-18: HTTP 404 — the site declares NO robots policy at all.
+  # Absence of robots.txt is permission-by-default under the protocol, but it is NOT a ToS
+  # review; hence publishable: false and the unreviewed license below.
+  url: https://steamcharts.com/app/730
+  auth: none
+  tier: landed
+  publishable: false
+  license: steamcharts-tou-unreviewed
+  license_note: >
+    No robots.txt (404) and no visible API terms. The data itself is derived from Valve's
+    player-count endpoint; a ToS/attribution review is required before any republication.
+    publishable stays false until that review is recorded here.
+  key_param: null
+  slot: null
+  records_path: null # HTML page; values live in .app-stat blocks
+  probe_params: {}
+  rate_limit_note: "unstated; small community site — be gentle: 1 req/2s max, no parallel sweeps"
+  traps: >
+    No JSON-LD anywhere on the page — this is a genuine CSS-selector scrape, the only one
+    in the registry so far. The numbers are server-rendered (no JS needed), but selector
+    rot is undetectable by eye: pin the contract with probe markers (must_contain) so the
+    probe flags a rebuild the way it caught Metacritic's dead *metascore* selectors.
+  scrape:
+    fetch_tier: httpx # server-rendered — verified: values present in raw HTML, no JS
+    render: false
+    url_template: https://steamcharts.com/app/{appid}
+    discovery: appids already landed in raw (steamspy_all / steam appdetails crosswalk)
+    row_selector: "div.app-stat"
+    parser: css # NOT machine-checkable field-by-field; must_contain pins the structure
+    fields:
+      current_players: "div.app-stat:nth-of-type(1) span.num"
+      peak_24h: "div.app-stat:nth-of-type(2) span.num"
+      peak_all: "div.app-stat:nth-of-type(3) span.num"
+    # Structural markers the probe CAN verify with stdlib: all must appear in the live
+    # body or the contract is considered broken (selector-rot alarm for css parsers).
+    must_contain:
+      - 'id="app-heading"'
+      - 'class="app-stat"'
+      - 'class="num"'
+      - "24-hour peak"
+      - "all-time peak"
+    landing_table: landing.steamcharts__app
+    politeness: { per_domain_conns: 1, min_interval_ms: 2000, respect_retry_after: true }
+    robots: >
+      VERIFIED 2026-07-18 — https://steamcharts.com/robots.txt returns HTTP 404 ("404 page
+      not found"): no robots policy declared. Permission-by-default for fetching; ToS
+      review still owed before republication. Re-check periodically — a 404 today can
+      become a Disallow tomorrow.
+  docs: https://steamcharts.com/about

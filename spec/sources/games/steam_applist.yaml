@@ -1,0 +1,35 @@
+# ── GENERATED FILE — DO NOT EDIT ──────────────────────────────────────────────
+# Projected from the ingestion registry (the SSoT):
+#   ~/.ai/skills/.settings/de/ingestion/sources/games/steam_applist.yml
+# Edit THAT file, then regenerate:
+#   just -f ~/.ai/skills/_scripts/de/ingestion/Justfile spec-emit /Users/nk.myg/gi/@dataengy/OGIP
+# Hand edits here WILL be overwritten and were measured to be unsyncable by
+# hardlink (git checkout severs the link) — hence this one-way projection.
+# ──────────────────────────────────────────────────────────────────────────────
+# Source: steam_applist
+# Split from ingestion.yml — edit HERE, this is the SSoT.
+  steam_applist:
+    system: steam
+    entity: applist
+    # Full-catalog discovery. The keyless predecessor (ISteamApps/GetAppList/v2) is DEAD —
+    # HTTP 404, REMOVED (404 even WITH a key; a key-gated endpoint returns 403 instead).
+    # This replacement needs any Web API key. Keyless alternative = steamspy_all (subset).
+    # Lives on api.steampowered.com, whose robots.txt disallows everything — see the note
+    # at the top of this section before enabling.
+    url: https://api.steampowered.com/IStoreService/GetAppList/v1/
+    auth: api_key_query
+    tier: direct
+    publishable: true
+    license: steam-web-api-tos
+    license_note: >
+      Steam Web API ToS: 100k calls/day; must not degrade Steam; must not imply Valve
+      endorsement; only retrieve Steam Data about an end user as requested by that end user
+      (aimed at personal data — relevant only if ISteamUser is ever touched).
+    key_param: key
+    slot: STEAM_API_KEY
+    records_path: response.apps
+    probe_params:
+      max_results: 5
+    rate_limit_note: "100k calls/day (ToS). Paginate via last_appid; max_results <= 50k."
+    traps: "Missing/invalid key → HTTP 403 'Please verify your key= parameter' (NOT 404)."
+    docs: https://partner.steamgames.com/doc/webapi/IStoreService
