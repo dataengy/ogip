@@ -12,7 +12,7 @@ import argparse
 from pathlib import Path
 
 from ogip.config import get_settings
-from ogip.logger import logger
+from ogip.logger import log
 
 from .to_bruin import compile_to_bruin
 from .to_dbt import compile_to_dbt
@@ -62,7 +62,7 @@ def main(argv: list[str] | None = None) -> int:
     warehouse = get_settings().platform.warehouse_path  # repo-relative (SSoT: config.yml)
     for engine in ENGINES if engine_arg == "all" else (engine_arg,):
         names = _generate(engine, out, warehouse)
-        logger.bind(engine=engine).info("generated {n} models: {names}", n=len(names), names=names)
+        log.bind(engine=engine).info("generated {n} models: {names}", n=len(names), names=names)
     return 0
 
 

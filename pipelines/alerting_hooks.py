@@ -18,7 +18,7 @@ from __future__ import annotations
 from typing import Any
 
 from ogip.alerting import make_notifier
-from ogip.logger import logger
+from ogip.logger import log
 
 __all__ = ["notify_flow_failure"]
 
@@ -38,12 +38,12 @@ def notify_flow_failure(flow: Any, flow_run: Any, state: Any) -> None:
 
         notifier = make_notifier()
         if notifier is None:
-            logger.bind(flow=flow_name).debug("flow failed; alerting off — no notice sent")
+            log.bind(flow=flow_name).debug("flow failed; alerting off — no notice sent")
             return
         result = notifier.notify(text)
         if not result:
-            logger.bind(flow=flow_name).warning(
+            log.bind(flow=flow_name).warning(
                 "flow-failure alert not delivered: {e}", e=result.error
             )
     except Exception as exc:  # a failure hook must never raise — that would mask the failure
-        logger.error("flow-failure alert hook errored (suppressed): {e}", e=exc)
+        log.error("flow-failure alert hook errored (suppressed): {e}", e=exc)
