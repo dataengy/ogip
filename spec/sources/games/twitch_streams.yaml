@@ -45,3 +45,14 @@ twitch_streams:
       source is a YAML config, while the dlt equivalent is another token-refresh client to
       own. OGAP precedent: Twitch was an Airbyte source there too. Experimental lane only.
   docs: https://dev.twitch.tv/docs/api/reference/#get-streams
+  # Creation metadata — who registered this and on what evidence (audit trail;
+  # the verdicts themselves are still re-probed live, never trusted from here).
+  provenance:
+    added: 2026-07-19
+    actor: Claude (Opus 4.8) agent session — OGIP ingestion lane
+    directive: >
+      2-3 difficult-scraping sources (no normal/cheap API) + 1-2 where Airbyte beats dlt/ingestr; batch via .tmp/.once/sources-batch-scrape-airbyte.py
+    evidence_verified: 2026-07-19
+    registered_in: skills 61bcf49
+    refs: [OGIP#18, OGIP#19]
+    batch: 2026-07-19-difficult-scraping-airbyte

@@ -62,3 +62,14 @@ steamcharts_app:
       review still owed before republication. Re-check periodically — a 404 today can
       become a Disallow tomorrow.
   docs: https://steamcharts.com/about
+  # Creation metadata — who registered this and on what evidence (audit trail;
+  # the verdicts themselves are still re-probed live, never trusted from here).
+  provenance:
+    added: 2026-07-18
+    actor: Claude (Opus 4.8) agent session — OGIP ingestion lane
+    directive: >
+      new scraping-tier sources with machine-checkable contracts (json_ld / css markers)
+    evidence_verified: 2026-07-18
+    registered_in: skills cafd66c
+    refs: [OGIP#18, OGIP#19]
+    batch: 2026-07-18-scrape-verified

@@ -37,3 +37,14 @@
       primary_key: id
       write_disposition: merge
     docs: https://api-docs.igdb.com/
+    # Creation metadata — who registered this and on what evidence (audit trail;
+    # the verdicts themselves are still re-probed live, never trusted from here).
+    provenance:
+      added: 2026-07-18
+      actor: Claude (Opus 4.8) agent session — OGIP ingestion lane
+      directive: >
+        extend sources for pilot, scoped to Hushcrasher domain (Steam-centric premium-game economics); dlt + scraping patterns
+      evidence_verified: 2026-07-18
+      registered_in: skills 26ff1d4
+      refs: [OGIP#18, OGIP#19]
+      batch: 2026-07-18-hushcrasher-scope
