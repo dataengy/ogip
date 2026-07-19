@@ -74,9 +74,18 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     sys.path.insert(0, str(REPO))  # `pipelines`/`transform` are repo-root packages
-    from pipelines.flows.main import ingest_transform_publish
+    import importlib
 
-    counts = ingest_transform_publish(transform_engine=str(profile.get("transform", "sqlmesh")))
+    from pipelines.flows.engines import ENGINE_FLOWS
+
+    transform = str(profile.get("transform", "sqlmesh"))
+    module_path = ENGINE_FLOWS.get(transform)
+    if module_path is None:
+        raise SystemExit(
+            f"no Prefect setup for transform {transform!r} — known: {sorted(ENGINE_FLOWS)}"
+        )
+    engine_flow = importlib.import_module(module_path).flow  # each setup exposes exactly one flow
+    counts = engine_flow()
     print(f"profile {name}: outputs {counts}")
     return 0
 

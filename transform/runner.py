@@ -17,7 +17,7 @@ from pathlib import Path
 import duckdb
 
 from ogip.config import get_settings
-from ogip.logger import logger
+from ogip.logger import log
 from ogip.spec_compile import Asset, load_assets
 
 _REPO = Path(__file__).resolve().parents[1]
@@ -28,6 +28,24 @@ def execution_order(assets: list[Asset]) -> list[Asset]:
     by_name = {asset.name: asset for asset in assets}
     graph = {asset.name: [d for d in asset.depends if d in by_name] for asset in assets}
     return [by_name[name] for name in TopologicalSorter(graph).static_order()]
+
+
+def _drop_existing(con: duckdb.DuckDBPyConnection, asset: Asset) -> None:
+    """Drop any object already at ``asset.name`` — of EITHER type — before we recreate it.
+
+    The comparison engines share one warehouse; SQLMesh leaves a virtual-layer *view* where the
+    plain-SQL runner wants a *table* (and vice-versa), and ``create or replace <type>`` refuses to
+    swap across object types. Look up the real type and drop it with the matching keyword +
+    ``cascade`` (dependents are rebuilt in order right after).
+    """
+    row = con.execute(
+        "select table_type from information_schema.tables "
+        "where table_schema = ? and table_name = ?",
+        [asset.schema, asset.model],
+    ).fetchone()
+    if row is not None:
+        kind = "view" if row[0] == "VIEW" else "table"
+        con.execute(f"drop {kind} if exists {asset.name} cascade")
 
 
 def _ddl(asset: Asset) -> str:
@@ -48,8 +66,9 @@ def run_plain_sql(spec_sql_dir: Path | None = None, warehouse: Path | None = Non
     try:
         for asset in ordered:
             con.execute(f"create schema if not exists {asset.schema}")
+            _drop_existing(con, asset)  # a prior engine may have left a view where we want a table
             con.execute(_ddl(asset))
-            logger.bind(engine="plain_sql").info("built {name}", name=asset.name)
+            log.bind(engine="plain_sql").info("built {name}", name=asset.name)
     finally:
         con.close()
     return [asset.name for asset in ordered]
@@ -57,4 +76,4 @@ def run_plain_sql(spec_sql_dir: Path | None = None, warehouse: Path | None = Non
 
 if __name__ == "__main__":
     built = run_plain_sql()
-    logger.info("plain-SQL run complete: {n} models: {names}", n=len(built), names=built)
+    log.info("plain-SQL run complete: {n} models: {names}", n=len(built), names=built)

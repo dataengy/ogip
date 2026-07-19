@@ -16,7 +16,7 @@ from pathlib import Path
 from transform.runner import run_plain_sql
 
 from ogip.config import get_settings
-from ogip.logger import logger
+from ogip.logger import log
 from ogip.spec_compile import compile_to_bruin, compile_to_dbt, compile_to_sqlmesh_over_dbt
 
 COMPARISON_ENGINES = ("plain_sql", "dbt", "opendbt", "sqlmesh_dbt", "bruin")
@@ -30,7 +30,7 @@ _REL_ROOT = Path()
 
 
 def _run(cmd: list[str], *, engine: str) -> None:
-    logger.bind(engine=engine).info("exec: {c}", c=" ".join(cmd))
+    log.bind(engine=engine).info("exec: {c}", c=" ".join(cmd))
     subprocess.run(cmd, check=True, cwd=_REPO)
 
 

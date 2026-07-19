@@ -86,6 +86,11 @@ run_profiles:
     orchestrator: dagster
     ingestion: dlt
     transform: dbt
+  prefect-over-dagster: # Prefect wraps Dagster (dlt+dbt only); Prefect owns ML/scraping/obs/alerting
+    services: [postgres, prefect]
+    orchestrator: prefect
+    ingestion: dlt
+    transform: dagster
 
 sources:
   rawg: # M0 walking-skeleton source (clean documented REST)
