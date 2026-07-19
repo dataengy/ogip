@@ -37,6 +37,7 @@ dev = [
     "types-pyyaml>=6.0",
     "jupyterlab>=4.3",     # DS-facing notebooks (make notebook)
     "pandas>=2.2",         # notebook/DS ergonomics over the ML-ready parquet
+    "pandas-stubs>=3.0.3.260530",
 ]
 # Optional ingestion loader for CDC from the Postgres landing zone (D11).
 ingestr = ["ingestr>=0.13"]
