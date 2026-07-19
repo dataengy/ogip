@@ -29,3 +29,39 @@ verify-vps-provisioning:
     @test -f "{{justfile_directory()}}/.once/setup-vps-provisioning.sh" \
       || { echo "bundle absent — see README.md § One-shot bundles"; exit 1; }
     bash "{{justfile_directory()}}/.once/setup-vps-provisioning.sh"
+
+# Verify the "all dbt test types" bundle (read-only: asserts the TRACKED artifacts, runs no dbt).
+# Unlike the VPS bundle, its setup script MUTATES (regenerates the project, rebuilds the
+# warehouse) — so verification asserts the durable outputs here instead of re-running it.
+verify-dbt-all-tests:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd "$(git rev-parse --show-toplevel)"
+    fail=0
+    check() { # check <label> <file> <grep-pattern>
+      if grep -q "$3" "$2" 2>/dev/null; then echo "  ok   $1"; else echo "  MISS $1"; fail=1; fi
+    }
+    C=src/ogip/spec_compile/to_dbt.py
+    S=spec/sql/fs/market_features.sql
+    echo "compiler — test-type support ($C):"
+    check "generic w/ args: accepted_values" "$C" 'accepted_values'
+    check "generic w/ args: relationships"   "$C" 'relationships'
+    check "package: dbt_utils.accepted_range" "$C" 'dbt_utils.accepted_range'
+    check "package: dbt_expectations"         "$C" 'dbt_expectations'
+    check "model-level tests (_model_test)"   "$C" '_model_test'
+    check "singular tests (custom_checks)"    "$C" 'custom_checks'
+    check "unit tests (unit_tests)"           "$C" 'unit_tests'
+    check "singular test discovery (test-paths)" "$C" 'test-paths'
+    echo "spec — the types are actually exercised ($S):"
+    check "asset-level checks"  "$S" '^checks:'
+    check "custom_checks"       "$S" '^custom_checks:'
+    check "unit_tests"          "$S" '^unit_tests:'
+    check "relationships check" "$S" 'relationships'
+    echo "boundary (ADR-0016):"
+    check "ADR present" docs/adr/ADR-0016-orchestrator-transform-dq-boundary.md 'Orchestrator'
+    check "AGENTS hard rule" .ai/AGENTS.md 'Orchestrator ≠ transform'
+    echo "guard:"
+    bash src/scripts/check-no-dagster-dq.sh >/dev/null 2>&1 \
+      && echo "  ok   no hand-written Dagster DQ" \
+      || { echo "  FAIL hand-written Dagster asset_check present"; fail=1; }
+    test "$fail" -eq 0 && echo "BUNDLE OK" || { echo "BUNDLE INCOMPLETE"; exit 1; }
