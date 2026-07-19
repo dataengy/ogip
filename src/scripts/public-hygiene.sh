@@ -28,7 +28,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO_ROOT"
 
-SELF_REL="src/scripts/public-hygiene.sh"  # this file spells out every marker; never scan it
+SELF_REL="src/scripts/public-hygiene.sh" # this file spells out every marker; never scan it
 
 log() { echo "[hygiene] $*"; }
 die() {
