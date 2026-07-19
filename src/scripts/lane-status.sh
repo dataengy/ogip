@@ -44,13 +44,32 @@ die() {
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --repo) REPO="$(cd "${2:?--repo needs a dir}" && pwd)"; shift 2 ;;
-    --wait) WAIT_LANE="${2:?--wait needs a lane}"; shift 2 ;;
-    --timeout) TIMEOUT="${2:?}"; shift 2 ;;
-    --interval) INTERVAL="${2:?}"; shift 2 ;;
-    -h | --help) sed -n '2,31p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    --repo)
+      REPO="$(cd "${2:?--repo needs a dir}" && pwd)"
+      shift 2
+      ;;
+    --wait)
+      WAIT_LANE="${2:?--wait needs a lane}"
+      shift 2
+      ;;
+    --timeout)
+      TIMEOUT="${2:?}"
+      shift 2
+      ;;
+    --interval)
+      INTERVAL="${2:?}"
+      shift 2
+      ;;
+    -h | --help)
+      sed -n '2,31p' "$0" | sed 's/^# \{0,1\}//'
+      exit 0
+      ;;
     -*) die "unknown flag: $1" ;;
-    *) [[ -z "$QUERY_LANE" ]] || die "one lane at most"; QUERY_LANE="$1"; shift ;;
+    *)
+      [[ -z "$QUERY_LANE" ]] || die "one lane at most"
+      QUERY_LANE="$1"
+      shift
+      ;;
   esac
 done
 
@@ -65,7 +84,10 @@ lock_dir_for() {
 # Prints "state|sid|age|reason" for one lock dir; state ∈ FREE|LIVE|STALE|MINE.
 probe() {
   local dir="$1" meta sid at ttl now age rem reason
-  [[ -d "$dir" ]] || { printf 'FREE|||'; return 0; }
+  [[ -d "$dir" ]] || {
+    printf 'FREE|||'
+    return 0
+  }
   meta="$dir/owner.env"
   sid="" at="" ttl="" reason=""
   if [[ -f "$meta" ]]; then
@@ -74,14 +96,16 @@ probe() {
     at="$(sed -n "s/^OWNER_AT=//p" "$meta" | head -1 | tr -d "'\"")"
     ttl="$(sed -n "s/^OWNER_TTL=//p" "$meta" | head -1 | tr -d "'\"")"
     # owner.env values are printf-%q quoted — strip the escaping for display
+    # shellcheck disable=SC1003  # `tr -d '\\'` deletes backslashes; not a quote-escape typo
     reason="$(sed -n "s/^OWNER_REASON=//p" "$meta" | head -1 | tr -d '\\' | tr -d "'\"" | cut -c1-60)"
   fi
   now="$(date +%s)"
   if [[ -z "$at" || -z "$ttl" ]]; then
-    printf 'STALE|%s|?|%s' "$sid" "$reason"   # garbled meta = stale, same call the lock makes
+    printf 'STALE|%s|?|%s' "$sid" "$reason" # garbled meta = stale, same call the lock makes
     return 0
   fi
-  age=$((now - at)); rem=$((ttl - age))
+  age=$((now - at))
+  rem=$((ttl - age))
   if [[ -n "$MY_SID" && "$sid" == "$MY_SID" ]]; then
     printf 'MINE|%s|%ss|%s' "$sid" "$age" "$reason"
   elif [[ "$rem" -le 0 ]]; then
@@ -91,7 +115,7 @@ probe() {
   fi
 }
 
-claimable() {  # a lane is claimable when its lock is absent, stale, or already mine
+claimable() { # a lane is claimable when its lock is absent, stale, or already mine
   local state
   state="$(probe "$(lock_dir_for "$1")" | cut -d'|' -f1)"
   [[ "$state" != "LIVE" ]]

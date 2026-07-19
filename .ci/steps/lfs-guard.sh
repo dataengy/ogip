@@ -49,13 +49,13 @@ fail=0
 index="$(git ls-files -s | awk -F'\t' '{split($1, meta, " "); print meta[2] "\t" $2}')"
 while IFS=$'\t' read -r size path; do
   is_allowlisted "$path" && continue
-  log "✗ ${path} is $(( size / 1024 ))KB raw in git (limit ${SIZE_LIMIT_KB}KB) — track it: git lfs migrate import --include='${path}'"
+  log "✗ ${path} is $((size / 1024))KB raw in git (limit ${SIZE_LIMIT_KB}KB) — track it: git lfs migrate import --include='${path}'"
   fail=1
 done < <(
   paste \
     <(cut -f1 <<<"$index" | git cat-file --batch-check='%(objectsize)') \
-    <(cut -f2- <<<"$index") \
-    | awk -F'\t' -v lim_bytes="$(( SIZE_LIMIT_KB * 1024 ))" '$1 > lim_bytes'
+    <(cut -f2- <<<"$index") |
+    awk -F'\t' -v lim_bytes="$((SIZE_LIMIT_KB * 1024))" '$1 > lim_bytes'
 )
 
 # ── Check 2: LFS-attributed paths that are still raw blobs ───────────────────
@@ -68,12 +68,12 @@ done < <(
   # No -z / NUL framing: BSD awk on macOS cannot take NUL as RS and silently emits
   # nothing — which made this check pass on a staged raw blob. Line format is
   # "<path>: filter: lfs"; repo policy keeps paths colon-free, so the suffix match is safe.
-  git ls-files \
-    | git check-attr --stdin filter \
-    | sed -n 's/: filter: lfs$//p'
+  git ls-files |
+    git check-attr --stdin filter |
+    sed -n 's/: filter: lfs$//p'
 )
 
-if (( fail )); then
+if ((fail)); then
   log "large-dataset rule: binary fixtures/samples go through Git LFS (see .gitattributes)"
   exit 1
 fi
