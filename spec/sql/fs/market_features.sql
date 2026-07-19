@@ -13,7 +13,7 @@ columns:
     checks: [{name: not_null}, {name: unique}]
   - name: popularity_score
     type: double
-    checks: [{name: non_negative}]
+    checks: [{name: not_null}, {name: non_negative}]
 @bruin */
 select
     game_sk

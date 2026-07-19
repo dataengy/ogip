@@ -7,6 +7,7 @@ dbt `{{ ref('stg_games') }}`, and Bruin column checks become dbt tests in `schem
 
 from __future__ import annotations
 
+import logging
 import re
 from pathlib import Path
 from typing import Any, cast
@@ -15,9 +16,22 @@ import yaml
 
 from .bruin import Asset, load_assets
 
+# stdlib logging, not loguru: this compiler is imported by the nested Dagster subproject's venv
+# (experimental/orchestration/dagster_ogip), which does not depend on loguru.
+logger = logging.getLogger(__name__)
+
 _MATERIALIZATION = {"table": "table", "view": "view"}
-# Bruin check name -> dbt generic test name
-_TEST = {"not_null": "not_null", "unique": "unique"}
+# Bruin column-check name -> dbt generic test. A str is a builtin generic test; a dict is a
+# package test with args (dbt_utils is always installed — see _DBT_PACKAGES). Unknown names map
+# to None and are dropped WITH A WARNING (see _column_test callers) rather than silently — a
+# silent drop once hid `non_negative` from the generated project entirely.
+def _column_test(name: str) -> str | dict[str, Any] | None:
+    return {
+        "not_null": "not_null",
+        "unique": "unique",
+        # a value >= 0; dbt_utils.accepted_range with only min_value is the idiomatic spelling.
+        "non_negative": {"dbt_utils.accepted_range": {"min_value": 0}},
+    }.get(name)
 
 # Well-known dbt-hub packages, emitted into the generated project's packages.yml (installed by
 # `dbt deps`). Version ranges, not pins, so dbt resolves the newest compatible release. These
@@ -89,11 +103,21 @@ def _schema_yml(assets: list[Asset]) -> dict[str, Any]:
             col = cast("dict[str, Any]", col_value)
             checks_value = col.get("checks")
             checks = cast("list[Any]", checks_value) if isinstance(checks_value, list) else []
-            tests = [
-                _TEST[str(cast("dict[str, Any]", c)["name"])]
-                for c in checks
-                if isinstance(c, dict) and cast("dict[str, Any]", c).get("name") in _TEST
-            ]
+            tests: list[str | dict[str, Any]] = []
+            for c in checks:
+                if not isinstance(c, dict):
+                    continue
+                name = str(cast("dict[str, Any]", c).get("name"))
+                test = _column_test(name)
+                if test is None:
+                    logger.warning(
+                        "spec check %r on %s.%s has no dbt mapping — dropped",
+                        name,
+                        asset.model,
+                        col.get("name"),
+                    )
+                    continue
+                tests.append(test)
             entry: dict[str, Any] = {"name": str(col.get("name"))}
             if col.get("description"):
                 entry["description"] = str(col["description"])
