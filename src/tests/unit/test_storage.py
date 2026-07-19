@@ -45,8 +45,9 @@ def minio_env(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_backends_match_the_ssot_declaration() -> None:
-    # config/config.yml documents exactly these four (D2) — drift here is a bug.
-    assert BACKENDS == ("local", "minio", "s3", "r2")
+    # config/config.yml documents exactly these (D2) — drift here is a bug. gcs (GCP, via the
+    # interoperability/XML API) and yc (Yandex Cloud Object Storage) join as S3-compatible.
+    assert BACKENDS == ("local", "minio", "s3", "r2", "gcs", "yc")
 
 
 def test_local_backend_is_the_default_and_not_object_storage(
@@ -115,6 +116,37 @@ def test_r2_without_an_endpoint_is_rejected(monkeypatch: pytest.MonkeyPatch) -> 
     monkeypatch.setenv("OGIP_S3_SECRET_ACCESS_KEY", "secret")
     with pytest.raises(StorageBackendError, match=r"r2.*OGIP_S3_ENDPOINT_URL"):
         _credentials("r2")
+
+
+@pytest.mark.parametrize(
+    ("backend", "endpoint"),
+    [("gcs", "https://storage.googleapis.com"), ("yc", "https://storage.yandexcloud.net")],
+)
+def test_gcs_and_yc_are_virtual_host_s3_with_a_fixed_endpoint(
+    monkeypatch: pytest.MonkeyPatch, backend: str, endpoint: str
+) -> None:
+    # Both are S3-compatible over one fixed host and use virtual-host addressing, so they
+    # ride the same code path as AWS/R2 — only the endpoint differs.
+    monkeypatch.setenv("OGIP_STORAGE_BACKEND", backend)
+    monkeypatch.setenv("OGIP_S3_ENDPOINT_URL", endpoint)
+    monkeypatch.setenv("OGIP_S3_ACCESS_KEY_ID", "key")
+    monkeypatch.setenv("OGIP_S3_SECRET_ACCESS_KEY", "secret")
+    creds = _credentials(backend)  # type: ignore[arg-type]
+    assert creds.endpoint_url == endpoint
+    assert creds.s3_url_style == "auto"
+
+
+@pytest.mark.parametrize("backend", ["gcs", "yc"])
+def test_gcs_and_yc_without_an_endpoint_are_rejected(
+    monkeypatch: pytest.MonkeyPatch, backend: str
+) -> None:
+    # Each is reachable only via its one fixed host — failing early beats a cryptic 403.
+    monkeypatch.setenv("OGIP_STORAGE_BACKEND", backend)
+    monkeypatch.setenv("OGIP_S3_ENDPOINT_URL", "")
+    monkeypatch.setenv("OGIP_S3_ACCESS_KEY_ID", "key")
+    monkeypatch.setenv("OGIP_S3_SECRET_ACCESS_KEY", "secret")
+    with pytest.raises(StorageBackendError, match=rf"{backend}.*OGIP_S3_ENDPOINT_URL"):
+        _credentials(backend)  # type: ignore[arg-type]
 
 
 def test_unknown_backend_in_the_ssot_is_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
