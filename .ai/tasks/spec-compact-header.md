@@ -25,13 +25,23 @@ body, this one settles the header around it.
 text regardless. Rendering it is required by an existing target; skipping the intermediate
 would buy nothing and hide a step.
 
-## Before writing any parser
+## Vocabulary alignment with OTS (prior art — evaluated)
 
-- [ ] **Read the prior art** — [F7](../FIXME.md#f7--odts-overlaps-an-existing-open-transformation-specification):
-      [open-transformation-specification](https://github.com/francescomucio/open-transformation-specification)
-      states ODTS's problem almost word for word and has not been evaluated. Record align /
-      diverge-with-reason / not-applicable-with-reason in [docs/comparisons/](../../docs/comparisons/)
-      first. Cheap now; expensive once the parser exists.
+[OTS](https://github.com/francescomucio/open-transformation-specification) was assessed:
+**[docs/comparisons/ots-vs-odts.md](../../docs/comparisons/ots-vs-odts.md)**. It is an
+*interchange* format, not an authoring one, so it is not adopted — but it already names things
+`@odts` will need, and matching names is free now and gratuitous divergence later.
+
+- [ ] When materialization grows past `table`/`view`, use OTS's names: `incremental` with
+      `delete_insert` / `append` / `merge`, and `scd2` with `start_column` / `end_column` /
+      `unique_key`, plus `on_schema_change`. Do not mint synonyms.
+- [ ] `checks:` vocabulary — column-level vs table-level, and `severity: error|warning`.
+- [ ] Consider `object_tags` (governance tags carried onto the warehouse object: PII,
+      classification) as distinct from `tags` (selection/discovery). Not needed for 0.1; note it
+      before `pii` graduates from a column attribute.
+
+**Do not depend on OTS** — pre-1.0, single maintainer, breaking changes across 0.1 → 0.2.2.
+Vocabulary alignment is reversible; a format dependency is not.
 
 ## Sketch
 

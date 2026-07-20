@@ -30,9 +30,11 @@ ODCS which `spec/contracts/` already uses
 ([ADR-0016](../../docs/adr/ADR-0016-odts-authoring-format-spec-sql.md)). **Convention: a
 colliding name takes `YA` in place of `Open`** — check before minting the next one.
 
-⚠ Prior art on ODTS's own problem statement exists and has **not** been evaluated —
-[F7](../../.ai/FIXME.md#f7--odts-overlaps-an-existing-open-transformation-specification). Read
-it before building the parser, not after.
+Prior art on the same problem statement — the Open Transformation Specification — was assessed
+and **not adopted**: it is an interchange format, not an authoring one
+([comparison](../../docs/comparisons/ots-vs-odts.md)). Its **vocabulary** is another matter: when
+you add materialization strategies, checks or tags, use OTS's names rather than minting
+synonyms.
 
 ## Non-goals — read these first
 

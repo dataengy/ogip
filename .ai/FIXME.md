@@ -16,7 +16,36 @@ deleted, not left as archaeology. Do not "fix" anything marked **DO NOT TOUCH**.
 | [F4](#f4--six-directories-violate-hard-rule-8) | Six directories have no `README.md` | P2 | **now** | `spec` |
 | [F5](#f5--semantic-layer-format-is-undecided-against-odts) | Semantic-layer format undecided against `@odts` | P3 | when [#20](https://github.com/dataengy/ogip/issues/20) starts | `spec` |
 | [F6](#f6--issue-19-body-has-drifted-from-its-task-file) | Issue #19 body drifted from its task file | P3 | **now** | not `spec` |
-| [F7](#f7--odts-overlaps-an-existing-open-transformation-specification) | ODTS overlaps an existing transformation spec — prior art unevaluated | P2 | before [#35](https://github.com/dataengy/ogip/issues/35) | `spec` |
+| [F8](#f8--handoff-the-odos-design-still-names-the-umbrella-odps) | ODOS design still names the umbrella `ODPS` | **P1** | when the ODOS spec lands | ODOS lane |
+
+_F7 (ODTS vs the Open Transformation Specification) was evaluated and closed — verdict in
+[docs/comparisons/ots-vs-odts.md](../docs/comparisons/ots-vs-odts.md); the alignment work it
+produced lives on [#35](https://github.com/dataengy/ogip/issues/35) and
+[#36](https://github.com/dataengy/ogip/issues/36)._
+
+## F8 — handoff: the ODOS design still names the umbrella `ODPS`
+
+`docs/superpowers/specs/2026-07-20-odos-orchestration-spec-design.md` (uncommitted at the time
+of writing, *"awaiting approval → ADR-0017"*) states the taxonomy with **ODPS** as the umbrella.
+The `spec` lane renamed it to **YADPS** in
+[ADR-0016](../docs/adr/ADR-0016-odts-authoring-format-spec-sql.md) after finding the acronym held
+by Bitol's Open Data Product Standard and the Linux Foundation's Open Data Product Specification
+— with Bitol also maintaining ODCS, already used by `spec/contracts/`.
+
+**Timing, not disagreement:** the rename landed after that design was drafted. Left as a handoff
+because the file belongs to the ODOS lane; editing another lane's in-flight design would be the
+thing this register exists to prevent.
+
+**For the ODOS lane, when that spec lands:**
+- umbrella is **YADPS** (Yet Another Data Platform Standard); ODTS and ODOS keep `Open` — checked,
+  unclaimed;
+- the convention behind it: **a name colliding with an existing standard takes `YA` in place of
+  `Open`** — check before minting the next one;
+- `ADR-0017` is yours; the `spec` lane took `ADR-0016` and is not claiming further numbers.
+
+**Already done, no action needed:** that design's own naming note asks the `spec` lane to fix
+ODTS's expansion (*"Spec"* → *"Standard"*) and the *"not a published standard"* line in
+`spec/sql/AGENTS.md`. Both landed in `aee50ca`.
 
 ---
 
@@ -109,25 +138,3 @@ the definitions exist.
 Whoever owns `sources-backlog` should sync it, or use the targeted path (import
 `src/scripts/tasks_sync.py` and call `_update` for that slug alone).
 
-## F7 — ODTS overlaps an existing Open Transformation Specification
-
-While checking the `ODTS`/`ODOS` acronyms for collisions (none found — see
-[ADR-0016](../docs/adr/ADR-0016-odts-authoring-format-spec-sql.md) on the `YADPS` rename), a
-**concept** overlap surfaced instead:
-[francescomucio/open-transformation-specification](https://github.com/francescomucio/open-transformation-specification)
-— *"Define portable, executable data transformations with a standard specification"*. That is
-ODTS's problem statement almost word for word.
-
-Adjacent, different domain, but worth knowing about:
-[Oasis LMF's Open Data Transformation Framework](https://oasislmf.github.io/OpenDataTransform/)
-(catastrophe-model exposure data).
-
-**The risk is not the name, it is the work.** Building an `@odts` parser without having read
-OTS means either reinventing solved problems or diverging from prior art for no stated reason.
-Either is cheap to avoid now and expensive after the parser exists.
-
-**Before [#35](https://github.com/dataengy/ogip/issues/35) starts:** read OTS, then record one
-of — (a) `@odts` aligns with / adopts part of OTS; (b) `@odts` deliberately diverges, with the
-reason; (c) OTS is not applicable, with the reason. A short note in
-[docs/comparisons/](../docs/comparisons/) is the natural home, per the project's existing habit
-of parking evaluated-but-unused tooling there.

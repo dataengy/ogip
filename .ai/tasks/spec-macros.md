@@ -29,6 +29,17 @@ Smaller than the compact header, and the call sites already exist: `core/game.sq
 - [ ] Convert the two `core/game.sql` call sites; `just spec-verify` stays green.
 - [ ] Document the registry in [spec/README.md](../../spec/README.md).
 
+## Prior art agrees with the design — and stops one step short
+
+[OTS](https://github.com/francescomucio/open-transformation-specification) arrived at the same
+shape independently: its `functions` carry `code.generic_sql` **plus** `code.database_specific`
+keyed by database — one semantic definition, per-engine renderings, exactly the registry below
+([full assessment](../../docs/comparisons/ots-vs-odts.md)).
+
+It does **not** specify how the renderings are kept in agreement. That gap is the conformance
+test, which is therefore the part of this task with no prior art to lean on — and the part most
+likely to be cut under time pressure. Do not cut it.
+
 ## Conformance test — non-negotiable
 
 Compiling one macro into four native implementations is four chances to diverge, and the
