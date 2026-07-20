@@ -17,16 +17,16 @@ from __future__ import annotations
 import subprocess
 from typing import TYPE_CHECKING
 
-from ingestion.sources.metacritic import MetacriticGame
-from ingestion.sources.rawg import RawgGames
 from pipelines.alerting_hooks import notify_flow_failure
 from pipelines.flows._paths import REPO, SPEC_SQL, SQLMESH_DIR
 from prefect import flow
 from prefect.assets import materialize
 
-from ogip.config import get_settings, load_app_config
+from ogip.config import get_settings
 from ogip.logger import log, setup_logging
-from ogip.spec_compile import compile_to_sqlmesh
+from ogip.spec_compile import compile_to_sqlmesh, load_assets
+from ogip.tasks.dbt import dbt_build
+from ogip.tasks.ingest import ingest_all
 from ogip.warehouse import export_table
 
 if TYPE_CHECKING:
@@ -36,20 +36,11 @@ if TYPE_CHECKING:
 # --- Plain step functions (engine-agnostic; no Prefect decoration) ---
 
 
-def ingest_raw() -> str:
-    """Extract every enabled source via dlt → raw Parquet (Layer 0).
-
-    Enablement is config SSoT (`sources.<name>.enabled` in config/config.yml); each source
-    is demo-safe on its own (fixtures when unconfigured), so the full set runs keyless.
-    """
-    settings = get_settings()
-    enabled = load_app_config()["sources"]
-    out = RawgGames(settings).run(settings.platform.data_dir)
-    log.bind(source="rawg").info("raw landed at {p}", p=out)
-    if enabled.get("metacritic", {}).get("enabled"):
-        scraped = MetacriticGame(settings).run(settings.platform.data_dir)
-        log.bind(source="metacritic").info("raw landed at {p}", p=scraped)
-    return str(out)
+# Layer 0 ingestion is a registry task — the SAME callable the Dagster lane runs, not a
+# parallel implementation of it. Re-exported under the historical name so `make_engine_flow`
+# and every `engines/prefect_*.py` module stay untouched. Enablement still comes from config
+# SSoT (`sources.<name>.enabled`); it moved into `ingest.all`, it did not disappear.
+ingest_raw = ingest_all
 
 
 def build_warehouse(engine: str) -> list[str]:
@@ -68,6 +59,10 @@ def build_warehouse(engine: str) -> list[str]:
             cwd=REPO,
         )
         return models
+    if engine == "dbt":
+        # The registry task — the same code path and flags the Dagster lane runs.
+        dbt_build(project_dir=REPO / "transform" / "dbt")
+        return [asset.name for asset in load_assets(SPEC_SQL)]
     from transform.engines import run_transform_engine
 
     return run_transform_engine(engine)

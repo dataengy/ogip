@@ -99,6 +99,8 @@ def test_the_whole_project_vocabulary_is_registered():
         "dbt.build",
         "dbt.deps",
         "dbt.parse",
+        "ingest.all",
+        "ingest.metacritic",
         "ingest.parse_to_landing",
         "ingest.rawg",
         "integrations.trigger_prefect",
@@ -232,3 +234,40 @@ def test_cli_a_task_that_raises_returns_exit_1_instead_of_propagating():
         raise RuntimeError("boom")
 
     assert main(["probe.boom"]) == 1
+
+
+def test_both_lanes_reach_ingestion_through_the_same_registry_task():
+    """The drift guard this whole registry exists for.
+
+    `jobs/dg-tasks.sh` and `pipelines/flows/_common.py` once had independent ingestion bodies —
+    one conditional and routed through Dagster, one unconditional and straight to dlt. Identity,
+    not equivalence: the two lanes must resolve to the SAME object, so a change to one cannot
+    miss the other.
+    """
+    from pipelines.flows import _common
+
+    assert _common.ingest_raw is get_task("ingest.all")
+
+
+def test_every_dg_tasks_branch_dispatches_to_the_registry():
+    """Bash may alias registry calls; it may not carry logic of its own.
+
+    Asserts the shape of each `case` branch rather than the absence of a substring: a branch
+    that grows a second command, or invokes a tool directly, fails here regardless of
+    formatting.
+    """
+    import re
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parents[3]
+    script = (
+        repo / "experimental" / "orchestration" / "dagster_ogip" / "jobs" / "dg-tasks.sh"
+    ).read_text(encoding="utf-8")
+    body = script.split('case "$task" in', 1)[1].split("esac", 1)[0]
+
+    branches = re.findall(r"^\s*([a-z0-9-]+)\)\s*(.+?)\s*;;\s*$", body, re.MULTILINE)
+    assert len(branches) >= 8, f"expected the full task list, parsed {len(branches)} branches"
+    for name, command in branches:
+        assert command.startswith("ogip_task "), (
+            f"branch {name!r} does not dispatch to the registry: {command!r}"
+        )
