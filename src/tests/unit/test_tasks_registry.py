@@ -112,3 +112,31 @@ def test_every_registered_task_is_keyword_only_or_zero_arg():
         params = inspect.signature(fn).parameters.values()
         positional = [p for p in params if p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)]
         assert not positional, f"{name} takes positional parameters: {positional}"
+
+
+def test_cli_parses_name_and_typed_kwargs():
+    from ogip.tasks.__main__ import parse_args
+
+    name, kwargs = parse_args(["dbt.build", "--full_refresh=true", "--select=tag:daily"])
+    assert name == "dbt.build"
+    assert kwargs == {"full_refresh": True, "select": "tag:daily"}
+
+
+def test_cli_coerces_ints_and_false():
+    from ogip.tasks.__main__ import parse_args
+
+    _, kwargs = parse_args(["probe.echo", "--retries=3", "--dry_run=false"])
+    assert kwargs == {"retries": 3, "dry_run": False}
+
+
+def test_cli_rejects_an_unknown_task_name_with_a_nonzero_exit():
+    from ogip.tasks.__main__ import main
+
+    assert main(["definitely.not.a.task"]) == 2
+
+
+def test_cli_rejects_a_bare_flag_without_a_value():
+    from ogip.tasks.__main__ import parse_args
+
+    with pytest.raises(SystemExit):
+        parse_args(["dbt.build", "--full_refresh"])
