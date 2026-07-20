@@ -10,6 +10,7 @@ Discovery hub for AI agents and humans working on OGIP. Root `AGENTS.md` symlink
 | [TODO.md](TODO.md) | Short ordered checkboxes of near-term actions; references tasks/phases. |
 | [FIXME.md](FIXME.md) | **Known conflicts and debt, high priority** — document contradictions, convention gaps, things not to silently step over. |
 | [STATUS.md](STATUS.md) | Live status: current phase, last done, next steps, decision log. |
+| [SKILLS.md](SKILLS.md) | **Which agent skills apply here** — and the ~193 catalog skills that target infrastructure OGIP does not have (Jira, GitLab, ClickHouse, SSH fleet). Read before reaching for a skill. |
 | [tasks/](tasks/) | Per-phase and one-off task files (working notes, checklists). |
 
 Convention: durable rules → `AGENTS.md`; live state → `STATUS.md`; near-term actions →
