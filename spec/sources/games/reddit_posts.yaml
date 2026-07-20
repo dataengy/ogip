@@ -36,11 +36,17 @@ reddit_posts:
     streams: [posts, comments]
     sync_mode: incremental
     cursor: created_utc
+    # VERIFIED 2026-07-20, live OSS registry: airbyte/source-reddit:0.0.56,
+    # supportLevel=community, and its connectionSpecification auths with `api_key` —
+    # NOT OAuth2. The previous why claimed both "maintained" and "OAuth2 refresh";
+    # neither holds. Facts recorded, claim downgraded.
     why: >
-      OAuth2 token refresh + N incremental streams + backfill windows are exactly what the
-      maintained connector already implements; hand-rolling that in dlt is code we then own.
-      OGAP (the predecessor) made the same call. Runs in the experimental/ Airbyte lane —
-      AGENTS.md keeps Airbyte off the default path, so this source ships only there.
+      HONEST CASE, corrected 2026-07-20: a community connector at 0.0.56 with api_key
+      auth is NOT a maintenance win over dlt's declarative rest_api — the original
+      justification does not survive the registry evidence. Kept on the Airbyte lane
+      for lane uniformity with twitch while the lane exists; if source-reddit is still
+      community/0.0.x when the lane graduates or folds, route this back to dlt. OGAP
+      precedent noted but precedent is not evidence.
   docs: https://www.redditinc.com/policies/data-api-terms
   # Creation metadata — who registered this and on what evidence (audit trail;
   # the verdicts themselves are still re-probed live, never trusted from here).
