@@ -29,10 +29,12 @@ ODTS's `sk = md5(id)` hazard: valid, runnable, silently different.
 
 ## Sketch
 
-- [ ] **R&D first — verify the Prefect surface by running it** (§13.1 of the design). Can OSS
-      Prefect ≥3.4 express `on: asset_materialized` and `on: poll` natively, or must both project
-      to scheduled deployments with an external cursor? A third of the capability matrix depends
-      on the answer. Do not assume — ADR-0016's warning applies.
+- [x] **R&D — Prefect surface verified by running 3.7.8** (design §7.1–7.3). `asset_materialized`
+      projects **directly** (asset events + `EventTrigger`/Reactive + `RunDeployment`, all OSS);
+      `poll` has no equivalent and needs a cursor store; asset-key mapping (URI vs key tuple, and
+      today's per-engine URI namespace) turns out to belong to ODOS, not to the flow author.
+      Follow-ups: pick the cursor store (Prefect Variables?), and fold the engine namespace into
+      the key mapping. Caveat to honour: a `Cached` state emits no asset event.
 - [ ] **Task registry** `src/ogip/tasks/` — `@odos_task("dbt.build")` over plain typed functions.
       Collapses `dg-tasks.sh` + `_common.py`; six of nine bash tasks become
       `dbt.build(full_refresh=, select=, state=)`. Decide the `ensure_raw` semantics (conditional

@@ -445,8 +445,8 @@ not describe them.
 | `task:` job | `@job` over `@op` | `@flow` over `@task` | direct |
 | `assets:` | `@asset` | `@materialize` | direct |
 | `on: cron` | `ScheduleDefinition` | deployment schedule | direct |
-| `on: asset_materialized` | `@asset_sensor` | **verify** (§13) | — |
-| `on: poll` | `@sensor` + cursor | **verify** (§13) | — |
+| `on: asset_materialized` | `@asset_sensor` | Automation + `EventTrigger` (Reactive) | direct — §7.1 |
+| `on: poll` | `@sensor` + cursor | none (no sensor daemon) | scheduled deployment + external cursor — §7.2 |
 | `on: partition_ready` | `build_schedule_from_partitioned_job` | none | cron + partition arg |
 | `checks:` | `@asset_check` | none | validation gate task after the asset |
 | `hooks: run_failed` | `@run_failure_sensor` | none | target-restricted |
@@ -455,6 +455,42 @@ not describe them.
 **Policy: the compiler fails loudly.** An object that cannot be projected into a requested target
 is a compile error unless it carries an explicit `targets:` restriction. Silently dropping it is
 forbidden — that is how a spec starts lying about what runs.
+
+### 7.1 Verified: Prefect expresses `asset_materialized` natively
+
+Established by **running** Prefect 3.7.8 (installed in `.run/venv`), not by reading docs:
+
+- `@materialize` emits `prefect.asset.materialization.succeeded` / `.failed`, with
+  `prefect.resource.id` set to the asset key, plus `prefect.asset.referenced` for each upstream.
+  Observed for a two-step `@materialize` flow.
+- `EventTrigger(expect={"prefect.asset.materialization.succeeded"}, match={"prefect.resource.id":
+  <key>}, posture=Reactive)` + a `RunDeployment` action validates as an `AutomationCore`.
+- `Posture.Proactive` with `within=` gives absence/freshness triggers; `MetricTrigger` exists too.
+  Both are OSS, no Cloud requirement; an ephemeral API server starts on demand.
+
+So `on: asset_materialized` is a **direct projection on both targets** — this is not a gap, and
+the earlier assumption that it might be one was wrong. Two caveats found in the same pass, both
+from `prefect/context.py:emit_events`: a `Cached` state emits nothing, and a task with no
+downstream asset emits no materialization event. Any ODOS automation whose upstream job can be
+cached needs that stated, or it will look like a missed trigger.
+
+### 7.2 `on: poll` is the one real asymmetry
+
+Prefect has no cursor-holding sensor daemon. The projection is a scheduled deployment running the
+registry callable at `every=`, comparing against a cursor kept outside the flow. Dagster stores
+the cursor for you; Prefect does not, so **the cursor store is an ODOS decision, not an adapter
+detail** — otherwise the two projections diverge exactly like §2. Prefect Variables are the
+obvious candidate; deciding this is part of the implementation task.
+
+### 7.3 Asset-key mapping is ODOS's, not the flow author's
+
+Prefect asset keys are URIs; Dagster's are key tuples. Today `make_engine_flow` builds Prefect
+URIs **namespaced by engine** — `file://ogip/{engine}/raw/rawg__games` — so one logical asset has
+a different Prefect key per run profile. An `EventTrigger` matches on the concrete URI, so a
+naive port would produce automations that fire for one profile and silently never for another.
+
+ODOS therefore owns the dotted-name → URI/key-tuple mapping convention, and the engine namespace
+becomes part of that mapping rather than a formatting choice inside a flow module.
 
 ## 8. Compiler architecture
 
@@ -521,11 +557,10 @@ than one task), `inputs:`/parameterised runs, backfill policy declarations.
 
 ## 13. Open questions
 
-1. **Prefect ≥3.4 event/automation surface** — whether OSS Prefect can express
-   `on: asset_materialized` and `on: poll` natively, or whether both must project to scheduled
-   deployments with an external cursor. Must be verified by **running** the pinned version, not
-   assumed. ADR-0016's own warning applies: assumptions about what a tool accepts have already
-   been wrong twice in this repo, both times as "it parses, therefore it works".
+1. ~~**Prefect ≥3.4 event/automation surface**~~ — **resolved by running 3.7.8**, see §7.1–7.3.
+   `asset_materialized` projects directly; `poll` does not and needs a cursor-store decision;
+   asset-key mapping turns out to belong to ODOS. Two new sub-questions replace it: which cursor
+   store (Prefect Variables?), and how the engine namespace enters the key mapping.
 2. **`ensure_raw` semantics** — conditional (skip when parquet present) or unconditional? The
    registry must pick one, and it is a behaviour change for whichever lane loses.
 3. **Flat `automations:` vs nesting triggers under jobs** (dagster-odp's `jobs[].triggers[]`).
