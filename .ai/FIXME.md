@@ -1,4 +1,4 @@
-# `.ai/FIXME.md` — known conflicts and debt, high priority
+      # `.ai/FIXME.md` — known conflicts and debt, high priority
 
 Problems that are **real but not yet fixed** — contradictions between documents, convention
 gaps, and debt that a passing agent should not silently step over. Distinct from
@@ -137,4 +137,3 @@ the definitions exist.
 **Do not fix by running the full sync** — it would push this lane's drift under your name.
 Whoever owns `sources-backlog` should sync it, or use the targeted path (import
 `src/scripts/tasks_sync.py` and call `_update` for that slug alone).
-
