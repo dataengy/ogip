@@ -53,10 +53,18 @@ def _run(project_dir: Path, verb: str, *flags: str) -> None:
 
 
 @odos_task("dbt.deps")
-def dbt_deps(*, project_dir: Path) -> None:
-    """Install hub packages. Idempotent — dbt caches into `<project>/dbt_packages/`."""
+def dbt_deps(*, project_dir: Path, force: bool = False) -> None:
+    """Install hub packages.
+
+    Two distinct behaviours, inherited from the original bash split between the standalone
+    `dbt-deps` task and the internal `ensure_deps()` helper it shared with build/evaluate:
+    `force=True` runs `dbt deps` unconditionally — this is what a caller wants after editing
+    `packages.yml`, where a gated check would silently no-op on a stale cache. `force=False`
+    (the default, used by `dbt_parse`/`dbt_build`) skips when `<project>/dbt_packages/` already
+    exists, since dbt caches there and a build shouldn't pay the network cost every time.
+    """
     _regenerate(project_dir)
-    if not (project_dir / "dbt_packages").is_dir():
+    if force or not (project_dir / "dbt_packages").is_dir():
         _run(project_dir, "deps")
 
 
