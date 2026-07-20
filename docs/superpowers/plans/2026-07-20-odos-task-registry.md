@@ -837,7 +837,7 @@ case "$task" in
   build-dwh-full)     ogip_task dbt.build --project_dir="$DBT_PROJECT" --full_refresh=true ;;
   dbt-evaluate)       ogip_task dbt.build --project_dir="$DBT_PROJECT" --select=package:dbt_project_evaluator ;;
   update-dbt-changed) ogip_task dbt.build --project_dir="$DBT_PROJECT" --select=state:modified+ --state="$DBT_PROJECT" ;;
-  dbt-deps)           ogip_task dbt.deps  --project_dir="$DBT_PROJECT" ;;
+  dbt-deps)           ogip_task dbt.deps  --project_dir="$DBT_PROJECT" --force=true ;;
   update-dbt)         ogip_task dbt.parse --project_dir="$DBT_PROJECT" ;;
   parsing)            ogip_task ingest.parse_to_landing ;;
   prefect)            ogip_task integrations.trigger_prefect ;;
