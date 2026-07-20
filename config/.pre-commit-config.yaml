@@ -52,6 +52,12 @@ repos:
         entry: uv run pytest -m smoke -q
         language: system
         pass_filenames: false
+      - id: sources-registry-drift
+        name: sources registry drift (skips when ~/.ai absent)
+        entry: bash src/scripts/sources-registry-check.sh
+        language: system
+        pass_filenames: false
+        files: ^spec/sources/ # fire only when projections are touched; script self-skips off-machine
         stages: [pre-commit]
       - id: dq-data-tests
         name: data quality (spec/dq)

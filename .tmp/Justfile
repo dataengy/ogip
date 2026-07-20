@@ -36,10 +36,9 @@ agentic-otel-check:
 
 # --- One-shot bundles (documented in README.md § One-shot bundles; contents gitignored) ---
 
-# Run the 2026-07-19 sources batch (difficult-scraping + Airbyte registry entries).
-# Idempotent; see .tmp/.once/MANIFEST.sources-batch-scrape-airbyte.md for context/evidence.
-once-sources-batch *args:
-    python3 "{{justfile_directory()}}/.once/sources-batch-scrape-airbyte.py" {{args}}
+# (2026-07-19 sources batch: RETIRED — both one-shots ran to completion; durable outputs
+# are committed in the skills repo + spec/sources/. The scripts + MANIFESTs stay in
+# .once/ as the gitignored record. Replay, if ever needed: run them directly with python3.)
 
 # Verify the VPS-provisioning + skills bundle is intact (read-only; no box, no token, no writes).
 # Path via justfile_directory(): `just` runs recipes from the Justfile's own dir, so a bare
