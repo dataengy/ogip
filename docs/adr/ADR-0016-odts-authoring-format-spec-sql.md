@@ -25,8 +25,21 @@ scratch.
 
 ## Decision
 
-Introduce **`@odts 0.1`** (Open Data Transformation Spec), a compact line-oriented header for
-`spec/sql`, and record the policy governing its evolution.
+Introduce **`@odts 0.1`**, a compact line-oriented header for `spec/sql`, and record the policy
+governing its evolution.
+
+`@odts` is OGIP's **implementation** of **ODTS** (Open Data Transformation Standard), which sits
+under the **ODPS** (Open Data Platform Standard) umbrella alongside **ODOS** (Open Data
+Orchestration Standard). OGIP conforms to the standard; it does not author it. That split is
+load-bearing here — ODOS owning orchestration is precisely why Prefect and Dagster are **not**
+ODTS compile targets in this repo but consumers of compiled projects.
+
+⚠ The **ODPS** name collides with two public standards in OGIP's own ecosystem — Bitol's
+[Open Data Product Standard](https://bitol-io.github.io/open-data-product-standard/v1.0.0/) and
+the Linux Foundation's [Open Data Product Specification](https://opendataproducts.org/). Bitol
+also maintains **ODCS**, which `spec/contracts/` already uses, so a reader will reasonably
+assume ODPS is Bitol's too. Registered as [F7](../../.ai/FIXME.md#f7--odps-name-collides-with-two-public-standards);
+it does not block this record, which concerns ODTS only.
 
 **Compilation is front-loaded, not rebuilt.** A frontend in `src/ogip/spec_compile/` renders
 `@odts` into the existing `@bruin` YAML header; `parse_asset()` and every adapter
@@ -107,6 +120,8 @@ incident discovered downstream.
   engine. Rejected in favour of native mapping plus conformance tests.
 - **Per-block grammar versions** (`columns(0.2 patch infer:sql)`) — independent evolution, at
   the cost of a version compatibility matrix. Rejected as complexity without a call site.
-- **A published open standard ("OpenAPI for transformations")** — out of scope by
-  [AGENTS.md](../../AGENTS.md): the north star is a production platform, *not* "the next dbt".
-  `@odts` is internal; its ambition is portability across OGIP's six targets.
+- **Authoring the standard rather than implementing it** — driving ODTS itself from this repo
+  is out of scope by [AGENTS.md](../../AGENTS.md): the north star is a production platform,
+  *not* "the next dbt". OGIP contributes a conforming implementation; `@odts`'s in-repo
+  ambition is portability across OGIP's six targets, and syntax proposals are judged against
+  those, not against an imagined industry.

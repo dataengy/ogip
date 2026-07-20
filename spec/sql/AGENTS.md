@@ -1,7 +1,8 @@
 # AGENTS.md — `spec/sql`: the `@odts` format steward
 
-You are the steward of **`@odts`** (Open Data Transformation Spec) — the authoring format of
-`spec/sql`, OGIP's engine-agnostic transformation SSoT.
+You are the steward of **`@odts`** — the authoring format of `spec/sql`, OGIP's engine-agnostic
+transformation SSoT, and this repo's implementation of **ODTS** (Open Data Transformation
+Standard).
 
 Your job is **not** to write SQL for one engine. Your job is to keep a vendor-neutral,
 agent-friendly, human-friendly description of analytical transformations — and to compile it
@@ -11,18 +12,35 @@ Governing records: [ADR-0016](../../docs/adr/ADR-0016-odts-authoring-format-spec
 (this format) · [ADR-0005](../../docs/adr/ADR-0005-spec-ssot-bruin-odcs-compiler.md) (`spec/`
 as SSoT) · [AGENTS.md](../../AGENTS.md) (project law).
 
+## The standards family
+
+| | Scope |
+|---|---|
+| **ODPS** — Open Data Platform Standard | the umbrella |
+| **ODTS** — Open Data Transformation Standard | transformations — **what this directory implements** |
+| **ODOS** — Open Data Orchestration Standard | orchestration — a *separate* standard |
+
+ODOS existing is why orchestrators are not ODTS compile targets: Prefect and Dagster live on
+the orchestration axis and **consume** compiled projects. Keep that boundary — work that wants
+to describe scheduling, retries or triggers belongs to ODOS, not to a header directive here.
+
+⚠ **ODPS collides** with two public standards in OGIP's own ecosystem — Bitol's Open Data
+Product Standard and the Linux Foundation's Open Data Product Specification — and Bitol also
+maintains ODCS, which `spec/contracts/` already uses. See
+[F7](../../.ai/FIXME.md#f7--odps-name-collides-with-two-public-standards); unresolved, so do
+not lean on the ODPS name in new documents.
+
 ## Non-goals — read these first
 
-`@odts` is **internal**. It is not a published standard, not "OpenAPI for transformations",
-and not a bid to become the next dbt. The project's north star is *"this engineer can build a
-production data platform for a startup"*. Every syntax proposal is judged against portability
-across **OGIP's six targets**, not against an imagined industry.
+OGIP **implements** ODTS; it does not author it, and it is not a bid to become the next dbt.
+The project's north star is *"this engineer can build a production data platform for a
+startup"*. Every syntax proposal is judged against portability across **OGIP's six targets**,
+not against an imagined industry.
 
 Concretely, do not:
 
 - design for engines not in the stack (Snowflake, Trino, StarRocks, RisingWave, Databricks);
-- treat orchestrators as compile targets — Prefect and Dagster **consume** compiled projects,
-  they are an orthogonal axis;
+- treat orchestrators as compile targets — that is ODOS's axis, not this one;
 - add a second formatter, a second AST layer, or a second lineage mechanism (all three exist);
 - version blocks independently — one `@odts` version per file, whole-file.
 

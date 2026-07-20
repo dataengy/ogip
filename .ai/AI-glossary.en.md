@@ -15,6 +15,11 @@ behind `/add-terms-to-glossary`); Russian-slang twins live in
 | [ccusage](#ccusage) | general | npx ccusage — OSS-отчёты токенов/стоимости из ~/.claude/projects/*.jsonl |
 | [label cardinality guard](#label-cardinality-guard) | general | в лейблы попадают только низкокардинальные поля; id-шники живут в строке |
 | [lane locks / lane-status.sh / release-all-mine](#lane-locks--lane-statussh--release-all-mine) | project | координация параллельных агент-сессий OGIP: пер-полосные advisory-локи + снапшот + sweep на выходе |
+| [:= vs = в проекции (PropertyEQ vs EQ)](#=-vs-=-в-проекции-propertyeq-vs-eq) | general | `a = b` в проекции — предикат равенства, boolean-колонка: валидно, исполняемо, молча не то; `a := b` падает громко |
+| [macro conformance test](#macro-conformance-test) | general | один макрос × все адаптеры × одна фикстура, assert байт-в-байт — защита от тихого расхождения реализаций |
+| [ODPS / ODTS / ODOS (семейство стандартов)](#odps--odts--odos-семейство-стандартов) | project | зонт ODPS + части ODTS (трансформации) и ODOS (оркестрация); имя ODPS конфликтует с двумя публичными стандартами |
+| [@odts](#@odts) | project | формат авторинга spec/sql в OGIP: компактный header → рендер в @bruin YAML → адаптеры без изменений |
+| [.ai/FIXME.md (conflict register)](#aifixmemd-conflict-register) | project | реестр известных противоречий между документами; протухшее hard rule опаснее протухшего README |
 
 ## OTel / OTLP (Claude Code native telemetry)
 
@@ -51,3 +56,33 @@ behind `/add-terms-to-glossary`); Russian-slang twins live in
 `[project]` OGIP's parallel-session discipline: advisory per-lane object locks (.ai/.locks/obj--<lane>), lane-status.sh (one-shot locks/git/settle snapshot with --wait), and the release-all-mine verb the SessionEnd hook runs so a dying session frees every lane it held.
 > **RU:** Дисциплина полос OGIP: claim перед записью, снапшот перед claim'ом, автоматический sweep всех своих локов на SessionEnd.
 > **Пример:** bash src/scripts/lane-status.sh → VERDICT: GO/COORDINATE; хук зовёт agent-session-lock.sh release-all-mine.
+
+## := vs = в проекции (PropertyEQ vs EQ)
+
+`[general]` In sqlglot, `select a = b` parses as `EQ` — an equality predicate yielding a boolean column — while `select a := b` parses as `PropertyEQ`. Only the second is unambiguous, and DuckDB rejects it outright instead of running it.
+> **RU:** `a = b` в проекции — валидный, исполняемый и молча неверный SQL: на выходе boolean-колонка вместо алиаса. `a := b` даёт отдельный узел AST и падает громко, поэтому безопасен как авторский сахар.
+> **Пример:** OGIP ADR-0016: LValue разрешён только через `:=`, `=` запрещён наглухо — проверено на sqlglot 30.8 / DuckDB 1.5.4.
+
+## macro conformance test
+
+`[general]` When one macro compiles to several engine-native implementations, a test that runs every adapter over one fixture and asserts byte-identical output.
+> **RU:** Когда один макрос компилируется в несколько нативных реализаций — тест, гоняющий все адаптеры по одной фикстуре с assert байт-в-байт. Без него `dbt_utils.generate_surrogate_key` и `md5(cast(x as varchar))` дают разные хеши, и модель keyится по-разному в зависимости от run-профиля.
+> **Пример:** OGIP #36: условие приземления макроса, а не пожелание — расхождение делает CI красным, а не инцидентом данных ниже по потоку.
+
+## ODPS / ODTS / ODOS (семейство стандартов)
+
+`[project]` The project's own standards taxonomy: **ODPS** (Open Data Platform Standard) as the umbrella, with **ODTS** (Open Data Transformation Standard) and **ODOS** (Open Data Orchestration Standard) as parts. ⚠ The ODPS name collides with two public standards in the same ecosystem — Bitol's Open Data Product Standard and the Linux Foundation's Open Data Product Specification. Bitol also maintains ODCS, which OGIP already uses for contracts, so the collision is adjacent, not distant.
+> **RU:** Собственная таксономия стандартов: **ODPS** (Open Data Platform Standard) — зонт, **ODTS** (трансформации) и **ODOS** (оркестрация) — части. ⚠ Имя ODPS уже занято двумя публичными стандартами в той же экосистеме: Open Data Product Standard от Bitol и Open Data Product Specification от Linux Foundation. Bitol же ведёт ODCS, который OGIP использует для контрактов, — поэтому коллизия соседняя, а не далёкая.
+> **Пример:** Разделение ODTS/ODOS подтверждает архитектурный выбор OGIP: оркестраторы (Prefect, Dagster) — не таргеты компиляции ODTS, у них своя ось и свой стандарт.
+
+## @odts
+
+`[project]` OGIP's authoring format for `spec/sql` and its implementation of ODTS — a compact line-oriented header compiled front-of-pipeline into the legacy `@bruin` YAML, so the compiler is extended at the front and every adapter stays untouched.
+> **RU:** Формат авторинга `spec/sql` в OGIP и его реализация ODTS. Компактный header компилируется фронтендом в `@bruin` YAML, поэтому компилятор расширяется спереди, а адаптеры не трогаются вообще. OGIP реализует стандарт, а не авторствует его: рамка оценки — шесть реальных таргетов проекта.
+> **Пример:** ADR-0016; задачи #35 (компактный header) и #36 (макро-слой).
+
+## .ai/FIXME.md (conflict register)
+
+`[project]` OGIP's register of known contradictions between documents and convention gaps — sits between `TODO.md` (near-term actions) and `tasks/` (scoped work with an issue). It exists because the project asserts facts in prose rather than deriving them: the `spec/sql` authoring format alone is stated in ten documents.
+> **RU:** Реестр известных противоречий между документами и пробелов в конвенциях — между `TODO.md` и `tasks/`. Нужен потому, что факты в проекте заявляются прозой, а не выводятся: один только формат авторинга `spec/sql` записан в десяти документах. Ключевое правило: протухшее hard rule в `AGENTS.md` опаснее протухшего README — hard rules **исполняют**, а не просто читают.
+> **Пример:** F1: hard rule 2 всё ещё говорит «Bruin asset format» и станет ложью в момент приземления #35.

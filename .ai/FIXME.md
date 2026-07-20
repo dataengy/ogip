@@ -16,6 +16,7 @@ deleted, not left as archaeology. Do not "fix" anything marked **DO NOT TOUCH**.
 | [F4](#f4--six-directories-violate-hard-rule-8) | Six directories have no `README.md` | P2 | **now** | `spec` |
 | [F5](#f5--semantic-layer-format-is-undecided-against-odts) | Semantic-layer format undecided against `@odts` | P3 | when [#20](https://github.com/dataengy/ogip/issues/20) starts | `spec` |
 | [F6](#f6--issue-19-body-has-drifted-from-its-task-file) | Issue #19 body drifted from its task file | P3 | **now** | not `spec` |
+| [F7](#f7--odps-name-collides-with-two-public-standards) | `ODPS` name collides with two public standards | **P1** | **now** | owner decision |
 
 ---
 
@@ -107,3 +108,31 @@ the definitions exist.
 **Do not fix by running the full sync** — it would push this lane's drift under your name.
 Whoever owns `sources-backlog` should sync it, or use the targeted path (import
 `src/scripts/tasks_sync.py` and call `_update` for that slug alone).
+
+## F7 — `ODPS` name collides with two public standards
+
+The project's standards taxonomy is **ODPS** (Open Data Platform Standard) as the umbrella,
+with **ODTS** (transformations) and **ODOS** (orchestration) as parts. `ODPS` is already taken,
+twice, and not in some distant corner:
+
+| Existing | Owner |
+|---|---|
+| **O**pen **D**ata **P**roduct **S**tandard | [Bitol](https://bitol-io.github.io/open-data-product-standard/v1.0.0/), Linux Foundation AI & Data |
+| **O**pen **D**ata **P**roduct **S**pecification | [ODPI](https://opendataproducts.org/), Linux Foundation |
+
+**Why this bites here specifically.** Bitol also maintains **ODCS** (Open Data Contract
+Standard), which `spec/contracts/` already uses — see
+[ADR-0005](../docs/adr/ADR-0005-spec-ssot-bruin-odcs-compiler.md). A reader seeing ODCS and
+ODPS side by side in the same repo will reasonably conclude both come from Bitol, and will be
+wrong about the second. This is a documentation-integrity problem, not a trademark one.
+
+`ODTS` and `ODOS` appear unclaimed and are unaffected. The collision is confined to the
+umbrella name.
+
+**Needs an owner decision**, one of: (a) rename the umbrella (e.g. `ODPfS`, or something not
+in `OD*S` shape at all); (b) keep `ODPS` and disambiguate on every first use, accepting the
+permanent footnote; (c) drop the umbrella term from OGIP documents and refer only to ODTS and
+ODOS, which carry the meaning that matters here anyway.
+
+Until decided: **do not lean on the ODPS name in new documents.** ADR-0016 and
+[spec/sql/AGENTS.md](../spec/sql/AGENTS.md) reference it once each, both flagged.
