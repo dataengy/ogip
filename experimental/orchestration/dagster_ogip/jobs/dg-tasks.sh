@@ -50,10 +50,22 @@ ensure_raw() {
   fi
 }
 
-# Install the dbt-hub packages once (packages.yml is emitted by the compiler). Idempotent —
-# dbt caches into dbt/dbt_packages/, so skip when already present.
+# Install the dbt-hub packages (packages.yml is emitted by the compiler). Idempotent — dbt caches
+# into dbt/dbt_packages/, so this is a no-op once the install is COMPLETE.
+#
+# Completeness, not mere existence: an interrupted `dbt deps` (Ctrl-C, killed process, dropped
+# network) leaves dbt_packages/ present but half-populated. A `-d` test passes on that, so deps
+# were never repaired and every later dbt command died with
+#   "found N package(s) in packages.yml, but only M package(s) installed".
+# Transitive deps only ADD directories, so `installed < declared` is the reliable "incomplete" test.
 ensure_deps() {
-  [[ -d "$DBT_PROJECT_DIR/dbt_packages" ]] || dbt_run deps
+  local declared installed
+  declared="$(grep -cE '^[[:space:]]*-[[:space:]]*(package|git|local):' "$DBT_PROJECT_DIR/packages.yml" 2>/dev/null || true)"
+  installed="$(find "$DBT_PROJECT_DIR/dbt_packages" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')"
+  if [[ "${declared:-0}" -gt 0 && "${installed:-0}" -lt "${declared:-0}" ]]; then
+    echo "[dg-tasks] dbt packages incomplete (${installed:-0}/${declared:-0}) — running dbt deps"
+    dbt_run deps
+  fi
 }
 
 case "$task" in
