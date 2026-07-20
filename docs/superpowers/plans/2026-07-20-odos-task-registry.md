@@ -88,12 +88,27 @@ Create `src/tests/unit/test_tasks_registry.py`:
 import pytest
 
 from ogip.tasks import (
+    TASKS,
     DuplicateTaskError,
     TaskNotFoundError,
     get_task,
     odos_task,
     task_names,
 )
+
+
+@pytest.fixture(autouse=True)
+def _restore_registry():
+    """Tests here register probe tasks into the module-global registry.
+
+    Without this, a second run in the same process (pytest --lf, xdist reruns) hits
+    DuplicateTaskError on a name a previous test left behind, and later tests see probe
+    entries in the project vocabulary. Snapshot and restore around every test.
+    """
+    saved = dict(TASKS)
+    yield
+    TASKS.clear()
+    TASKS.update(saved)
 
 
 def test_registered_task_is_retrievable_by_name():
@@ -469,11 +484,7 @@ def test_every_registered_task_is_keyword_only_or_zero_arg():
     """ODOS passes `args:` as a mapping, so tasks must not rely on positional parameters."""
     import inspect
 
-    from ogip.tasks import TASKS
-
     for name, fn in TASKS.items():
-        if name.startswith("probe."):  # test fixtures registered above
-            continue
         params = inspect.signature(fn).parameters.values()
         positional = [
             p for p in params if p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)
@@ -901,16 +912,28 @@ def test_both_lanes_reach_ingestion_through_the_same_registry_task():
     assert _common.ingest_raw is get_task("ingest.rawg")
 
 
-def test_dg_tasks_script_contains_no_dbt_invocation_of_its_own():
-    """Bash may alias registry calls; it may not build dbt commands."""
+def test_every_dg_tasks_branch_dispatches_to_the_registry():
+    """Bash may alias registry calls; it may not carry logic of its own.
+
+    Asserts on the shape of each `case` branch rather than on the absence of a substring: a
+    branch that grows a second command, or invokes a tool directly, fails here.
+    """
+    import re
     from pathlib import Path
 
     repo = Path(__file__).resolve().parents[3]
     script = (
         repo / "experimental" / "orchestration" / "dagster_ogip" / "jobs" / "dg-tasks.sh"
     ).read_text(encoding="utf-8")
-    body = script.split("case \"$task\" in", 1)[1]
-    assert "dbt " not in body, "dbt is invoked directly in dg-tasks.sh — route it via ogip.tasks"
+    body = script.split('case "$task" in', 1)[1].split("esac", 1)[0]
+
+    branches = re.findall(r"^\s*([a-z0-9-]+)\)\s*(.+?)\s*;;\s*$", body, re.MULTILINE)
+    assert len(branches) >= 8, f"expected the full task list, parsed {len(branches)} branches"
+    for name, command in branches:
+        assert command.startswith("ogip_task "), (
+            f"branch {name!r} does not dispatch to the registry: {command!r}"
+        )
+
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
