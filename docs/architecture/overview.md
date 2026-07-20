@@ -48,4 +48,10 @@ flowchart LR
 
 `src/ogip/` (typed core + spec compiler) · `ingestion/` (base + sources) · `spec/` (SSoT) ·
 `transform/` (SQLMesh) · `dq/` · `pipelines/` (Prefect) · `outputs/`+`notebooks/`+`examples/` ·
-`experimental/` (alt engines/orchestration, semantic, Evidence, FS-tool) · `deploy/` · `config/`.
+`experimental/` (alt engines/orchestration, Python dataframe tasks, semantic, Evidence, FS-tool) ·
+`deploy/` · `config/`.
+
+The [Python-task demo](../../experimental/python_tasks/README.md) is intentionally outside
+the production SQLMesh path. It demonstrates pandas and Polars tasks over existing RAWG/core
+relations and defines the dataframe boundary expected when these tasks are later adapted to a
+SQL-transform-tool Python-task runtime.

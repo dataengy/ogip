@@ -11,6 +11,7 @@ unknowns that steer this map live in [OPEN-QUESTIONS.md](OPEN-QUESTIONS.md).
 | **P1** | **Resilient scraping slice** — async `ScraperSource` ([ADR-0014](adr/ADR-0014-resilient-scraping-concurrency.md)) + Postgres landing + first scraped source (HLTB) end to end | `ingestion` | [.ai/tasks/scraping-resilient.md](../.ai/tasks/scraping-resilient.md) |
 | **P1** | **Finalize R2 + VPS deploy** — close the staged s3/vps handoffs: storage-seam call sites, spec-compiler lake root, `integrations/prefect/deploy.py`, real R2 bucket, host deploy + smoke | `core-pipeline` | [.ai/tasks/r2-vps-finalize.md](../.ai/tasks/r2-vps-finalize.md) |
 | P2 | **Sources backlog** — candidates mapped to games-market models (pricing · scope · budget · traction · quality) | backlog | [.ai/tasks/sources-backlog.md](../.ai/tasks/sources-backlog.md) |
+| P2 | **Python-task integration demo** — pandas/Polars ML preparation tasks over RAWG/core data, ready for a future SQL-transform-tool adapter | experimental | [.ai/tasks/python-task-integration.md](../.ai/tasks/python-task-integration.md) |
 | mid | `spec/` semantic layer (engine-agnostic, Bruin format) | `spec` | [.ai/tasks/spec-semantic-layer.md](../.ai/tasks/spec-semantic-layer.md) |
 | then | M1–M4 — replicate the M0 slice across alt toolsets (bruin · dbt · sqlmesh-over-dbt · dagster) — *demoted below the P1s* | `core-pipeline` / `dagster` | [.ai/PLAN.md](../.ai/PLAN.md) |
 
