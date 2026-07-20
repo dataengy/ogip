@@ -6,6 +6,7 @@ credentials** (demo mode / CI). These are **not** captured API responses.
 | File | Provenance |
 |---|---|
 | `rawg_games.json` | Synthetic. Real game titles + real RAWG IDs, RAWG `/api/games`-shaped, but metric values (`rating`, `ratings_count`, `added`, some `metacritic`) are **approximations**, not fetched. |
+| `metacritic_game.html` | Synthetic. Real-SHAPED page skeleton with the schema.org `VideoGame` JSON-LD as probe-verified live 2026-07-18 (Hades, metascore 93, 61 reviews). Two `ld+json` blocks on purpose — parsers must select by `@type`. |
 
 **dlt still does the ingest** — in demo mode dlt loads *these records*; in live mode dlt loads
 records fetched from the real API. To capture a **real** sample instead, set a RAWG API key in

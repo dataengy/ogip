@@ -17,13 +17,14 @@ from __future__ import annotations
 import subprocess
 from typing import TYPE_CHECKING
 
+from ingestion.sources.metacritic import MetacriticGame
 from ingestion.sources.rawg import RawgGames
 from pipelines.alerting_hooks import notify_flow_failure
 from pipelines.flows._paths import REPO, SPEC_SQL, SQLMESH_DIR
 from prefect import flow
 from prefect.assets import materialize
 
-from ogip.config import get_settings
+from ogip.config import get_settings, load_app_config
 from ogip.logger import log, setup_logging
 from ogip.spec_compile import compile_to_sqlmesh
 from ogip.warehouse import export_table
@@ -36,10 +37,18 @@ if TYPE_CHECKING:
 
 
 def ingest_raw() -> str:
-    """Extract RAWG games via dlt → raw Parquet (Layer 0)."""
+    """Extract every enabled source via dlt → raw Parquet (Layer 0).
+
+    Enablement is config SSoT (`sources.<name>.enabled` in config/config.yml); each source
+    is demo-safe on its own (fixtures when unconfigured), so the full set runs keyless.
+    """
     settings = get_settings()
+    enabled = load_app_config()["sources"]
     out = RawgGames(settings).run(settings.platform.data_dir)
     log.bind(source="rawg").info("raw landed at {p}", p=out)
+    if enabled.get("metacritic", {}).get("enabled"):
+        scraped = MetacriticGame(settings).run(settings.platform.data_dir)
+        log.bind(source="metacritic").info("raw landed at {p}", p=scraped)
     return str(out)
 
 

@@ -61,5 +61,5 @@ class ApiSource(BaseSource):
     """Base for REST API sources (subclasses implement `records` with pagination/retries)."""
 
 
-class ScraperSource(BaseSource):
-    """Base for HTML/undocumented-JSON scrapers (land into Postgres `landing` first, D11)."""
+# ScraperSource lives in ingestion/base/scraper_source.py (task #18) — kept separate so
+# this module stays dependency-light (no httpx/asyncio import for API-only pipelines).

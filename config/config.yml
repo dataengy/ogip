@@ -96,12 +96,26 @@ sources:
   rawg: # M0 walking-skeleton source (clean documented REST)
     enabled: true
     entities: [games]
+  metacritic: # first scraped source (#18; HLTB is legally blocked — see spec/sources/)
+    enabled: true # demo-safe: fixture-driven without network; live mode reads `slugs`
+    entities: [game]
+    slugs: [hades] # live-mode page set; discovery-from-raw is the next increment
   steam:
     enabled: true
     entities: [games, reviews]
   igdb:
     enabled: false
     entities: [games]
+
+# Scraping resilience knobs (ADR-0014) — consumed by ingestion/common/http.py.
+scraping:
+  max_connections: 8 # global concurrent-fetch cap
+  per_domain: 1 # concurrent connections per domain (polite default)
+  min_interval_ms: 2000 # per-domain minimum spacing between requests
+  timeout_secs: 30
+  retry_attempts: 4
+  user_agent: "ogip-scraper/0.1 (+https://github.com/dataengy/ogip)"
+  parse_workers: 0 # 0 = parse inline; >0 = ProcessPoolExecutor (next increment)
 
 raw: # Layer 0 — 1:1 AS-IS (only optional _ingested_at / etl_batch_id added)
   format: parquet

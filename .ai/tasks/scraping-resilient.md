@@ -32,6 +32,18 @@ biggest gap between the declared architecture (PLAN A6) and shipped code — M0 
 a clean API. This slice makes the `scrape → Postgres landing → dlt → raw Parquet` half of
 the pipeline real, with the full resilience pattern every later scraped source reuses.
 
+> **Slice 1 shipped (2026-07-20)** — walking skeleton of the scrape path, Metacritic-first:
+> `ingestion/common/http.py` (PoliteFetcher: global+per-domain caps, min-interval spacing,
+> exp backoff honouring Retry-After, identifying UA, timeouts, degraded-not-dead failures) ·
+> `ingestion/base/scraper_source.py` (urls()/parse() contract; politeness from config SSoT) ·
+> `ingestion/sources/metacritic.py` (JSON-LD extraction per the spec/sources contract;
+> demo = bundled fixture, live gated behind OGIP_METACRITIC_LIVE=1 — scraping a real site
+> is never a silent side effect of `make run`) · `scraping:` config block · 9 unit tests ·
+> `make run` green e2e with `metacritic__game` Parquet landed (Hades/93/61 verified).
+> **Still open ↓**: Postgres `landing` hop + idempotent upsert (records already carry
+> natural key + content_hash), circuit breaker, DLQ, watermark, parse pool, per-source
+> counters, ODCS contract + `stg_metacritic__game`, recorded-response integration test.
+
 ## Deliverables
 
 - [ ] **`ScraperSource` (async)** — `httpx.AsyncClient`; global + per-domain bounded
