@@ -24,6 +24,7 @@ else is a recommendation, and labelled as one.
 | `/smart-commit` | [`CLAUDE.md`](CLAUDE.md) | Commit conventions when `ship.sh` does not fit. |
 | `/add-secret` | [`src/scripts/ask-secret-gui.sh`](../src/scripts/ask-secret-gui.sh) | Secret-slot intake. Never invent a credential; an empty slot is a question for the user. |
 | `/check-secrets` | [`tasks/vps-deploy-tooling.md`](tasks/vps-deploy-tooling.md) | Secrets completeness before a deploy. |
+| `/github-auth-ensure` | [`.claude/settings.json`](../.claude/settings.json) SessionStart hook | Will `git push` authenticate as the account that **owns** `dataengy/ogip`? A push here failed `denied to hnkovr` while the correct token was already on disk — a URL-scoped credential helper was shadowing it. The hook warns only on mismatch. |
 
 ## 2. Applicable to the stack — recommended, not yet wired
 
