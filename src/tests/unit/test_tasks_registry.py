@@ -1,5 +1,7 @@
 """Registry semantics: registration, lookup, and the two failure modes that must be loud."""
 
+from pathlib import Path
+
 import pytest
 
 from ogip.tasks import (
@@ -114,19 +116,17 @@ def test_every_registered_task_is_keyword_only_or_zero_arg():
         assert not positional, f"{name} takes positional parameters: {positional}"
 
 
-def test_cli_parses_name_and_typed_kwargs():
+def test_cli_parse_args_splits_name_and_raw_string_kwargs():
+    """`parse_args` is purely syntactic — it must not guess types from the string shape.
+
+    Coercion happens later, in `main`, once the task is resolved and its declared
+    parameter types are known (Finding 1).
+    """
     from ogip.tasks.__main__ import parse_args
 
     name, kwargs = parse_args(["dbt.build", "--full_refresh=true", "--select=tag:daily"])
     assert name == "dbt.build"
-    assert kwargs == {"full_refresh": True, "select": "tag:daily"}
-
-
-def test_cli_coerces_ints_and_false():
-    from ogip.tasks.__main__ import parse_args
-
-    _, kwargs = parse_args(["probe.echo", "--retries=3", "--dry_run=false"])
-    assert kwargs == {"retries": 3, "dry_run": False}
+    assert kwargs == {"full_refresh": "true", "select": "tag:daily"}
 
 
 def test_cli_rejects_an_unknown_task_name_with_a_nonzero_exit():
@@ -140,3 +140,95 @@ def test_cli_rejects_a_bare_flag_without_a_value():
 
     with pytest.raises(SystemExit):
         parse_args(["dbt.build", "--full_refresh"])
+
+
+# ---------------------------------------------------------------------------
+# Type-driven coercion (Finding 1) — the CLI must coerce `--key=value` by the target
+# task's *declared parameter type*, not by guessing from the string's shape. Every task
+# below is a probe registered for the duration of one test; the autouse fixture above
+# restores the real registry afterwards.
+# ---------------------------------------------------------------------------
+
+
+def test_cli_coerces_a_path_annotated_kwarg_to_an_actual_path():
+    """The bug that broke every dbt task: `project_dir: Path` must become a real `Path`."""
+    from ogip.tasks.__main__ import main
+
+    captured: dict[str, object] = {}
+
+    @odos_task("probe.path_arg")
+    def _path_arg(*, project_dir: Path) -> None:
+        captured["project_dir"] = project_dir
+
+    assert main(["probe.path_arg", "--project_dir=transform/dbt"]) == 0
+    assert captured["project_dir"] == Path("transform/dbt")
+    assert isinstance(captured["project_dir"], Path)
+
+
+def test_cli_keeps_a_str_annotated_all_digit_value_as_str():
+    """An all-digit value must not silently become an `int` when the parameter says `str`."""
+    from ogip.tasks.__main__ import main
+
+    captured: dict[str, object] = {}
+
+    @odos_task("probe.str_arg")
+    def _str_arg(*, select: str) -> None:
+        captured["select"] = select
+
+    assert main(["probe.str_arg", "--select=12345"]) == 0
+    assert captured["select"] == "12345"
+    assert isinstance(captured["select"], str)
+
+
+def test_cli_coerces_int_and_bool_annotated_kwargs_by_the_tasks_signature():
+    from ogip.tasks.__main__ import main
+
+    captured: dict[str, object] = {}
+
+    @odos_task("probe.typed_args")
+    def _typed_args(*, retries: int, dry_run: bool = False) -> None:
+        captured["retries"] = retries
+        captured["dry_run"] = dry_run
+
+    assert main(["probe.typed_args", "--retries=3", "--dry_run=false"]) == 0
+    assert captured == {"retries": 3, "dry_run": False}
+
+
+def test_cli_bool_annotated_kwarg_rejects_a_non_true_false_value():
+    from ogip.tasks.__main__ import main
+
+    @odos_task("probe.bool_arg")
+    def _bool_arg(*, dry_run: bool = False) -> None:
+        raise AssertionError("must not run: the bad value should be rejected before this")
+
+    with pytest.raises(SystemExit) as excinfo:
+        main(["probe.bool_arg", "--dry_run=yes"])
+    message = str(excinfo.value)
+    assert "dry_run" in message
+    assert "yes" in message
+
+
+def test_cli_unknown_keyword_fails_listing_the_accepted_names():
+    from ogip.tasks.__main__ import main
+
+    @odos_task("probe.known_args")
+    def _known_args(*, alpha: str = "a", beta: str = "b") -> None:
+        raise AssertionError("must not run: the unknown keyword should be rejected first")
+
+    with pytest.raises(SystemExit) as excinfo:
+        main(["probe.known_args", "--gamma=1"])
+    message = str(excinfo.value)
+    assert "gamma" in message
+    assert "alpha" in message
+    assert "beta" in message
+
+
+def test_cli_a_task_that_raises_returns_exit_1_instead_of_propagating():
+    """Finding 2: a task's own exception must not escape `main` as a raw traceback."""
+    from ogip.tasks.__main__ import main
+
+    @odos_task("probe.boom")
+    def _boom() -> None:
+        raise RuntimeError("boom")
+
+    assert main(["probe.boom"]) == 1
