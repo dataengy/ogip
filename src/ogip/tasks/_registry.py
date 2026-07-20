@@ -22,7 +22,17 @@ __all__ = [
 
 
 class TaskNotFoundError(KeyError):
-    """No task is registered under that name."""
+    """No task is registered under that name.
+
+    Subclasses ``KeyError`` so callers may reasonably catch that base class, but
+    ``KeyError.__str__`` special-cases a single argument and returns ``repr(arg)``
+    instead of ``str(arg)`` — which would quote-wrap and backslash-escape the
+    carefully composed "known tasks" message in tracebacks, logs, and the CLI.
+    Override ``__str__`` so the message reaches those surfaces unmangled.
+    """
+
+    def __str__(self) -> str:
+        return str(self.args[0]) if self.args else super().__str__()
 
 
 class DuplicateTaskError(RuntimeError):

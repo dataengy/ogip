@@ -41,6 +41,16 @@ def test_unknown_name_raises_with_the_known_names_listed():
     assert "probe.nope" in str(excinfo.value)
 
 
+def test_unknown_name_error_message_is_not_repr_mangled():
+    """KeyError.__str__ would quote-wrap and backslash-escape this; guard against that."""
+    with pytest.raises(TaskNotFoundError) as excinfo:
+        get_task("probe.nope")
+    message = str(excinfo.value)
+    assert not message.startswith("'")
+    assert "probe.nope" in message
+    assert "known:" in message
+
+
 def test_duplicate_registration_is_rejected():
     @odos_task("probe.dup")
     def _first() -> None: ...
@@ -52,4 +62,12 @@ def test_duplicate_registration_is_rejected():
 
 
 def test_task_names_is_sorted():
-    assert task_names() == sorted(task_names())
+    @odos_task("probe.zzz")
+    def _zzz() -> None: ...
+
+    @odos_task("probe.aaa")
+    def _aaa() -> None: ...
+
+    names = task_names()
+    assert names == sorted(names)
+    assert names.index("probe.aaa") < names.index("probe.zzz")
