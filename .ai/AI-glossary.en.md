@@ -17,7 +17,7 @@ behind `/add-terms-to-glossary`); Russian-slang twins live in
 | [lane locks / lane-status.sh / release-all-mine](#lane-locks--lane-statussh--release-all-mine) | project | координация параллельных агент-сессий OGIP: пер-полосные advisory-локи + снапшот + sweep на выходе |
 | [:= vs = в проекции (PropertyEQ vs EQ)](#=-vs-=-в-проекции-propertyeq-vs-eq) | general | `a = b` в проекции — предикат равенства, boolean-колонка: валидно, исполняемо, молча не то; `a := b` падает громко |
 | [macro conformance test](#macro-conformance-test) | general | один макрос × все адаптеры × одна фикстура, assert байт-в-байт — защита от тихого расхождения реализаций |
-| [ODPS / ODTS / ODOS (семейство стандартов)](#odps--odts--odos-семейство-стандартов) | project | зонт ODPS + части ODTS (трансформации) и ODOS (оркестрация); имя ODPS конфликтует с двумя публичными стандартами |
+| [ODPS / ODTS / ODOS (семейство стандартов)](#odps--odts--odos-семейство-стандартов) | project | зонт называется YADPS, а не ODPS — имя занято Bitol и LF; конвенция: конфликтующее имя берёт YA вместо Open |
 | [@odts](#@odts) | project | формат авторинга spec/sql в OGIP: компактный header → рендер в @bruin YAML → адаптеры без изменений |
 | [.ai/FIXME.md (conflict register)](#aifixmemd-conflict-register) | project | реестр известных противоречий между документами; протухшее hard rule опаснее протухшего README |
 
@@ -71,8 +71,8 @@ behind `/add-terms-to-glossary`); Russian-slang twins live in
 
 ## ODPS / ODTS / ODOS (семейство стандартов)
 
-`[project]` The project's own standards taxonomy: **ODPS** (Open Data Platform Standard) as the umbrella, with **ODTS** (Open Data Transformation Standard) and **ODOS** (Open Data Orchestration Standard) as parts. ⚠ The ODPS name collides with two public standards in the same ecosystem — Bitol's Open Data Product Standard and the Linux Foundation's Open Data Product Specification. Bitol also maintains ODCS, which OGIP already uses for contracts, so the collision is adjacent, not distant.
-> **RU:** Собственная таксономия стандартов: **ODPS** (Open Data Platform Standard) — зонт, **ODTS** (трансформации) и **ODOS** (оркестрация) — части. ⚠ Имя ODPS уже занято двумя публичными стандартами в той же экосистеме: Open Data Product Standard от Bitol и Open Data Product Specification от Linux Foundation. Bitol же ведёт ODCS, который OGIP использует для контрактов, — поэтому коллизия соседняя, а не далёкая.
+`[project]` The project's standards taxonomy: **YADPS** (Yet Another Data Platform Standard) as the umbrella, with **ODTS** (Open Data Transformation Standard) and **ODOS** (Open Data Orchestration Standard) as parts. The umbrella is *not* called ODPS: that acronym is held by Bitol's Open Data Product Standard and the Linux Foundation's Open Data Product Specification, and Bitol also maintains ODCS which `spec/contracts/` already uses. **Convention — a colliding name takes `YA` (Yet Another) in place of `Open`.** ODTS and ODOS were checked and are unclaimed, so they keep `Open`; the family is deliberately asymmetric.
+> **RU:** Таксономия стандартов проекта: **YADPS** (Yet Another Data Platform Standard) — зонт, **ODTS** (трансформации) и **ODOS** (оркестрация) — части. Зонт называется НЕ ODPS: это имя занято Open Data Product Standard от Bitol и Open Data Product Specification от Linux Foundation, а Bitol же ведёт ODCS, который уже используется в `spec/contracts/`. **Конвенция: конфликтующее имя берёт `YA` вместо `Open`.** ODTS и ODOS проверены и свободны — поэтому сохраняют `Open`; асимметрия семейства намеренная, маркер несёт только то имя, что наступило на занятое.
 > **Пример:** Разделение ODTS/ODOS подтверждает архитектурный выбор OGIP: оркестраторы (Prefect, Dagster) — не таргеты компиляции ODTS, у них своя ось и свой стандарт.
 
 ## @odts

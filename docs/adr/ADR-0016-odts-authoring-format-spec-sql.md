@@ -29,17 +29,28 @@ Introduce **`@odts 0.1`**, a compact line-oriented header for `spec/sql`, and re
 governing its evolution.
 
 `@odts` is OGIP's **implementation** of **ODTS** (Open Data Transformation Standard), which sits
-under the **ODPS** (Open Data Platform Standard) umbrella alongside **ODOS** (Open Data
+under the **YADPS** (Yet Another Data Platform Standard) umbrella alongside **ODOS** (Open Data
 Orchestration Standard). OGIP conforms to the standard; it does not author it. That split is
 load-bearing here — ODOS owning orchestration is precisely why Prefect and Dagster are **not**
 ODTS compile targets in this repo but consumers of compiled projects.
 
-⚠ The **ODPS** name collides with two public standards in OGIP's own ecosystem — Bitol's
+### Why the umbrella is `YADPS` and not `ODPS`
+
+`ODPS` is taken twice, in OGIP's own ecosystem: Bitol's
 [Open Data Product Standard](https://bitol-io.github.io/open-data-product-standard/v1.0.0/) and
 the Linux Foundation's [Open Data Product Specification](https://opendataproducts.org/). Bitol
-also maintains **ODCS**, which `spec/contracts/` already uses, so a reader will reasonably
-assume ODPS is Bitol's too. Registered as [F7](../../.ai/FIXME.md#f7--odps-name-collides-with-two-public-standards);
-it does not block this record, which concerns ODTS only.
+also maintains **ODCS**, which `spec/contracts/` already uses — so a reader seeing ODCS and
+ODPS side by side here would reasonably conclude both are Bitol's, and be wrong. The confusion
+is documented upstream, not hypothetical: ODPI publishes a
+[clarification of ODPS vs ODCS](https://blog.opendataproducts.org/when-standards-collide-clarifying-odps-and-odcs-in-the-data-product-landscape-c2978f9c13d9)
+precisely because people conflate them.
+
+**Convention: a name that collides takes `YA` (Yet Another) in place of `Open`.** The
+self-deprecation is accurate rather than decorative — it says this umbrella does not claim to
+be *the* platform standard, which is the same posture as the non-goals below.
+
+`ODTS` and `ODOS` were checked and are unclaimed, so they keep their `Open` form. The family is
+deliberately asymmetric: only the name that trod on occupied ground carries the marker.
 
 **Compilation is front-loaded, not rebuilt.** A frontend in `src/ogip/spec_compile/` renders
 `@odts` into the existing `@bruin` YAML header; `parse_asset()` and every adapter

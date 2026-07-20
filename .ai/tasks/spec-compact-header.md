@@ -25,6 +25,14 @@ body, this one settles the header around it.
 text regardless. Rendering it is required by an existing target; skipping the intermediate
 would buy nothing and hide a step.
 
+## Before writing any parser
+
+- [ ] **Read the prior art** — [F7](../FIXME.md#f7--odts-overlaps-an-existing-open-transformation-specification):
+      [open-transformation-specification](https://github.com/francescomucio/open-transformation-specification)
+      states ODTS's problem almost word for word and has not been evaluated. Record align /
+      diverge-with-reason / not-applicable-with-reason in [docs/comparisons/](../../docs/comparisons/)
+      first. Cheap now; expensive once the parser exists.
+
 ## Sketch
 
 - [ ] Parser for the `@odts 0.1` header — recursive descent, one directive per line

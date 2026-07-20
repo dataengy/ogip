@@ -16,7 +16,7 @@ deleted, not left as archaeology. Do not "fix" anything marked **DO NOT TOUCH**.
 | [F4](#f4--six-directories-violate-hard-rule-8) | Six directories have no `README.md` | P2 | **now** | `spec` |
 | [F5](#f5--semantic-layer-format-is-undecided-against-odts) | Semantic-layer format undecided against `@odts` | P3 | when [#20](https://github.com/dataengy/ogip/issues/20) starts | `spec` |
 | [F6](#f6--issue-19-body-has-drifted-from-its-task-file) | Issue #19 body drifted from its task file | P3 | **now** | not `spec` |
-| [F7](#f7--odps-name-collides-with-two-public-standards) | `ODPS` name collides with two public standards | **P1** | **now** | owner decision |
+| [F7](#f7--odts-overlaps-an-existing-open-transformation-specification) | ODTS overlaps an existing transformation spec — prior art unevaluated | P2 | before [#35](https://github.com/dataengy/ogip/issues/35) | `spec` |
 
 ---
 
@@ -109,30 +109,25 @@ the definitions exist.
 Whoever owns `sources-backlog` should sync it, or use the targeted path (import
 `src/scripts/tasks_sync.py` and call `_update` for that slug alone).
 
-## F7 — `ODPS` name collides with two public standards
+## F7 — ODTS overlaps an existing Open Transformation Specification
 
-The project's standards taxonomy is **ODPS** (Open Data Platform Standard) as the umbrella,
-with **ODTS** (transformations) and **ODOS** (orchestration) as parts. `ODPS` is already taken,
-twice, and not in some distant corner:
+While checking the `ODTS`/`ODOS` acronyms for collisions (none found — see
+[ADR-0016](../docs/adr/ADR-0016-odts-authoring-format-spec-sql.md) on the `YADPS` rename), a
+**concept** overlap surfaced instead:
+[francescomucio/open-transformation-specification](https://github.com/francescomucio/open-transformation-specification)
+— *"Define portable, executable data transformations with a standard specification"*. That is
+ODTS's problem statement almost word for word.
 
-| Existing | Owner |
-|---|---|
-| **O**pen **D**ata **P**roduct **S**tandard | [Bitol](https://bitol-io.github.io/open-data-product-standard/v1.0.0/), Linux Foundation AI & Data |
-| **O**pen **D**ata **P**roduct **S**pecification | [ODPI](https://opendataproducts.org/), Linux Foundation |
+Adjacent, different domain, but worth knowing about:
+[Oasis LMF's Open Data Transformation Framework](https://oasislmf.github.io/OpenDataTransform/)
+(catastrophe-model exposure data).
 
-**Why this bites here specifically.** Bitol also maintains **ODCS** (Open Data Contract
-Standard), which `spec/contracts/` already uses — see
-[ADR-0005](../docs/adr/ADR-0005-spec-ssot-bruin-odcs-compiler.md). A reader seeing ODCS and
-ODPS side by side in the same repo will reasonably conclude both come from Bitol, and will be
-wrong about the second. This is a documentation-integrity problem, not a trademark one.
+**The risk is not the name, it is the work.** Building an `@odts` parser without having read
+OTS means either reinventing solved problems or diverging from prior art for no stated reason.
+Either is cheap to avoid now and expensive after the parser exists.
 
-`ODTS` and `ODOS` appear unclaimed and are unaffected. The collision is confined to the
-umbrella name.
-
-**Needs an owner decision**, one of: (a) rename the umbrella (e.g. `ODPfS`, or something not
-in `OD*S` shape at all); (b) keep `ODPS` and disambiguate on every first use, accepting the
-permanent footnote; (c) drop the umbrella term from OGIP documents and refer only to ODTS and
-ODOS, which carry the meaning that matters here anyway.
-
-Until decided: **do not lean on the ODPS name in new documents.** ADR-0016 and
-[spec/sql/AGENTS.md](../spec/sql/AGENTS.md) reference it once each, both flagged.
+**Before [#35](https://github.com/dataengy/ogip/issues/35) starts:** read OTS, then record one
+of — (a) `@odts` aligns with / adopts part of OTS; (b) `@odts` deliberately diverges, with the
+reason; (c) OTS is not applicable, with the reason. A short note in
+[docs/comparisons/](../docs/comparisons/) is the natural home, per the project's existing habit
+of parking evaluated-but-unused tooling there.

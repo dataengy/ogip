@@ -16,7 +16,7 @@ as SSoT) · [AGENTS.md](../../AGENTS.md) (project law).
 
 | | Scope |
 |---|---|
-| **ODPS** — Open Data Platform Standard | the umbrella |
+| **YADPS** — Yet Another Data Platform Standard | the umbrella |
 | **ODTS** — Open Data Transformation Standard | transformations — **what this directory implements** |
 | **ODOS** — Open Data Orchestration Standard | orchestration — a *separate* standard |
 
@@ -24,11 +24,15 @@ ODOS existing is why orchestrators are not ODTS compile targets: Prefect and Dag
 the orchestration axis and **consume** compiled projects. Keep that boundary — work that wants
 to describe scheduling, retries or triggers belongs to ODOS, not to a header directive here.
 
-⚠ **ODPS collides** with two public standards in OGIP's own ecosystem — Bitol's Open Data
-Product Standard and the Linux Foundation's Open Data Product Specification — and Bitol also
-maintains ODCS, which `spec/contracts/` already uses. See
-[F7](../../.ai/FIXME.md#f7--odps-name-collides-with-two-public-standards); unresolved, so do
-not lean on the ODPS name in new documents.
+The umbrella is **YADPS**, not `ODPS`: that acronym is held by Bitol's Open Data Product
+Standard and the Linux Foundation's Open Data Product Specification, and Bitol also maintains
+ODCS which `spec/contracts/` already uses
+([ADR-0016](../../docs/adr/ADR-0016-odts-authoring-format-spec-sql.md)). **Convention: a
+colliding name takes `YA` in place of `Open`** — check before minting the next one.
+
+⚠ Prior art on ODTS's own problem statement exists and has **not** been evaluated —
+[F7](../../.ai/FIXME.md#f7--odts-overlaps-an-existing-open-transformation-specification). Read
+it before building the parser, not after.
 
 ## Non-goals — read these first
 
