@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# check-no-dagster-dq.sh — enforce ADR-0016: no hand-written Dagster asset_check that duplicates
+# check-no-dagster-dq.sh — enforce ADR-0017: no hand-written Dagster asset_check that duplicates
 # a dbt/SQLMesh test. dagster-dbt already surfaces every dbt test as an asset check; a bespoke
 # `@dg.asset_check` in source is almost always a drifting second copy of a DQ rule that belongs
 # in spec/. This guard fails CI/pre-commit when one appears WITHOUT an explicit, reasoned waiver.
@@ -37,7 +37,7 @@ while IFS= read -r hit; do
     log "waived ${file#"$REPO"/}:$line ($(sed -n "${prev}p" "$file" | sed 's/.*dagster-dq-ok://; s/^[[:space:]]*//'))"
     continue
   fi
-  log "VIOLATION ${file#"$REPO"/}:$line — hand-written Dagster asset_check (see ADR-0016)"
+  log "VIOLATION ${file#"$REPO"/}:$line — hand-written Dagster asset_check (see ADR-0017)"
   violations=$((violations + 1))
 done < <(grep -rnE "$pattern" "$ROOT" --include='*.py' --exclude-dir=__pycache__ 2>/dev/null || true)
 
@@ -46,4 +46,4 @@ if [[ "$violations" -gt 0 ]]; then
   log "or add a '# dagster-dq-ok: <reason>' line above the decorator if the engine truly cannot."
   exit 1
 fi
-log "clean — no hand-written Dagster DQ (ADR-0016 satisfied)"
+log "clean — no hand-written Dagster DQ (ADR-0017 satisfied)"

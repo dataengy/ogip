@@ -1,4 +1,4 @@
-# ADR-0016 — Orchestrator/transform responsibility boundary (no DQ duplication in Dagster)
+# ADR-0017 — Orchestrator/transform responsibility boundary (no DQ duplication in Dagster)
 
 - **Status:** Accepted
 - **Date:** 2026-07-19

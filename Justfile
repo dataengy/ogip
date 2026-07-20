@@ -171,6 +171,23 @@ tidy-root:
 lfs-guard:
     bash .ci/steps/lfs-guard.sh
 
+# --- Data-source registry (SSoT: ~/.ai/skills; spec/sources/ here is its projection) ---
+# Passthroughs so OGIP devs need no $JF incantation. Registry-less machines: probe/route
+# fail loud (registry required); sources-drift self-skips (see the script header).
+sources_jf := home_directory() / ".ai/skills/_scripts/de/ingestion/Justfile"
+
+# Live-probe every registered source (real GETs; FORBIDDEN entries never fetched).
+sources-probe-all:
+    just -f "{{sources_jf}}" probe-all
+
+# Route one source (or all) to its ingestion tool with the recorded reason.
+sources-route key="--all":
+    just -f "{{sources_jf}}" {{ if key == "--all" { "route-all" } else { "route " + key } }}
+
+# Full drift gate: registry well-formed + engine drift + stale projections. Exit 1 = drift.
+sources-drift:
+    bash src/scripts/sources-registry-check.sh
+
 # --- VPS: manual deploy (ADR-0012). Settings: config/config.yml -> deploy.vps.* ---
 # Each mutating recipe has a -dry sibling; both delegate to _vps-script (single body).
 _vps-script script *args:
