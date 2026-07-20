@@ -28,11 +28,13 @@ class TaskNotFoundError(KeyError):
     ``KeyError.__str__`` special-cases a single argument and returns ``repr(arg)``
     instead of ``str(arg)`` — which would quote-wrap and backslash-escape the
     carefully composed "known tasks" message in tracebacks, logs, and the CLI.
-    Override ``__str__`` so the message reaches those surfaces unmangled.
+    Override ``__str__`` so the message reaches those surfaces unmangled. Only the
+    single-composed-message shape gets special-cased; any other arity falls back to
+    the base ``KeyError.__str__`` behaviour so extra args aren't silently dropped.
     """
 
     def __str__(self) -> str:
-        return str(self.args[0]) if self.args else super().__str__()
+        return str(self.args[0]) if len(self.args) == 1 else super().__str__()
 
 
 class DuplicateTaskError(RuntimeError):

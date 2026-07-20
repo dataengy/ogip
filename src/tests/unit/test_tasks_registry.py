@@ -41,14 +41,31 @@ def test_unknown_name_raises_with_the_known_names_listed():
     assert "probe.nope" in str(excinfo.value)
 
 
-def test_unknown_name_error_message_is_not_repr_mangled():
-    """KeyError.__str__ would quote-wrap and backslash-escape this; guard against that."""
+def test_unknown_name_error_message_matches_the_raised_arg_verbatim():
+    """KeyError.__str__ would quote-wrap and backslash-escape this; guard against that.
+
+    The crisp invariant: ``__str__`` returns the message verbatim, i.e. exactly
+    ``exc.args[0]`` — not ``repr(exc.args[0])``, which is what the base
+    ``KeyError.__str__`` would produce for a single-argument instance.
+    """
     with pytest.raises(TaskNotFoundError) as excinfo:
         get_task("probe.nope")
-    message = str(excinfo.value)
-    assert not message.startswith("'")
-    assert "probe.nope" in message
-    assert "known:" in message
+    exc = excinfo.value
+    assert str(exc) == exc.args[0]
+    assert "probe.nope" in str(exc)
+    assert "known:" in str(exc)
+
+
+def test_two_arg_construction_falls_back_to_base_keyerror_str():
+    """Only the single-composed-message shape is special-cased.
+
+    Any other arity — e.g. two positional args — must fall back to the base
+    ``KeyError.__str__`` behaviour (a repr of the args tuple) so extra args
+    aren't silently dropped.
+    """
+    exc = TaskNotFoundError("probe.nope", "extra")
+    assert str(exc) == str(KeyError("probe.nope", "extra"))
+    assert str(exc) == repr(("probe.nope", "extra"))
 
 
 def test_duplicate_registration_is_rejected():
