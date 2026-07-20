@@ -1,160 +1,182 @@
-# Handoff-промпты — сессия `3ad45e75` (OGIP @ dev)
+# Handoff prompts — session `3ad45e75` (OGIP @ dev)
 
-Fan-out оставшейся работы: 6 промптов для 6 разных приёмников. Каждый несёт четыре обязательных
-элемента — где живёт работа · что уже установлено (не выводить заново) · конкретный следующий шаг ·
-ловушка, в которую эта сессия уже попала.
+```
+# origin: cd ~/gi/@dataengy/OGIP && claude --resume 3ad45e75-ed02-41d9-a624-c6f1919e81d1 # OGIP sources + skills decomposition
+```
 
-Источник: `/handoff-prompts` (`agentic/session/`). Лимит `max_prompts: 6` — достигнут ровно.
+Fan-out of the remaining work: 6 prompts for 6 different receivers. Each carries where the work
+lives · what is already established (do not re-derive) · the exact next step · the trap this
+session already hit.
+
+Written in English per `/handoff-prompts` `settings/defaults.yml#lang.default` — the receiving
+repos are authored in English even though this session was conducted in Russian.
+
+**Closed this session, do not redo:** Kickstarter registered FORBIDDEN and pushed (`bc152e0`) ·
+`/github-auth-ensure` skill + script + settings + SessionStart hook built and committed
+(`d98883c`) · `.ai/SKILLS.md` applicability filter written · agents and plans pushed
+(`d6df7be`, `2b4a279`).
 
 ---
 
-## 1 → Сессия в каталоге скиллов (`~/.ai/skills/`) — Wave 1
+## 1 → Skills-catalog session — Wave 1
 
 ```
-Создай три скилла Wave 1 из proposal-документа
+Create the three Wave 1 skills from the proposal at
 /Users/nk.myg/gi/@dataengy/OGIP/docs/superpowers/plans/2026-07-20-add-data-source-skill-decomposition.md
-(раздел «Wave 1»): describe-source-business-value и design-source-pipeline в de/ingestion,
-generate-synthetic-fixtures в новой области de/testing.
+(section "Wave 1"): describe-source-business-value and design-source-pipeline under
+de/ingestion, generate-synthetic-fixtures under a new de/testing area.
 
-Уже установлено — не перепроверяй: аудит всех 521 скиллов каталога уже проведён, у этих трёх
-покрытие НУЛЕВОЕ (grep по 'synthetic data|fixture generat|mock data|faker' даёт 0 совпадений).
-ODCS-скилл создавать НЕ надо — /generate-odcs-specs в de/contracts/ уже покрывает это целиком.
-Границу извлечения задаёт /find-sources-and-match-tool: он уже владеет Шагами 0–2 родителя
-(research + probe + route), твои скиллы начинаются ПОСЛЕ роутинга.
+Already established — do not re-verify: all 521 catalog skills were audited. These three have
+ZERO coverage (grep for 'synthetic data|fixture generat|mock data|faker' returns 0 hits). Do
+NOT create an ODCS skill — /generate-odcs-specs in de/contracts/ already covers that
+completely. The extraction boundary is set by /find-sources-and-match-tool, which already owns
+the parent's Steps 0-2 (research + probe + route); your skills begin AFTER routing.
 
-Следующий шаг: сначала /propose-skill-for-that, дождись гейта, и только потом /create-skill на
-каждый. Скилл-файлы никогда не пишутся руками — это стоячая политика. После каждого создания
-обязателен /save-all-deterministic-for-skill-as-scripts <slug>, затем skill-sync-state.
+Next step: run /propose-skill-for-that first and wait for its gate, then /create-skill for
+each. Skill files are never hand-written — that is a standing policy. Run
+/save-all-deterministic-for-skill-as-scripts <slug> after each, then skill-sync-state.
 
-Ловушка этой сессии: `~/.claude/skills/<slug>/skill.md` может оказаться НЕ хардлинком, а
-самостоятельной устаревшей копией. У add-data-source она отстала на 3 дня и 6 КБ — то есть
-/add-data-source молча исполнял старую версию, без единого симптома. `deploy-skill` обновляет
-только symlink-цели; чинит именно `hardlink-skill-files <catalog-dir> <target-dir>`. Проверяй
-sync-state ПОСЛЕ каждой правки, а не в конце.
+Trap this session hit: `~/.claude/skills/<slug>/skill.md` can be an independent STALE copy
+rather than a hardlink to the catalog — /add-data-source was found running a version 3 days and
+6 KB behind, with no symptom. `deploy-skill` only refreshes the `agents` symlink and leaves
+claude STALE; `hardlink-skill-files <catalog-dir> <target-dir>` is what actually repairs it. I
+hit this twice, including on the skill I created today. Check sync-state after EVERY edit.
 ```
 
-## 2 → Сессия в каталоге скиллов — Wave 2 (после Wave 1)
+## 2 → Skills-catalog session — Wave 2 (after Wave 1)
 
 ```
-Создай пять implementer-скиллов Wave 2 по документу
+Create the five Wave 2 implementer skills from
 /Users/nk.myg/gi/@dataengy/OGIP/docs/superpowers/plans/2026-07-20-add-data-source-skill-decomposition.md:
-write-ingestion-dlt / -ingestr / -airbyte-oss / -scraping / -complex-api в de/ingestion.
+write-ingestion-dlt / -ingestr / -airbyte-oss / -scraping / -complex-api under de/ingestion.
 
-Уже установлено: разрез НЕ произвольный — он повторяет словарь роутера
-`~/.ai/skills/.settings/de/ingestion/tool_routing.yml` (8 вердиктов). Скиллы нужны только под
-пять «живых»; spark и gcp зарезервированы без прецедентов в реестре, none означает FORBIDDEN —
-под эти три скиллы не создавать.
+Already established: the cut is not arbitrary — it mirrors the router vocabulary in
+~/.ai/skills/.settings/de/ingestion/tool_routing.yml (8 verdicts). Only the five live ones need
+skills; spark and gcp are reserved with no registry precedent and none means FORBIDDEN, so do
+not create skills for those three.
 
-Следующий шаг и разрешение НЕ кодить: запрос заказчика был «5 отдельных скиллов под dlt»
-(native / standalone / Dagster / OpenDBT / Prefect). Документ рекомендует ОТКАЗАТЬ и сделать один
-write-ingestion-dlt с секцией «где это выполняется», делегирующей по имени в уже существующие
-/add-dagster-module, /integrate-sql-tool-with-prefect, /call-dagster-from-prefect. Прочитай
-аргумент в разделе «The one place the literal ask should be refused» и реши сам; если сочтёшь
-разбиение оправданным — напиши почему, но не реализуй молча ни один из вариантов.
+Next step, and permission NOT to code: the original request was for five separate dlt skills
+(native / standalone / Dagster / OpenDBT / Prefect). The document recommends REFUSING that and
+building one write-ingestion-dlt with a "where it runs" section delegating by name to the
+existing /add-dagster-module, /integrate-sql-tool-with-prefect and /call-dagster-from-prefect.
+Read the argument in "The one place the literal ask should be refused" and decide for yourself;
+if you think the split is justified, write down why — but do not silently implement either
+shape.
 
-Ловушка: общие законы (Layer-0, SSoT-config, fixture-size/LFS) должны ОСТАТЬСЯ в родителе и
-цитироваться по ссылке. Скопировать их в пять скиллов — это ровно тот guardrail, который
-/split-skill-on-subskills запрещает: «do not leave provider-specific logic duplicated».
+Trap: the shared laws (Layer-0, SSoT config, fixture-size/LFS) must STAY in the parent and be
+referenced. Copying them into five skills is exactly the guardrail /split-skill-on-subskills
+forbids: "do not leave provider-specific logic duplicated in both parent and subskill."
 ```
 
-## 3 → Сессия OGIP (lane `ingestion`) — долг Metacritic + гейт DoD
+## 3 → OGIP session, lane `ingestion` — Metacritic debt + the DoD gate
 
 ```
-Выполни Задачи 1 и 2 из плана
-docs/superpowers/plans/2026-07-20-source-dod-registry-and-domain-docs.md в репозитории
-/Users/nk.myg/gi/@dataengy/OGIP: ODCS-контракт spec/contracts/metacritic/metacritic__game.odcs.yaml
-+ staging-модель spec/sql/staging/stg_metacritic__game.sql, затем исполняемый гейт
-.ci/steps/source-dod.sh с тестом src/tests/unit/test_source_dod_check.py.
+Execute Tasks 1 and 2 from docs/superpowers/plans/2026-07-20-source-dod-registry-and-domain-docs.md
+in /Users/nk.myg/gi/@dataengy/OGIP: the ODCS contract
+spec/contracts/metacritic/metacritic__game.odcs.yaml plus the staging model
+spec/sql/staging/stg_metacritic__game.sql, then the executable gate .ci/steps/source-dod.sh
+with its test src/tests/unit/test_source_dod_check.py.
 
-Уже установлено — не выводить заново: коннектор ingestion/sources/metacritic.py (95 строк) УЖЕ
-существует и уже приземляет raw/metacritic__game Parquet, коммит dc02ddb. Отсутствуют ровно
-контракт и staging-модель. Полный YAML контракта и полный SQL модели приведены в плане дословно —
-это транскрипция, а не проектирование. Freshness SLA = 7d, не 1d как у RAWG (агрегат критиков
-статичен). Гейты в этом репозитории ходят ТОЛЬКО через .ci/run.sh <step> → .ci/steps/<step>.sh;
-корневого .pre-commit-config.yaml нет, он лежит в config/.
+Already established — do not re-derive: the connector ingestion/sources/metacritic.py (95
+lines) ALREADY exists and already lands raw/metacritic__game Parquet, commit dc02ddb. Exactly
+the contract and the staging model are missing. The full contract YAML and the full model SQL
+are given verbatim in the plan — this is transcription, not design. Freshness SLA is 7d, not
+RAWG's 1d (a critic aggregate is static). Gates in this repo run ONLY through
+.ci/run.sh <step> → .ci/steps/<step>.sh; there is no root .pre-commit-config.yaml, it lives
+under config/.
 
-Следующий шаг: сначала прочитай реальную форму приземлённого Parquet и пиши контракт под неё —
-не под то, что обещает `_record()` в коннекторе.
+Next step: read the actual shape of the landed Parquet and write the contract against THAT,
+not against what `_record()` in the connector promises.
 
-Ловушка: гейт source-dod.sh по построению КРАСНЫЙ до тех пор, пока Задача 1 не сделана. Это не
-баг — в этом его смысл. Не «чини» его послаблением проверки. И прогони /verify-gate-actually-covers
-прежде чем поверить в зелёный: гейт, который не матчит ни одного файла, выглядит точно как успех.
+Trap: source-dod.sh is RED by construction until Task 1 is done. That is its purpose, not a
+bug — do not "fix" it by weakening the check. And run /verify-gate-actually-covers before
+believing a green run: a gate that matches zero files looks exactly like success. This repo has
+already shipped one prose "gate" that nothing enforced.
 ```
 
-## 4 → Сессия OGIP (lane `docs`) — реестр, глоссарий, бизнес-домен
+## 4 → OGIP session, lane `docs` — registry, glossary, domain docs
 
 ```
-Выполни Задачи 3, 4 и 5 из плана
-docs/superpowers/plans/2026-07-20-source-dod-registry-and-domain-docs.md
-(/Users/nk.myg/gi/@dataengy/OGIP): четыре FORBIDDEN-записи в реестр, термины в глоссарий,
-новый раздел docs/domain/.
+Execute Tasks 3, 4 and 5 from docs/superpowers/plans/2026-07-20-source-dod-registry-and-domain-docs.md
+(/Users/nk.myg/gi/@dataengy/OGIP): the remaining FORBIDDEN registrations, the glossary terms,
+and the new docs/domain/ section.
 
-Уже установлено: домен клиента — это себестоимость × скоуп × выручка, НЕ скидки и НЕ конверсия
-вишлистов. Wishlist-конверсия и кривые дисконта не встречаются в материале ни разу; раздел про них
-писать нельзя. Словарь тиров — Kei / Midi / AA / AAA. LinkedIn-страница компании ЧИТАЕТСЯ без
-403 — предыдущее предположение о блокировке было неверным, не тащи его дальше. Реестр источников
-живёт ВНЕ репозитория, в ~/.ai/skills/.settings/de/ingestion/sources/<area>/<key>.yml;
-spec/sources/*.yaml — односторонняя генерируемая проекция, править её напрямую бессмысленно.
+Already established: Kickstarter is DONE — registered, projected and pushed (bc152e0); three
+registrations remain (epic_store_product, gamalytic_game, mobygames_credits). The client's
+domain axis is production cost x scope x realised revenue, NOT discounting and NOT wishlist
+conversion — wishlists and discount curves appear nowhere in the source material, so a section
+about them would be invention. Tier vocabulary is Kei / Midi / AA / AAA. The LinkedIn company
+page IS readable, no 403 — an earlier assumption that it was blocked was wrong, do not carry it
+forward. The source registry lives OUTSIDE this repo at
+~/.ai/skills/.settings/de/ingestion/sources/<area>/<key>.yml; spec/sources/*.yaml is a one-way
+generated projection and editing it directly is pointless.
 
-Следующий шаг: глоссарий пополнять только через /add-terms-to-glossary, руками — никогда.
-Это два коммита в двух разных репозиториях.
+Next step: add glossary terms only through /add-terms-to-glossary, never by hand. This is two
+commits in two repositories.
 
-Ловушка: измерение «производственный бюджет» не имеет ни одного разрешённого источника — MobyGames
-(credits length) и HowLongToBeat (playtime) заблокированы оба. Напиши это в docs/domain/ как явный
-пробел покрытия. Соблазн замазать его правдоподобной формулировкой очень велик и создаст документ,
-который врёт о возможностях платформы.
+Trap: the production-budget dimension has NO permitted source at all — MobyGames (credits
+length) and HowLongToBeat (playtime) are both blocked, and Kickstarter is now blocked too.
+Write that into docs/domain/ as an explicit coverage gap. The temptation to paper over it with
+a plausible sentence is strong and would produce a document that lies about what the platform
+can do.
 ```
 
-## 5 → Человеку (не сессии) — два юридических блокера
+## 5 → A human, not a session — two legal blockers
 
 ```
-Два вопроса требуют человеческого чтения в браузере; агент их закрыть не может.
+Two questions need a person reading in a browser; an agent cannot close them.
 
-(1) MobyGames — условия API. Страница https://www.mobygames.com/info/api/ отдаёт 403 ботам, то есть
-её условия НИКТО не читал. Юридически они отдельны от сигналов сайта (Content-Signal: ai-train=no,
-оговорка по ст. 4 Директивы ЕС 2019/790, ClaudeBot Disallow: /). Открой в браузере и прочти: если
-API-лицензия допускает производные датасеты, к OGIP возвращается измерение производственного
-бюджета — сильнейший сигнал всей методологии домена. Десять минут чтения против целого измерения
-модели: лучшее соотношение усилия к результату во всём бэклоге.
+(1) MobyGames API terms. https://www.mobygames.com/info/api/ returns 403 to bots, so its terms
+have NEVER been read. They are legally distinct from the site's content signals
+(Content-Signal: ai-train=no, an express Article 4 / EU 2019/790 reservation, and a separate
+ClaudeBot Disallow: /). Open it in a browser and read it: if the API licence permits derived
+datasets, OGIP regains the production-budget dimension — the strongest signal in the whole
+domain methodology. Ten minutes of reading against an entire model dimension is the best
+effort-to-impact ratio in the backlog.
 
-(2) api.steampowered.com — трактовка robots.txt. Файл отдаёт `User-Agent: * / Disallow: /`, при
-этом источник steam_applist зарегистрирован как publishable: true, tier: direct, routing → dlt
-именно на этом хосте. Строгое чтение → источник в нарушении и Steam Charts требует Playwright;
-чтение «robots не покрывает документированный API» → всё в порядке и Steam Charts сводится к
-обычному dlt. Это лицензионное суждение, а не техническая проверка — оно за человеком. Пока
-вердикта нет, вся новая работа по этому хосту заблокирована; зафиксировано как FIXME F9.
+(2) api.steampowered.com robots interpretation. That file serves `User-Agent: * / Disallow: /`,
+yet the source steam_applist is registered publishable: true, tier: direct, routing to dlt on
+exactly that host. Strict reading: the source is in breach and Steam Charts needs Playwright.
+"robots does not govern a documented API" reading: it is fine and Steam Charts collapses to
+plain dlt. This is a licence-interpretation judgement, not a technical check, so it belongs to
+a human. Until it is answered, no new work should be built against that host; it is recorded as
+FIXME F9.
 ```
 
-## 6 → Сессия в каталоге скиллов — Wave 3 (последней)
+## 6 → Skills-repo maintainer — reconcile the baseline branch
 
 ```
-После того как Wave 1 и Wave 2 созданы и синхронизированы: сделай Wave 3 из
-docs/superpowers/plans/2026-07-20-add-data-source-skill-decomposition.md — скилл
-author-pipeline-stage-tests (de/testing) и цепочечный onboard-data-source (de/ingestion), затем
-отрефактори родителя /add-data-source под делегирование.
+The ~/.ai/skills repository is on branch chore/track-catalog-baseline with several hundred
+modified and untracked files that predate this session, and three of my commits landed on that
+branch: 29112cc (kickstarter_project registry entry + AREA_BY_PREFIX mapping) and d98883c
+(github-auth-ensure skill + script + settings + session-state hook + add-data-source edits).
 
-Уже установлено: родитель НЕ удаляется и не превращается в зонтик. За ним остаются preconditions
-(lane lock), Шаг 0 (already built?), Шаг 3 (гейт легальности — блокирующий, его двигать нельзя),
-три закона и Definition of Done, Шаг 6 (ship). Всё остальное делегируется по имени. Файл сейчас
-243 строки: ~/.ai/skills/_catalog/de/ingestion/add-data-source/SKILL.md.
+Already established: my commits are scoped — each used `git commit -o <explicit paths>` and
+swept in nothing else. The surrounding dirt is not mine and I deliberately did not touch it.
+Note that _scripts/ and _settings/ were largely UNTRACKED in this repo, so my commits are the
+first to track several of those files, including
+_scripts/session/session-state-hook.sh and _scripts/git/github-cli/Justfile — which contain
+other people's work in the same files.
 
-Следующий шаг: Wave 3 обязана идти ПОСЛЕ Wave 1–2. Оркестрирующий скилл, называющий ещё не
-существующие скиллы, — это сломанный скилл, который читается как рабочий. Проверь наличие каждого
-делегата через `just -f ~/.ai/skills/_scripts/skills/management/Justfile skill-locate <slug>`
-прежде чем сослаться на него.
+Next step, and permission not to code: decide whether chore/track-catalog-baseline is the
+intended landing branch for functional work like mine, or whether these two commits should be
+cherry-picked onto a normal branch and the baseline branch left to do only its baseline job. I
+could not tell from the repo which is intended. Read the branch's history first; do not start
+by rewriting anything.
 
-Ловушка: правка родителя идёт только через /upsert-skill, и после неё обязателен
-validate-skill <slug> — у него лимит description ≤1024 символов одной строкой, а описание
-add-data-source уже длинное и при добавлении делегатов легко его пробить.
+Trap: `~/.ai/skills/.settings` is a SYMLINK to `_settings`. `git add .settings/...` fails with
+"beyond a symbolic link" — you must use the real `_settings/...` path. I lost a commit attempt
+to this.
 ```
 
 ---
 
-## Не вошло в fan-out
+## Not in the fan-out
 
-- **Незакоммиченное в OGIP**: `.claude/agents/ogip-ingestion-engineer.md` (новый),
-  `.claude/agents/ogip-lane-worker.md` (§0.5), два плановых документа. Плюс правки каталога
-  скиллов — отдельный репозиторий, отдельный коммит.
-- **Удерживается лок** `obj--agents-skills` (STALE, 3.4 ч).
-- **Не проверено**: сколько ещё скиллов каталога имеют ту же drift-проблему устаревших копий в
-  `~/.claude/skills/`. Одна найдена; выборка из одного.
+- **Locks:** `obj--agents-skills` is STALE but held by this session; release or refresh it.
+  `obj--ingestion` was claimed and released cleanly.
+- **Unverified:** how many other catalog skills carry the same stale-claude-copy drift. Two
+  found, sample of two — nobody has swept the other ~519.
+- **Security observation, not an incident:** the global git credential helper is `store`, which
+  keeps tokens in plaintext at `~/.git-credentials` (mode 600). `osxkeychain` would be the
+  hardening step. Not migrated — that would change auth for every repo on the machine.
