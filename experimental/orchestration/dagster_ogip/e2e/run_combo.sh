@@ -13,16 +13,18 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT="$(dirname "$HERE")" # .../dagster_ogip
 REPO="$(cd "$PROJECT" && git rev-parse --show-toplevel)"
 cd "$PROJECT"
+# shellcheck source=jobs/dbt-env.sh
+source "$PROJECT/jobs/dbt-env.sh" # SSoT: DBT_PROJECT_DIR
 
 log() { echo "[e2e:dagster-dlt-dbt] $*"; }
 
 # 0. clean slate so the run proves itself, not a leftover warehouse.
-rm -rf "$REPO/.run/data/raw" "$REPO/.run/data/warehouse" "$HOME/.dlt/pipelines/rawg" dbt
+rm -rf "$REPO/.run/data/raw" "$REPO/.run/data/warehouse" "$HOME/.dlt/pipelines/rawg" "$DBT_PROJECT_DIR"
 mkdir -p "$REPO/.run/data/warehouse" # DuckDB opens, but does not create, the parent dir
 
 # 1. compile spec/ (Bruin, the SSoT) → the dbt project. Never hand-authored (ADR-0005).
 log "compile spec → dbt project"
-PYTHONPATH="$REPO/src" .venv/bin/python - "$REPO" <<'PY'
+PYTHONPATH="$REPO/src" .venv/bin/python - "$REPO" "$DBT_PROJECT_DIR" <<'PY'
 import sys
 from pathlib import Path
 
@@ -31,7 +33,7 @@ from ogip.spec_compile.to_dbt import compile_to_dbt
 root = Path(sys.argv[1]).resolve()
 compile_to_dbt(
     root / "spec" / "sql",
-    Path("dbt"),
+    Path(sys.argv[2]),
     warehouse=root / ".run" / "data" / "warehouse" / "ogip.duckdb",
     repo_root=root,
 )

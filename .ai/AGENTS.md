@@ -57,7 +57,13 @@ semantic/BI/feature-store *tool* (MetricFlow, Cube, Evidence, Feast, Airbyte) li
    alongside the code.
 7. **Portable SQL**: DuckDB/Postgres-first; engine-specific overrides isolated in
    `spec/sql/_ext/<engine>/`.
-8. **Every new directory gets a `README.md`.** Architectural changes get an ADR.
+8. **Orchestrator ≠ transform** ([ADR-0017](../docs/adr/ADR-0017-orchestrator-transform-dq-boundary.md)):
+   never implement in an orchestrator (Dagster, Prefect) what the transform engine can do.
+   **Data quality is expressed once** — as `spec/` `checks:` compiled to dbt/SQLMesh tests — and
+   the orchestrator only *surfaces* results (`dagster-dbt` auto-maps dbt tests → asset checks).
+   No hand-written `asset_check` mirroring a dbt test. Orchestrator-native checks only for what
+   the engine genuinely cannot express (cross-system freshness, run SLAs), with the reason noted.
+9. **Every new directory gets a `README.md`.** Architectural changes get an ADR.
 
 ## Run & orchestration profiles
 

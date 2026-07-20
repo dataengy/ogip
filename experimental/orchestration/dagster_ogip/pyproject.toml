@@ -9,6 +9,8 @@ dependencies = [
     "dagster-postgres>=0.29.14",
     "dbt-duckdb>=1.10.1",
     "ingestr>=1.1.1",
+    # the new_postgres_raw_data sensor polls the landing schema; undeclared, it skipped forever
+    "psycopg[binary]>=3.2",
     "pyarrow>=25.0.0",
 ]
 

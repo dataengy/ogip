@@ -16,16 +16,18 @@ set -euo pipefail
 PROJECT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO="$(cd "$PROJECT" && git rev-parse --show-toplevel)"
 cd "$PROJECT"
+# shellcheck source=jobs/dbt-env.sh
+source "$PROJECT/jobs/dbt-env.sh" # SSoT: DBT_PROJECT_DIR
 
 task="${1:?usage: dg-tasks.sh <build-dwh|dbt-evaluate|dbt-deps|build-dwh-full|update-dbt|update-dbt-changed|parsing|prefect|cdc>}"
 
 # dbt wants --project-dir/--profiles-dir AFTER the subcommand, so append them via a helper
 # rather than a prefix array.
-dbt_run() { uv run dbt "$@" --project-dir dbt --profiles-dir dbt; }
+dbt_run() { uv run dbt "$@" --project-dir "$DBT_PROJECT_DIR" --profiles-dir "$DBT_PROJECT_DIR"; }
 
 # spec/ (Bruin) is the SSoT — the dbt project is generated, never hand-authored (ADR-0005/0015).
 compile_dbt() {
-  PYTHONPATH="$REPO/src" .venv/bin/python - "$REPO" <<'PY'
+  PYTHONPATH="$REPO/src" .venv/bin/python - "$REPO" "$DBT_PROJECT_DIR" <<'PY'
 import sys
 from pathlib import Path
 
@@ -33,7 +35,7 @@ from ogip.spec_compile.to_dbt import compile_to_dbt
 
 root = Path(sys.argv[1]).resolve()
 compile_to_dbt(
-    root / "spec" / "sql", Path("dbt"),
+    root / "spec" / "sql", Path(sys.argv[2]),
     warehouse=root / ".run" / "data" / "warehouse" / "ogip.duckdb", repo_root=root,
 )
 print("dbt project regenerated from spec/")
@@ -48,10 +50,22 @@ ensure_raw() {
   fi
 }
 
-# Install the dbt-hub packages once (packages.yml is emitted by the compiler). Idempotent —
-# dbt caches into dbt/dbt_packages/, so skip when already present.
+# Install the dbt-hub packages (packages.yml is emitted by the compiler). Idempotent — dbt caches
+# into dbt/dbt_packages/, so this is a no-op once the install is COMPLETE.
+#
+# Completeness, not mere existence: an interrupted `dbt deps` (Ctrl-C, killed process, dropped
+# network) leaves dbt_packages/ present but half-populated. A `-d` test passes on that, so deps
+# were never repaired and every later dbt command died with
+#   "found N package(s) in packages.yml, but only M package(s) installed".
+# Transitive deps only ADD directories, so `installed < declared` is the reliable "incomplete" test.
 ensure_deps() {
-  [[ -d dbt/dbt_packages ]] || dbt_run deps
+  local declared installed
+  declared="$(grep -cE '^[[:space:]]*-[[:space:]]*(package|git|local):' "$DBT_PROJECT_DIR/packages.yml" 2>/dev/null || true)"
+  installed="$(find "$DBT_PROJECT_DIR/dbt_packages" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')"
+  if [[ "${declared:-0}" -gt 0 && "${installed:-0}" -lt "${declared:-0}" ]]; then
+    echo "[dg-tasks] dbt packages incomplete (${installed:-0}/${declared:-0}) — running dbt deps"
+    dbt_run deps
+  fi
 }
 
 case "$task" in
@@ -86,9 +100,9 @@ case "$task" in
   update-dbt-changed)
     compile_dbt
     # state:modified needs a prior manifest; fall back to a full build on the first run.
-    if [[ -f dbt/target/manifest.json ]]; then
-      cp dbt/target/manifest.json dbt/.prev_manifest.json
-      dbt_run build --select 'state:modified+' --state dbt || dbt_run build
+    if [[ -f "$DBT_PROJECT_DIR/target/manifest.json" ]]; then
+      cp "$DBT_PROJECT_DIR/target/manifest.json" "$DBT_PROJECT_DIR/.prev_manifest.json"
+      dbt_run build --select 'state:modified+' --state "$DBT_PROJECT_DIR" || dbt_run build
     else
       dbt_run build
     fi
