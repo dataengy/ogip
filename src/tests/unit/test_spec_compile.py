@@ -165,7 +165,7 @@ def test_derived_lineage_matches_declared_depends() -> None:
 
 @pytest.mark.parametrize("target", ["postgres", "clickhouse", "bigquery"])
 def test_spec_sql_survives_retargeting(target: str) -> None:
-    """The portable-SQL policy (ADR-0016), executable: every model retargets cleanly."""
+    """The portable-SQL policy (AGENTS.md rule 7), executable: every model retargets cleanly."""
     for asset in load_assets(SPEC_SQL):
         assert transpile(asset.sql, write=target)
 

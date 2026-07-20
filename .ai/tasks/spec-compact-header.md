@@ -41,9 +41,34 @@ would buy nothing and hide a step.
       child of the projection list. Nested `:=` is a DuckDB named argument — leave it alone.
       Reject `EQ` in a projection with a clear error pointing at `:=`.
 - [ ] Convert the four existing models; rendered YAML is **never committed**.
-- [ ] Update [spec/README.md](../../spec/README.md) (format column still says "Bruin asset")
-      and the `spec/` format note in [ADR-0005](../../docs/adr/ADR-0005-spec-ssot-bruin-odcs-compiler.md)'s
-      wake — ADR-0005 stays immutable; ADR-0016 supersedes the format detail.
+- [ ] Doc sync — see below. Ten documents assert the format independently.
+
+## Doc sync — ships in the same commit as the first converted model
+
+Ten documents state the authoring format in prose; none derives it, so each is a separate
+edit and any missed one silently misleads. Registered as
+[F1](../FIXME.md#f1--hard-rule-2-contradicts-adr-0016) /
+[F2](../FIXME.md#f2--format-claims-scattered-across-10-documents) in [FIXME.md](../FIXME.md).
+
+- [ ] [AGENTS.md](../AGENTS.md) **hard rule 2** — the highest-stakes one: it is the line an
+      agent reads before touching `spec/`, so a stale version gets *obeyed*, not just believed.
+- [ ] [PLAN.md](../PLAN.md) lines 73 + 423 (narrative + decision D0)
+- [ ] [STATUS.md](../STATUS.md) line 192 (decision D0)
+- [ ] [CLAUDE.md](../CLAUDE.md) line 44 (key paths)
+- [ ] [README.md](../../README.md) line 47 (public front page)
+- [ ] [docs/comparisons/dagster-odp-vs-spec-compiler.md](../../docs/comparisons/dagster-odp-vs-spec-compiler.md) line 28
+- [ ] [transform/README.md](../../transform/README.md) line 3 + `transform/runner.py:3`
+- [ ] `src/ogip/spec_compile/*.py` docstrings — `__init__`, `bruin`, `to_dbt`, `to_sqlmesh`, `to_bruin`
+- [ ] ⚠ [docs/architecture/overview.md](../../docs/architecture/overview.md) line 40 and
+      [docs/ROADMAP.md](../../docs/ROADMAP.md) line 15 were **dirty in another lane** when this
+      task was written — re-check ownership and hand off rather than editing blind.
+
+**Do not touch** [docs/CHANGELOG.md](../../docs/CHANGELOG.md) lines 22 and 37 — a changelog
+records what was true then; rewriting it is the bug, not the fix.
+
+[ADR-0005](../../docs/adr/ADR-0005-spec-ssot-bruin-odcs-compiler.md) stays immutable; its
+missing forward pointer is [F3](../FIXME.md#f3--adr-0005-has-no-forward-pointer) and needs an
+owner decision, not a drive-by edit.
 
 ## Target shape
 

@@ -26,7 +26,9 @@ repo-relative paths, so run every engine **from the repo root**.
 rewriting `staging.stg_games` → `{{ ref('stg_games') }}` only where it is a real table
 reference (a regex also rewrites it inside string literals), deriving lineage from the SQL to
 cross-check the hand-written `depends`, and retargeting a model to another dialect. That last
-one makes the portable-SQL policy ([ADR-0016 in OGAP terms](../docs/adr/)) executable — the
+one makes the portable-SQL policy ([AGENTS.md](../AGENTS.md) hard rule 7; OGAP's own ADR-0016
+upstream — not this repo's [ADR-0016](../docs/adr/ADR-0016-odts-authoring-format-spec-sql.md))
+executable — the
 test suite retargets every spec model to Postgres/ClickHouse/BigQuery on each run.
 
 Engine-specific SQL, when unavoidable, lives in `spec/sql/_ext/<engine>/` — never here.
