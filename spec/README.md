@@ -7,7 +7,7 @@ The implementation-agnostic specification layer — *Open Data Contracts + porta
 | Subdir | Holds | Format |
 |---|---|---|
 | `contracts/<source>/` | source data contracts (schema · quality · SLA · ownership) | **ODCS** |
-| `sql/{staging,core,star,am,marts,fs}/` | portable SQL models (SQL + inline lineage/DQ/ownership) | **Bruin asset** format |
+| `sql/{staging,core,star,am,marts,fs}/` | portable SQL models (SQL + inline lineage/DQ/ownership) | **Bruin asset** format — migrating to **`@odts 0.1`** ([ADR-0016](../docs/adr/ADR-0016-odts-authoring-format-spec-sql.md)) |
 | `sql/_ext/<engine>/` | rare engine-specific SQL overrides | engine SQL |
 | `dq/policy.yml` | cross-cutting DQ rules/severity | YAML |
 | `datasets/` | dataset registry (metadata, ownership) | YAML |
@@ -15,3 +15,6 @@ The implementation-agnostic specification layer — *Open Data Contracts + porta
 
 The **spec compiler** (`src/ogip/spec_compile/`) renders these to engine-native projects —
 **SQLMesh** (default), dbt, Bruin. _Populated in Phase 1; M0 seeds the first RAWG models._
+
+Authoring rules for the SQL models — format, macros, SQL discipline, and the gate every
+syntax proposal passes — live in [`sql/AGENTS.md`](sql/AGENTS.md).
