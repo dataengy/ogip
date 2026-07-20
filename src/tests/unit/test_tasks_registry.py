@@ -88,3 +88,29 @@ def test_task_names_is_sorted():
     names = task_names()
     assert names == sorted(names)
     assert names.index("probe.aaa") < names.index("probe.zzz")
+
+
+def test_the_whole_project_vocabulary_is_registered():
+    """The closed vocabulary an ODOS spec may address. Adding a name is a deliberate act."""
+    assert set(task_names()) >= {
+        "cdc.catchup",
+        "dbt.build",
+        "dbt.deps",
+        "dbt.parse",
+        "ingest.parse_to_landing",
+        "ingest.rawg",
+        "integrations.trigger_prefect",
+        "snapshot.write",
+    }
+
+
+def test_every_registered_task_is_keyword_only_or_zero_arg():
+    """ODOS passes `args:` as a mapping, so tasks must not rely on positional parameters."""
+    import inspect
+
+    for name, fn in TASKS.items():
+        params = inspect.signature(fn).parameters.values()
+        positional = [
+            p for p in params if p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)
+        ]
+        assert not positional, f"{name} takes positional parameters: {positional}"

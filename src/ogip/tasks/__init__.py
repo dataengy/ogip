@@ -20,4 +20,8 @@ __all__ = [
 
 # Importing the task modules is what populates the registry. Keep this at the bottom: the
 # modules import `odos_task` from `ogip.tasks._registry`, not from this package.
+from ogip.tasks import cdc as cdc
 from ogip.tasks import dbt as dbt
+from ogip.tasks import ingest as ingest
+from ogip.tasks import integrations as integrations
+from ogip.tasks import snapshots as snapshots
