@@ -92,7 +92,7 @@ def test_task_names_is_sorted():
 
 def test_the_whole_project_vocabulary_is_registered():
     """The closed vocabulary an ODOS spec may address. Adding a name is a deliberate act."""
-    assert set(task_names()) >= {
+    assert set(task_names()) == {
         "cdc.catchup",
         "dbt.build",
         "dbt.deps",
