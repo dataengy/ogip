@@ -28,9 +28,16 @@ _SPEC_SQL = _REPO / "spec" / "sql"
 def dbt_command(project_dir: Path, verb: str, *flags: str) -> list[str]:
     """Build the dbt argv. `--project-dir`/`--profiles-dir` must follow the subcommand."""
     return [
-        "uv", "run", "--group", "engines", "dbt", verb,
-        "--project-dir", str(project_dir),
-        "--profiles-dir", str(project_dir),
+        "uv",
+        "run",
+        "--group",
+        "engines",
+        "dbt",
+        verb,
+        "--project-dir",
+        str(project_dir),
+        "--profiles-dir",
+        str(project_dir),
         *flags,
     ]
 

@@ -110,7 +110,5 @@ def test_every_registered_task_is_keyword_only_or_zero_arg():
 
     for name, fn in TASKS.items():
         params = inspect.signature(fn).parameters.values()
-        positional = [
-            p for p in params if p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)
-        ]
+        positional = [p for p in params if p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)]
         assert not positional, f"{name} takes positional parameters: {positional}"
