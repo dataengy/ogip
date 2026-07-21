@@ -131,7 +131,7 @@ def _directive_names(header_lines: list[str]) -> set[str]:
 def test_odts_package_publishes_the_normative_files() -> None:
     for name in ("README.md", "SPEC.md", "GOVERNING-BRIEF.md", "IMPLEMENTATION.md"):
         assert (_ODTS / name).is_file(), f"spec/ODTS/{name} missing"
-    assert len(sorted(_ODTS_EXAMPLES.glob("*/*.sql"))) == 4
+    assert len(sorted(_ODTS_EXAMPLES.glob("*/*.sql"))) == 6
 
 
 def test_odts_fixtures_use_the_closed_vocabulary_and_match_their_paths() -> None:
@@ -150,6 +150,36 @@ def test_odts_fixtures_use_the_closed_vocabulary_and_match_their_paths() -> None
 def test_odts_closed_vocabulary_detects_unknown_directives() -> None:
     header, _ = _odts_header_and_body("/* @odts 0.1\nmodel a.b\nmaterialize table\n*/\nselect 1\n")
     assert _directive_names(header) - _ODTS_DIRECTIVES == {"materialize"}
+
+
+def test_contracts_are_valid_odcs_and_anchored_to_raw_models() -> None:
+    """Every ODCS contract either has its raw model in spec/sql or declares contract-first.
+
+    Encodes the source DoD: a connector that lands Parquet with no contract is invisible
+    here, but a contract that names a dataset must either be backed by a `raw.<name>`
+    registration or say explicitly that the connector is still owed.
+    """
+    contracts = sorted((_REPO / "spec" / "contracts").rglob("*.odcs.yaml"))
+    assert contracts, "spec/contracts must not be empty"
+    for path in contracts:
+        document = _mapping(path)
+        assert document["kind"] == "DataContract", path
+        name = str(document["name"])
+        tables = cast("list[dict[str, Any]]", document["schema"])
+        assert tables and cast("list[Any]", tables[0]["properties"]), f"{path}: empty schema"
+        assert cast("list[Any]", document["quality"]), f"{path}: no quality rules"
+        servers = cast("list[dict[str, Any]]", document["servers"])
+        assert servers[0]["path"] == f".run/data/raw/{name}/", f"{path}: server path mismatch"
+
+        if (_SPEC_SQL / "raw" / f"{name}.sql").is_file():
+            continue  # implemented: the Layer-0 registration exists
+        custom = cast("list[dict[str, Any]]", document.get("customProperties", []))
+        statuses = [
+            str(entry["value"]) for entry in custom if entry.get("property") == "connectorStatus"
+        ]
+        assert statuses and statuses[0].startswith("contract-first"), (
+            f"{path}: no raw model in spec/sql and no contract-first declaration"
+        )
 
 
 def test_odts_fixture_bodies_are_byte_identical_to_spec_sql() -> None:

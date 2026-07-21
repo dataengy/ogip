@@ -83,6 +83,7 @@ Every Dagster object below lives in
 | job `cdc_asset_job` — `select: cdc.landing` | `define_asset_job` over `K_CDC` (`defs/cdc_ingest/`) |
 | job `cdc_job` — `task: cdc.catchup, args: {dry_run: true}` | `@dg.job` → `dg-tasks.sh cdc --dry-run` |
 | job `parsing_job` — `task: ingest.parse_to_landing` | `@dg.job` → `dg-tasks.sh parsing` |
+| job `metacritic_ingest_job` — `task: ingest.metacritic` | registry task live (`src/ogip/tasks/ingest.py`); no Dagster job wired yet — Prefect reaches it through `ingest.all` when `sources.metacritic.enabled` |
 | automation `quarter_hourly_cdc` — `cron("*/15 * * * *")` | `ScheduleDefinition quarter_hourly_cdc` |
 
 ### `snapshots.yml`

@@ -7,6 +7,10 @@ jobs:
   cdc_asset_job: {select: cdc.landing}
   cdc_job: {task: cdc.catchup, args: {dry_run: true}, tags: {ingestion: cdc}}
   parsing_job: {task: ingest.parse_to_landing, tags: {ingestion: scraping}}
+  metacritic_ingest_job:
+    task: ingest.metacritic
+    tags: {ingestion: scraping}
+    doc: "Quality dimension — Metacritic JSON-LD scrape → raw Parquet (demo-safe by default)."
 
 automations:
   quarter_hourly_cdc: {"on": 'cron("*/15 * * * *")', run: cdc_job}

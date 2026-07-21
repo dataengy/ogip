@@ -10,7 +10,7 @@ document for orchestration is [ODOS IMPLEMENTATION](../ODOS/IMPLEMENTATION.md).
 
 | ODTS layer | State |
 |---|---|
-| Authoring documents | four models in `spec/sql/`, currently on the legacy `@bruin` header; `@odts` migration is [#35](https://github.com/dataengy/ogip/issues/35) |
+| Authoring documents | six models in `spec/sql/`, currently on the legacy `@bruin` header; `@odts` migration is [#35](https://github.com/dataengy/ogip/issues/35) |
 | Frontend (`@odts` → legacy YAML) | planned — [#35](https://github.com/dataengy/ogip/issues/35) |
 | Macro registry (`@keys.hash`, `@dates.year`) | planned — [#36](https://github.com/dataengy/ogip/issues/36); surrogate keys are hand-written `md5(...)` today |
 | IR + adapters (six targets) | **live** — `parse_asset()` → `Asset` → `to_sqlmesh` · `to_dbt` · `to_bruin` · `to_sqlmesh_dbt`; plain SQL consumes `spec/sql` directly |
@@ -19,13 +19,15 @@ document for orchestration is [ODOS IMPLEMENTATION](../ODOS/IMPLEMENTATION.md).
 
 ## 1. The authoring layer — `spec/sql`
 
-Four documents, one per model, path = `<layer>/<name>.sql`, building
+Six documents, one per model, path = `<layer>/<name>.sql`, building
 `raw → staging → core → fs` (layer naming is project law — no medallion vocabulary):
 
 | Model | Kind | Semantic class (tags) | Declared constraints |
 |---|---|---|---|
 | `raw.rawg__games` | view | `raw, rawg, daily` | none — 1:1 registration of the immutable raw Parquet |
+| `raw.metacritic__game` | view | `raw, metacritic, daily` | none — 1:1 registration of the immutable raw Parquet |
 | `staging.stg_games` | table | `staging, rawg, daily` | `game_id` !null unique · `name` !null |
+| `staging.stg_metacritic_games` | table | `staging, metacritic, daily` | `slug` !null unique · `name` !null · `metascore` non_negative |
 | `core.game` | table | `core, entity, daily` | `game_sk` pk !null unique · `title` !null |
 | `fs.market_features` | table | `fs, feature-store, daily` | `game_sk` !null unique · `popularity_score` non_negative |
 

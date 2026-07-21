@@ -1,6 +1,6 @@
 # ODTS 0.1 conformance examples
 
-The four live `spec/sql` models re-authored with `@odts 0.1` headers — the same layout
+The six live `spec/sql` models re-authored with `@odts 0.1` headers — the same layout
 (`<layer>/<name>.sql`), the same SQL bodies **byte for byte**, only the header differs.
 `just standards-validate` asserts all of that: closed directive vocabulary, model-name/path
 agreement, and body identity with the corresponding `spec/sql` file, so these fixtures cannot
@@ -14,7 +14,8 @@ What the conversion shows, per the profile's inference rule (SPEC.md §4):
 
 - `type: duckdb.sql` is gone — derived from the authoring dialect and file extension;
 - `depends:` is gone — derived from the SQL AST (`raw.rawg__games` → `staging.stg_games` →
-  `core.game` → `fs.market_features`); it may be authored only as a checked assertion;
+  `core.game` → `fs.market_features`, and `raw.metacritic__game` →
+  `staging.stg_metacritic_games`); it may be authored only as a checked assertion;
 - `@bruin` column `checks:` lists collapse into inline attributes (`!null`, `unique`,
   `non_negative`);
 - the `raw` model's free-text `description:` has no 0.1 directive — a `doc` directive is
