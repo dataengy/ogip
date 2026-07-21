@@ -1,0 +1,16 @@
+---
+odos: 0.1
+group: snapshots
+
+assets:
+  fs.market_snapshot:
+    task: snapshot.write
+    partitions: daily_market
+    kinds: [duckdb, parquet]
+    group_name: marts
+
+jobs:
+  market_snapshot_job: {select: fs.market_snapshot, partitioned: true}
+
+automations:
+  daily_market_snapshot: {"on": "partition_ready(market_snapshot_job)"}

@@ -1,7 +1,8 @@
 # ODOS 0.1 — Open Data Orchestration Standard (design)
 
 - **Date:** 2026-07-20
-- **Status:** design, awaiting approval → ADR-0017
+- **Status:** approved → [ADR-0017](../../adr/ADR-0017-odos-normative-profile.md) and
+  [`spec/ODOS`](../../../spec/ODOS/README.md)
 - **Lane:** `orchestration`
 - **Relates to:** [ADR-0005](../../adr/ADR-0005-spec-ssot-bruin-odcs-compiler.md) (`spec/` as SSoT) ·
   [ADR-0007](../../adr/ADR-0007-prefect-orchestration.md) (Prefect, production) ·
@@ -14,7 +15,7 @@ The owner's standards taxonomy is three-level:
 
 | | Name | Owns |
 |---|---|---|
-| **ODPS** | Open Data **Platform** Standard | the umbrella |
+| **YADPS** | Yet Another Data **Platform** Standard | the umbrella |
 | **ODTS** | Open Data **Transformation** Standard | `spec/sql` — *what* is computed |
 | **ODOS** | Open Data **Orchestration** Standard | `spec/orchestration` — *when, in what order, and how it survives failure* |
 
@@ -22,10 +23,8 @@ The owner's standards taxonomy is three-level:
 as compile targets — Prefect and Dagster **consume** compiled projects, they are an orthogonal
 axis."* ODOS is that axis. It never describes a transformation; it schedules one.
 
-> **Naming note.** `spec/sql/AGENTS.md` and ADR-0016 currently expand ODTS as *"Open Data
-> Transformation **Spec**"*, and `spec/sql/AGENTS.md:16` states the format *"is not a published
-> standard"*. Both need reconciling with the taxonomy above. That correction belongs to the
-> `spec` lane and is handed off, not applied here.
+> **Governing naming decision.** ADR-0016 names the umbrella **YADPS** because `ODPS` collides;
+> ODTS and ODOS keep their `Open` names. This document follows that accepted taxonomy.
 
 ## 2. Problem
 
@@ -129,9 +128,9 @@ selected asset shares a `partitions:` definition, and the compiler checks that.
 
 **`select:` is resolvable only because ODTS publishes lineage.** The compiler expands a selection
 against the asset graph derived from ODTS `depends` + `dialect.table_refs()`, plus assets declared
-in §4.4. This is the concrete reason ODPS is one family rather than two unrelated formats: Dagster
-resolves selections natively, Prefect has no selection engine at all, and the Prefect adapter can
-only emit an ordered flow because the graph is already known statically.
+in §4.4. This is the concrete reason YADPS is one family rather than two unrelated formats:
+Dagster resolves selections natively, Prefect has no selection engine at all, and the Prefect
+adapter can only emit an ordered flow because the graph is already known statically.
 
 ### 4.4 Assets
 
