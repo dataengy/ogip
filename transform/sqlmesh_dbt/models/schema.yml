@@ -16,6 +16,9 @@ models:
     - not_null
     - unique
   - name: popularity_score
+- name: metacritic__game
+  description: Layer-0 registration of the immutable Metacritic games Parquet (1:1
+    AS-IS).
 - name: rawg__games
   description: Layer-0 registration of the immutable RAWG games Parquet (1:1 AS-IS).
 - name: stg_games
@@ -27,3 +30,13 @@ models:
   - name: name
     data_tests:
     - not_null
+- name: stg_metacritic_games
+  columns:
+  - name: slug
+    data_tests:
+    - not_null
+    - unique
+  - name: name
+    data_tests:
+    - not_null
+  - name: metascore

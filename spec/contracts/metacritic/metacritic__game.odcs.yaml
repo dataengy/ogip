@@ -1,0 +1,94 @@
+# Open Data Contract Standard (ODCS) v3 — Metacritic game pages, Layer-0 raw dataset.
+apiVersion: v3.0.0
+kind: DataContract
+id: metacritic-game-raw
+name: metacritic__game
+version: 0.1.0
+status: draft
+domain: games
+tenant: ogip
+description:
+  purpose: >
+    Immutable 1:1 AS-IS capture of the schema.org VideoGame JSON-LD embedded in
+    Metacritic game pages (Layer 0) — the quality dimension (metascore) per game.
+  usage: Source for staging.stg_metacritic_games; joins to core.game on slug/name.
+  limitations: >
+    Demo mode (default) parses a bundled fixture page with zero network; live mode
+    requires OGIP_METACRITIC_LIVE=1 and the slug set under `sources.metacritic.slugs`.
+    NOT publishable: robots.txt permits fetching /game/ but the Fandom/Metacritic Terms
+    of Use are unreviewed for redistribution of critic aggregates — keep these columns
+    out of published Parquet until that review is recorded in
+    spec/sources/games/metacritic_game.yaml. JSON-LD `genre` currently lands as a single
+    string; a multi-genre page would arrive as a list and dlt would evolve it into a
+    child table — treat a schema-evolution diff on this dataset as that trap firing.
+
+servers:
+  - server: local-fs
+    type: local
+    format: parquet
+    path: .run/data/raw/metacritic__game/
+
+schema:
+  - name: metacritic__game
+    logicalType: object
+    physicalType: parquet
+    properties:
+      - name: slug
+        logicalType: string
+        required: true
+        unique: true
+        description: Page slug (natural key), taken from the fetched URL.
+      - name: content_hash
+        logicalType: string
+        description: SHA-256 of the raw JSON-LD block — the landing-upsert identity.
+      - name: source_url
+        logicalType: string
+        description: The page the record was extracted from (provenance).
+      - name: name
+        logicalType: string
+        required: true
+      - name: released
+        logicalType: string
+        description: JSON-LD datePublished, ISO-8601 date as text (cast in staging).
+      - name: genre
+        logicalType: string
+        description: JSON-LD genre; single string today — see limitations for the list trap.
+      - name: publisher
+        logicalType: string
+        description: First publisher name from the JSON-LD publisher list, nullable.
+      - name: metascore
+        logicalType: integer
+        description: aggregateRating.ratingValue — the metascore (0–100), nullable.
+      - name: review_count
+        logicalType: integer
+        description: aggregateRating.reviewCount — critic review count, nullable.
+      - name: _ingested_at
+        logicalType: string
+        description: Layer-0 ingestion timestamp (ISO-8601 UTC).
+      - name: etl_batch_id
+        logicalType: string
+        description: Layer-0 batch id.
+
+quality:
+  - rule: unique
+    property: slug
+    severity: error
+  - rule: not_null
+    property: name
+    severity: error
+
+slaProperties:
+  - property: freshness
+    value: 1
+    unit: d
+    element: metacritic__game._ingested_at
+
+customProperties:
+  - property: publishable
+    value: false
+  - property: sourceDescriptor
+    value: spec/sources/games/metacritic_game.yaml
+
+team:
+  - username: data-eng@ogip
+    role: owner
