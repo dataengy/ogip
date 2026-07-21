@@ -134,6 +134,10 @@ spec-compile engine="all":
 spec-verify *args:
     uv run python src/scripts/spec-compile-verify.py {{args}}
 
+# Validate the normative ODTS/ODOS packages and their conformance examples.
+standards-validate:
+    uv run pytest src/tests/unit/test_standard_packages.py
+
 # --- Prefect (integrations/prefect: deploy + trigger via CLI/API) ---
 prefect-deploy:
     uv run python integrations/prefect/deploy.py
