@@ -10,20 +10,27 @@ columns:
   metacritic_score       integer   between(0,100)
   opencritic_score       integer   between(0,100)
   avg_critic_score       double    between(0,100)
-  psn_price              double    non_negative
+  psn_price_usd          double    non_negative
+  psn_currency           varchar
   peak_players           bigint    non_negative
   has_critic_reception   boolean   !null
   has_console_pricing    boolean   !null
   has_traction           boolean   !null
 */
--- `core.console_pricing` grain is (game_sk, locale); collapse to one row per game_sk here
--- (cheapest observed locale price) so this feature store keeps its own declared grain
--- (one row per game_sk) instead of fanning out on locale.
+-- `core.console_pricing` grain is (game_sk, locale) across every PSN storefront, so a bare
+-- `min(psn_price)` mixes currencies (e.g. JPY vs USD) into one meaningless number. Restrict to
+-- the US/USD storefront (`en-us`) so the feature is single-currency and comparable, and keep
+-- the `group by` as a defense-in-depth grain guarantee (one row per game_sk) even though
+-- `core.console_pricing`'s own `unique(game_sk, locale)` check already makes at most one
+-- `en-us` row per game possible. A game with no `en-us` row yields NULL here — the coverage
+-- flag below already signals presence, so NULL is correct, not a gap.
 with pricing_by_game as (
     select
         game_sk
-        , min(psn_price) as psn_price
+        , min(psn_price) as psn_price_usd
+        , min(psn_currency) as psn_currency
     from core.console_pricing
+    where locale = 'en-us'
     group by game_sk
 )
 
@@ -46,13 +53,14 @@ select
             then (cr.metacritic_score + cr.opencritic_score) / 2.0
         else coalesce(cr.metacritic_score, cr.opencritic_score)
     end as avg_critic_score
-    , pg.psn_price
+    , pg.psn_price_usd
+    , pg.psn_currency
     , tr.peak_all as peak_players
     -- `game_sk` on cr/pg/tr is projected from the bridge and is therefore NEVER null (every
     -- bridge row survives the LEFT JOIN inside the source model); the actual measured column
     -- IS null when the title match failed, so that is what a coverage flag has to test.
     , coalesce(cr.metacritic_score, cr.opencritic_score) is not null as has_critic_reception
-    , pg.psn_price is not null as has_console_pricing
+    , pg.psn_price_usd is not null as has_console_pricing
     , tr.peak_all is not null as has_traction
 from core.game as g
 left join core.critic_reception as cr on g.game_sk = cr.game_sk

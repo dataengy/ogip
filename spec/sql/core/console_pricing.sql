@@ -18,6 +18,9 @@ columns:
   - name: psn_price
     type: double
     checks: [{name: non_negative}]
+  - name: psn_currency
+    type: varchar
+    checks: []
 checks:
   - name: unique
     columns: [game_sk, locale]

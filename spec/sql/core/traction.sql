@@ -11,6 +11,7 @@ depends:
 columns:
   - name: game_sk
     type: varchar
+    primary_key: true
     checks: [{name: not_null}, {name: unique}]
   - name: current_players
     type: bigint
