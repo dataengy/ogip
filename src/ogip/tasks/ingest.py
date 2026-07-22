@@ -6,7 +6,15 @@ from ogip.config import get_settings, load_app_config
 from ogip.logger import log
 from ogip.tasks._registry import odos_task
 
-__all__ = ["ingest_all", "ingest_metacritic", "ingest_rawg", "parse_to_landing"]
+__all__ = [
+    "ingest_all",
+    "ingest_metacritic",
+    "ingest_opencritic",
+    "ingest_psn",
+    "ingest_rawg",
+    "ingest_steamcharts",
+    "parse_to_landing",
+]
 
 
 @odos_task("ingest.rawg")
@@ -35,6 +43,39 @@ def ingest_metacritic() -> str:
     return str(out)
 
 
+@odos_task("ingest.opencritic")
+def ingest_opencritic() -> str:
+    """Scrape OpenCritic → raw Parquet (Layer 0). Returns the output path."""
+    from ingestion.sources.opencritic import OpenCriticGame
+
+    settings = get_settings()
+    out = OpenCriticGame(settings).run(settings.platform.data_dir)
+    log.bind(source="opencritic").info("raw landed at {p}", p=out)
+    return str(out)
+
+
+@odos_task("ingest.psn")
+def ingest_psn() -> str:
+    """Scrape the PlayStation Store → raw Parquet (Layer 0). Returns the output path."""
+    from ingestion.sources.psn import PsnStoreConcept
+
+    settings = get_settings()
+    out = PsnStoreConcept(settings).run(settings.platform.data_dir)
+    log.bind(source="psn").info("raw landed at {p}", p=out)
+    return str(out)
+
+
+@odos_task("ingest.steamcharts")
+def ingest_steamcharts() -> str:
+    """Scrape SteamCharts → raw Parquet (Layer 0). Returns the output path."""
+    from ingestion.sources.steamcharts import SteamChartsApp
+
+    settings = get_settings()
+    out = SteamChartsApp(settings).run(settings.platform.data_dir)
+    log.bind(source="steamcharts").info("raw landed at {p}", p=out)
+    return str(out)
+
+
 @odos_task("ingest.all")
 def ingest_all() -> str:
     """Run every source enabled in `config/config.yml`; return the RAWG output path.
@@ -49,7 +90,12 @@ def ingest_all() -> str:
     """
     enabled = load_app_config()["sources"]
     out = ingest_rawg()
-    for name, task in (("metacritic", ingest_metacritic),):
+    for name, task in (
+        ("metacritic", ingest_metacritic),
+        ("opencritic", ingest_opencritic),
+        ("psn", ingest_psn),
+        ("steamcharts", ingest_steamcharts),
+    ):
         if enabled.get(name, {}).get("enabled"):
             task()
         else:

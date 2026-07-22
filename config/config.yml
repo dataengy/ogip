@@ -100,6 +100,18 @@ sources:
     enabled: true # demo-safe: fixture-driven without network; live mode reads `slugs`
     entities: [game]
     slugs: [hades] # live-mode page set; discovery-from-raw is the next increment
+  opencritic: # second critic aggregator (#18); publishable:false until ToS review — spec/sources/
+    enabled: true # demo-safe by default; live mode (OGIP_OPENCRITIC_LIVE=1) reads `pages`
+    entities: [game]
+    pages: ["1548/the-legend-of-zelda-breath-of-the-wild"] # id/slug; the id governs, slug is decorative
+  psn: # console regional pricing (#18); publishable:false until Sony ToS review — spec/sources/
+    enabled: true # demo-safe by default; live mode (OGIP_PSN_LIVE=1) reads `concepts`
+    entities: [concept]
+    concepts: ["en-us/concept/232093"] # {locale}/concept/{id}; one row per regional storefront
+  steamcharts: # concurrent-player traction (#18); css scrape; publishable:false — spec/sources/
+    enabled: true # demo-safe by default; live mode (OGIP_STEAMCHARTS_LIVE=1) reads `appids`
+    entities: [app]
+    appids: [730] # discovery-from-raw (steamspy/steam crosswalk) is the next increment
   steam:
     enabled: true
     entities: [games, reviews]
