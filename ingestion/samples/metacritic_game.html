@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!-- SYNTHETIC fixture (see samples/README.md): hand-authored, real-SHAPED page skeleton.
+     JSON-LD structure mirrors the live Metacritic /game/hades/ page as probe-verified on
+     2026-07-18 (values are those observed then). Two ld+json blocks ON PURPOSE: parsers
+     must select by @type == VideoGame, not take the first block. -->
+<html lang="en">
+<head>
+  <title>Hades Reviews - Metacritic</title>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Games"},
+      {"@type": "ListItem", "position": 2, "name": "Hades"}
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Hades",
+    "dateCreated": "2020-09-17T00:00:00.000Z",
+    "datePublished": "2020-09-17",
+    "description": "Defy the god of death as you hack and slash your way out of the Underworld.",
+    "contentRating": "T",
+    "url": "https://www.metacritic.com/game/hades/",
+    "genre": "Action RPG",
+    "publisher": [{"@type": "Organization", "name": "Supergiant Games"}],
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "name": "Metascore",
+      "bestRating": 100,
+      "worstRating": 0,
+      "ratingValue": 93,
+      "reviewCount": 61
+    }
+  }
+  </script>
+</head>
+<body>
+  <main><h1>Hades</h1><p>Synthetic page body — the record lives in the JSON-LD above.</p></main>
+</body>
+</html>

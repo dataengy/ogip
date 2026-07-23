@@ -126,14 +126,49 @@ Alerting is optional: with no credentials `make_notifier()` returns `None` and t
 green and quiet — the same zero-credential demo path the sources take. `OGIP_ALERT_DRY_RUN=true`
 previews alerts with no credentials at all.
 
+## Agentic telemetry (epic #33)
+
+The stack also watches **the agents building OGIP** — standard tools end to end, zero custom
+collectors: Claude Code's **native OTel export** → the same Alloy OTLP receiver (`:4318`) →
+VictoriaMetrics (metrics) + Loki (events) → the **OGIP — Agentic Activity** dashboard
+(`ogip-agentic`) and two agentic alert rules (`agent-api-error-burst`, `agent-cost-burn`).
+
+**Opt-in**, per machine: the env block lives in `.claude/settings.local.json` (untracked).
+Every panel/alert degrades to empty/quiet when no telemetry-enabled session ran — absence is
+idle, not breakage (`obs-verify` prints `agentic telemetry: absent|metrics|metrics+events` as
+a note, never a failure). Promotion to the committed `.claude/settings.json` is proposed on
+[#9](https://github.com/dataengy/ogip/issues/9) — the exporter is **silent when the stack is
+down** (verified), so committed enablement costs sessions nothing.
+
+Verified series/labels (spike 2026-07-19, `.tmp/MANIFEST.agentic-obs.md`):
+`claude_code_token_usage_tokens_total{model,type=input|output|cacheRead|cacheCreation,session_id}` ·
+`claude_code_cost_usage_USD_total{model}` · `claude_code_session_count_total` ·
+`claude_code_active_time_seconds_total`; Loki events `{service_name="claude-code"}` with
+`event_name` = api_request | api_error | assistant_response | tool_decision | tool_result |
+hook_execution_* (attrs: `tool_name`, `success`, `duration_ms` — the tool/subagent/skill
+panels are plain LogQL `| json` over these).
+
+Two sharp edges, both load-bearing:
+
+- **`OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=cumulative` is mandatory.** Claude Code
+  exports delta temporality by default and Alloy's prometheus exporter **drops delta silently**
+  — no error anywhere, metrics just never reach VM.
+- **Metrics/events carry user identifiers** (email, org id) by default. Acceptable only because
+  the stack binds to localhost; never expose :3300/:8428, and never hard-code those values in
+  committed files (`public-hygiene.sh` gates).
+
+History/offline view: `just agentic-usage` (ccusage via npx — standard OSS reader over
+`~/.claude/projects/*.jsonl`); per-project slicing happens in Grafana, ccusage gives
+day/session token+cost tables.
+
 ## Not wired yet
 
 | Gap | Owner | Change |
 |---|---|---|
-| Flow writes no log file | lane `core-pipeline` | `pipelines/flows/main.py` calls bare `setup_logging()`; pass `log_file=settings.log_file`, `json_logs=settings.log_json` (both already exist in `src/ogip/config.py`) |
+| Flow writes no log file | lane `core-pipeline` | `pipelines/flows/` calls bare `setup_logging()`; pass `log_file=settings.log_file`, `json_logs=settings.log_json` (both already exist in `src/ogip/config.py`). Also arms the commented-out `no-pipeline-logs` alert rule (`provisioning/alerting/rules.yml`) |
 | No pipeline metrics | lane `core-pipeline` | export OTLP to `localhost:4318`, prefix `ogip_` — the dashboard panel is already waiting |
-| Alerting config is env-only | lane `core-pipeline` | routing lives in `OGIP_ALERT_*` env vars, not the SSoT — add an `alerting:` section to `config/config.yml`, map it in `config/.env-render.py` (plus the secret slots), then swap the literal defaults in `alerting/settings.py` for `_yaml("alerting", …)` |
-| Nothing raises an alert yet | lane `core-pipeline` · lane `obs` | the `Notifier` exists and delivers, but no source calls it: flow-failure hooks live in `pipelines/`, and Grafana/VM alert rules → webhook → `Notifier` is the obs half |
+| Alerting config is env-only | lane `core-pipeline` | routing lives in `OGIP_ALERT_*` env vars, not the SSoT — add an `alerting:` section to `config/config.yml`, map it in `config/.env-render.py` (plus the secret slots `OGIP_TG_BOT_TOKEN`/`OGIP_TG_CHAT_ID`, which the Grafana contact point also reads), then swap the literal defaults in `alerting/settings.py` for `_yaml("alerting", …)` |
+| ~~Nothing raises an alert yet~~ | ~~both~~ | **closed 2026-07-19**: flow failures alert via `on_failure` hooks on every engine flow (`pipelines/flows/_common.py` → `Notifier`), and Grafana delivers rule alerts straight to Telegram via its **native contact point** (`provisioning/alerting/` — no custom webhook receiver; #26 repurposed) |
 | Traces | deferred | no Tempo — logs + metrics first |
 
 Until the first gap closes, `.run/logs/` holds only what `just obs-smoke-log` writes, and the

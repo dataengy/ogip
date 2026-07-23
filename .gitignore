@@ -57,3 +57,7 @@ integrations/*/config.yml
 /.ai/memory
 /.ai/skills
 /.ai/.locks/
+/.ai/.coord/
+
+logs/runs
+logs/*.log

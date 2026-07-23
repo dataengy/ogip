@@ -12,6 +12,7 @@ dependencies = [
     "sqlmesh[postgres]>=0.150",                      # default transform engine (from spec/)
     "prefect>=3.4",                                  # orchestration
     "duckdb>=1.2",
+    "sqlglot>=26",                                   # spec SQL: AST rewriting + dialect transpile
     "pyarrow>=19",
     "psycopg[binary]>=3.2",                          # Postgres landing + platform_meta
     "httpx>=0.28",
@@ -36,15 +37,23 @@ dev = [
     "types-pyyaml>=6.0",
     "jupyterlab>=4.3",     # DS-facing notebooks (make notebook)
     "pandas>=2.2",         # notebook/DS ergonomics over the ML-ready parquet
+    "pandas-stubs>=3.0.3.260530",
 ]
 # Optional ingestion loader for CDC from the Postgres landing zone (D11).
 ingestr = ["ingestr>=0.13"]
 # Comparison transform engines — runnable alt setups, off the production path (experimental/).
 engines = ["dbt-core>=1.9", "dbt-duckdb>=1.9"]
+# OpenDBT (dbt-core extended) patches dbt internals and supports dbt <1.10 only, while the
+# `engines` group runs dbt 1.10.x — so it gets its own group, declared conflicting below.
+# sqlglot <30: opendbt 0.14 imports the top-level `sqlglot.Expression` that 30.x removed.
+opendbt = ["opendbt>=0.14", "dbt-core>=1.8,<1.10", "dbt-duckdb>=1.8,<1.10", "sqlglot<30"]
 dagster = ["dagster>=1.10", "dagster-dbt>=0.26"]
 
 [tool.uv]
 default-groups = ["dev"]
+# `engines` (dbt 1.10.x) and `opendbt` (dbt <1.10) pin incompatible dbt majors on purpose;
+# declaring the conflict lets uv resolve each group separately instead of failing the lock.
+conflicts = [[{ group = "engines" }, { group = "opendbt" }]]
 
 [build-system]
 requires = ["hatchling"]

@@ -31,7 +31,7 @@ from ogip.alerting.settings import (
 )
 from ogip.alerting.slack import SlackMessenger, SlackSendError
 from ogip.alerting.telegram import TelegramMessenger
-from ogip.logger import logger
+from ogip.logger import log
 
 __all__ = [
     "BACKENDS",
@@ -119,7 +119,7 @@ def make_notifier(
     primary = make_messenger(primary_name)
     if primary is None:
         if not effective_dry_run:
-            logger.info("alerting off — backend {b} has no credentials", b=primary_name)
+            log.info("alerting off — backend {b} has no credentials", b=primary_name)
             return None
         # Dry-run previews the message and never sends, so credentials are beside the point.
         primary = _null_messenger(primary_name)
@@ -128,7 +128,7 @@ def make_notifier(
     if fallback_name and fallback_name != primary_name:
         fallback = make_messenger(fallback_name)
         if fallback is None:
-            logger.warning(
+            log.warning(
                 "fallback {b} has no credentials — primary {p} has no safety net",
                 b=fallback_name,
                 p=primary_name,

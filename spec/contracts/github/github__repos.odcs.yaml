@@ -1,0 +1,112 @@
+# Open Data Contract Standard (ODCS) v3 — GitHub repositories, Layer-0 raw dataset.
+apiVersion: v3.0.0
+kind: DataContract
+id: github-repos-raw
+name: github__repos
+version: 0.1.0
+status: draft
+domain: games
+tenant: ogip
+description:
+  purpose: >
+    Repository metadata for the game-ENGINE ecosystem (Godot/Bevy/O3DE and the
+    modding/tooling long tail) — stars/releases/contributor velocity are public adoption
+    signals for the engine dimension of the cost×scope×revenue models (Layer 0).
+  usage: >
+    Future source for staging.stg_github_repos; joins to the engine dimension by
+    repository full_name. Contract-first: no connector in this repo yet — the ingestion
+    lane lands this via the certified Airbyte source-github connector
+    (spec/sources/games/github_repos.yaml, `airbyte:` block).
+  limitations: >
+    NOT publishable: GitHub ToS acceptable-use limits on aggregate redistribution are
+    unreviewed — see the source descriptor. Public-repo metadata only; never user
+    personal data. MEASURED TRAP (2026-07-20): `open_issues_count` INCLUDES pull
+    requests, so the raw issues signal is inflated ~2× on active repos — staging must
+    either subtract the PR count or rename the column to say what it counts.
+    Stars/forks on /repos are cached aggregates, near-real-time only.
+
+servers:
+  - server: local-fs
+    type: local
+    format: parquet
+    path: .run/data/raw/github__repos/
+
+schema:
+  - name: github__repos
+    logicalType: object
+    physicalType: parquet
+    properties:
+      - name: id
+        logicalType: integer
+        required: true
+        unique: true
+        description: GitHub repository id (natural key, stable across renames).
+      - name: full_name
+        logicalType: string
+        required: true
+        description: owner/name at sync time (renameable — id is the key).
+      - name: name
+        logicalType: string
+      - name: owner_login
+        logicalType: string
+      - name: description
+        logicalType: string
+      - name: language
+        logicalType: string
+        description: Primary language as classified by GitHub, nullable.
+      - name: stargazers_count
+        logicalType: integer
+        description: Cached aggregate — near-real-time, not exact at scale.
+      - name: forks_count
+        logicalType: integer
+      - name: open_issues_count
+        logicalType: integer
+        description: INCLUDES pull requests (GitHub API quirk) — see limitations.
+      - name: archived
+        logicalType: boolean
+      - name: fork
+        logicalType: boolean
+      - name: license_spdx
+        logicalType: string
+        description: SPDX id of the repository license, nullable.
+      - name: created_at
+        logicalType: string
+        description: ISO-8601 UTC.
+      - name: updated_at
+        logicalType: string
+        description: ISO-8601 UTC — the Airbyte incremental cursor.
+      - name: pushed_at
+        logicalType: string
+        description: ISO-8601 UTC; last push, distinct from updated_at.
+      - name: _ingested_at
+        logicalType: string
+        description: Layer-0 ingestion timestamp (ISO-8601 UTC).
+      - name: etl_batch_id
+        logicalType: string
+        description: Layer-0 batch id.
+
+quality:
+  - rule: unique
+    property: id
+    severity: error
+  - rule: not_null
+    property: full_name
+    severity: error
+
+slaProperties:
+  - property: freshness
+    value: 1
+    unit: d
+    element: github__repos._ingested_at
+
+customProperties:
+  - property: publishable
+    value: false
+  - property: sourceDescriptor
+    value: spec/sources/games/github_repos.yaml
+  - property: connectorStatus
+    value: contract-first — no connector in-repo; Airbyte source-github (certified) planned
+
+team:
+  - username: data-eng@ogip
+    role: owner

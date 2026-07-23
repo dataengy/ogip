@@ -1,0 +1,45 @@
+# ── GENERATED FILE — DO NOT EDIT ──────────────────────────────────────────────
+# Projected from the ingestion registry (the SSoT):
+#   ~/.ai/skills/.settings/de/ingestion/sources/games/steam_appreviews.yml
+# Edit THAT file, then regenerate:
+#   just -f ~/.ai/skills/_scripts/de/ingestion/Justfile spec-emit /Users/nk.myg/gi/@dataengy/OGIP
+# Hand edits here WILL be overwritten and were measured to be unsyncable by
+# hardlink (git checkout severs the link) — hence this one-way projection.
+# ──────────────────────────────────────────────────────────────────────────────
+# Source: steam_appreviews
+# Split from ingestion.yml — edit HERE, this is the SSoT.
+  steam_appreviews:
+    system: steam
+    entity: appreviews
+    url: https://store.steampowered.com/appreviews/440
+    auth: none
+    tier: direct
+    publishable: true
+    license: steam-store-undocumented
+    license_note: >
+      Undocumented store endpoint; robots.txt permits /appreviews/. Review text is
+      user-generated content — publish aggregates/scores, not verbatim review corpora.
+    key_param: null
+    slot: null
+    records_path: reviews
+    probe_params:
+      json: 1
+      num_per_page: 3
+      filter: recent
+      language: all
+    rate_limit_note: "undocumented; none observed — still throttle politely"
+    traps: >
+      Cursor MUST be URL-encoded (`AoJ4ltLetp8Dc4Ps7wY=` → `...%3D`) or pagination silently
+      repeats page 1.
+    docs: https://partner.steamgames.com/doc/store/getreviews
+    # Creation metadata — who registered this and on what evidence (audit trail;
+    # the verdicts themselves are still re-probed live, never trusted from here).
+    provenance:
+      added: 2026-07-17
+      actor: Claude (Opus 4.8) agent session — OGIP ingestion lane
+      directive: >
+        add real data sources for the games pilot + legality-checked cinema alternatives (TMDB ruled out: ToS bans ML/AI use)
+      evidence_verified: 2026-07-17
+      registered_in: skills 2c75e9b
+      refs: []
+      batch: 2026-07-17-games-cinema

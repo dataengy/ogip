@@ -17,7 +17,11 @@ from pathlib import Path
 
 from loguru import logger
 
-__all__ = ["logger", "setup_logging"]
+# `log` is the house alias for the loguru logger — use `log` everywhere in OGIP code
+# (`from ogip.logger import log`); `logger` stays exported for third-party compatibility.
+log = logger
+
+__all__ = ["log", "logger", "setup_logging"]
 
 _HUMAN_FORMAT = (
     "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "

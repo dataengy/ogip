@@ -18,6 +18,8 @@ Sync to GitHub Issues/Projects with `just tasks-sync`. Keep this list short.
       `tasks/{s3-object-storage,vps-deploy-tooling}.md`)_
 - [ ] **P2 · Sources backlog** — candidates mapped to games-market models (pricing · scope ·
       budget · traction · quality) → `tasks/sources-backlog.md`
+- [x] **P2 · Python-task integration demo** — pandas/Polars ML feature tasks over RAWG/core
+      data, with adapter-shaped dataframe boundaries → `tasks/python-task-integration.md`
 - [ ] **`spec/` semantic layer (Bruin Semantic Layer)** — engine-agnostic semantic
       description in `spec/` _(mid-prio)_ → `tasks/spec-semantic-layer.md`
 - [ ] **M1–M4 — replicate the slice** across `prefect-bruin` · `prefect-dbt` ·

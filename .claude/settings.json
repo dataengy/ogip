@@ -8,6 +8,12 @@
             "command": "bash \"$HOME/.ai/skills/_scripts/session/session-lock-hook.sh\" on-start",
             "timeout": 10,
             "statusMessage": "session-lock"
+          },
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.ai/skills/_scripts/session/session-state-hook.sh\" on-resume",
+            "timeout": 10,
+            "statusMessage": "session-state"
           }
         ]
       }

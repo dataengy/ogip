@@ -31,6 +31,13 @@ SSoT config, quality bar, run profiles. This file adds Claude-specific workflow 
 - Branches: work lands on **`dev`**; `dev → main` goes through a **PR** with CI green
   (`.github/workflows/ci.yml` already runs on `pull_request`). `main` stays releasable.
 
+## Skills
+
+Before reaching for a catalog skill, read **[SKILLS.md](SKILLS.md)**. The shared catalog is built
+mostly for GitLab + Jira + ClickHouse; ~193 of its 521 skills target infrastructure OGIP does not
+have, and they fail *silently* — a well-formed Jira task for a project with no Jira. `SKILLS.md`
+lists what is in use here (with file evidence), what fits the stack, and what not to touch.
+
 ## Commands (target — created during Phase 0)
 
 - Gates: `make check` (= ruff + pyright strict + pytest); CI parity: `make ci`

@@ -15,7 +15,7 @@ import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from ogip.config import Settings
-from ogip.logger import logger
+from ogip.logger import log
 
 from ..base.base_source import ApiSource
 
@@ -38,7 +38,7 @@ class RawgGames(ApiSource):
         if self.settings.rawg.is_configured:
             yield from self._fetch_live()
         else:
-            logger.bind(source=self.system).info("demo mode — loading fixture {p}", p=_FIXTURE.name)
+            log.bind(source=self.system).info("demo mode — loading fixture {p}", p=_FIXTURE.name)
             yield from self._load_fixture()
 
     def _load_fixture(self) -> Iterator[dict[str, Any]]:
@@ -57,7 +57,7 @@ class RawgGames(ApiSource):
             for page in range(1, self.max_pages + 1):
                 payload = self._get(client, {**params, "page": page})
                 results: list[dict[str, Any]] = payload.get("results", [])
-                logger.bind(source=self.system).info("page {n}: {c} games", n=page, c=len(results))
+                log.bind(source=self.system).info("page {n}: {c} games", n=page, c=len(results))
                 yield from results
                 if not payload.get("next"):
                     break

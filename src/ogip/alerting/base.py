@@ -20,7 +20,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Protocol, runtime_checkable
 
-from ogip.logger import logger
+from ogip.logger import log
 
 __all__ = ["Messenger", "Notifier", "NotifyResult", "split_message"]
 
@@ -104,7 +104,7 @@ class Notifier:
         notifier = Notifier(TelegramMessenger(token, chat_id))
         result = notifier.notify("pipeline failed")
         if not result:
-            logger.warning("alert not delivered: {e}", e=result.error)
+            log.warning("alert not delivered: {e}", e=result.error)
     """
 
     def __init__(
@@ -121,7 +121,7 @@ class Notifier:
     def notify(self, text: str) -> NotifyResult:
         """Deliver *text*. Never raises — inspect the result."""
         if self.dry_run:
-            logger.bind(backend=self.messenger.backend).info(
+            log.bind(backend=self.messenger.backend).info(
                 "[dry-run] alert not sent: {preview}", preview=text[:200]
             )
             return NotifyResult(
@@ -133,11 +133,11 @@ class Notifier:
         try:
             self.messenger.send_long(text)
         except Exception as exc:
-            logger.bind(backend=self.messenger.backend).error("alert send failed: {e}", e=exc)
+            log.bind(backend=self.messenger.backend).error("alert send failed: {e}", e=exc)
             if self.fallback is None:
                 return NotifyResult(sent=False, backend=self.messenger.backend, error=str(exc))
             return self._notify_via_fallback(text, primary_error=exc)
-        logger.bind(backend=self.messenger.backend).debug("alert sent")
+        log.bind(backend=self.messenger.backend).debug("alert sent")
         return NotifyResult(sent=True, backend=self.messenger.backend)
 
     def _notify_via_fallback(self, text: str, *, primary_error: Exception) -> NotifyResult:
@@ -145,7 +145,7 @@ class Notifier:
         try:
             self.fallback.send_long(text)
         except Exception as fallback_error:
-            logger.bind(backend=self.fallback.backend).error(
+            log.bind(backend=self.fallback.backend).error(
                 "fallback also failed: {e}", e=fallback_error
             )
             return NotifyResult(
@@ -153,7 +153,7 @@ class Notifier:
                 backend=self.messenger.backend,
                 error=f"{primary_error}; fallback {self.fallback.backend}: {fallback_error}",
             )
-        logger.bind(backend=self.fallback.backend).warning(
+        log.bind(backend=self.fallback.backend).warning(
             "primary {primary} failed — delivered via fallback", primary=self.messenger.backend
         )
         return NotifyResult(
@@ -168,7 +168,7 @@ class Notifier:
     ) -> NotifyResult:
         """Deliver only when *text* is not None — for callers that report only on change."""
         if text is None:
-            logger.bind(backend=self.messenger.backend).info("alert skipped: {r}", r=skip_reason)
+            log.bind(backend=self.messenger.backend).info("alert skipped: {r}", r=skip_reason)
             return NotifyResult(sent=False, backend=self.messenger.backend, reason=skip_reason)
         return self.notify(text)
 

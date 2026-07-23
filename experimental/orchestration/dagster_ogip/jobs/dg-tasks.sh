@@ -4,10 +4,14 @@
 # so all shell logic lives here (testable in isolation, one place to change).
 #
 #   jobs/dg-tasks.sh <task>
-#     build-dwh            full pipeline, INCREMENTAL dbt run (raw ensured → dbt build)
-#     build-dwh-full       full pipeline, FULL-REFRESH dbt run (raw ensured → dbt build --full-refresh)
-#     update-dbt           regenerate the dbt project from spec/ + parse (no run)
-#     update-dbt-changed   regenerate + run only models changed vs the last manifest (state:modified+)
+#     build-dwh            regenerate dbt from spec/ + INCREMENTAL dbt build (raw NOT ensured —
+#                           the Dagster asset graph expresses raw → dbt, not this task)
+#     build-dwh-full       regenerate dbt from spec/ + FULL-REFRESH dbt build (raw NOT ensured)
+#     dbt-evaluate         regenerate + run package:dbt_project_evaluator
+#     dbt-deps             regenerate + unconditional `dbt deps`
+#     update-dbt            regenerate the dbt project from spec/ + parse (no run)
+#     update-dbt-changed   regenerate + run models selected by state:modified+ (--state passed
+#                           straight through; no manifest-copy fallback)
 #     parsing              run the scraper/parser → Postgres landing (placeholder: ingestion lane P1)
 #     prefect              trigger the root Prefect flow (the alt orchestrator)
 #     cdc [--stream|--dry-run]   ingestr CDC from the Postgres landing zone (delegates to cdc/)
@@ -15,99 +19,49 @@ set -euo pipefail
 
 PROJECT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO="$(cd "$PROJECT" && git rev-parse --show-toplevel)"
-cd "$PROJECT"
+cd "$REPO"
 
-task="${1:?usage: dg-tasks.sh <build-dwh|dbt-evaluate|dbt-deps|build-dwh-full|update-dbt|update-dbt-changed|parsing|prefect|cdc>}"
+task="${1:?usage: dg-tasks.sh <build-dwh|build-dwh-full|dbt-evaluate|dbt-deps|update-dbt|update-dbt-changed|parsing|prefect|cdc>}"
 
-# dbt wants --project-dir/--profiles-dir AFTER the subcommand, so append them via a helper
-# rather than a prefix array.
-dbt_run() { uv run dbt "$@" --project-dir dbt --profiles-dir dbt; }
+# Every task is a thin alias for a registry call. The bodies live in `src/ogip/tasks/` so the
+# Prefect lane runs the SAME code — see docs/superpowers/specs/2026-07-20-odos-*.md §2 for the
+# drift this replaces.
+ogip_task() { UV_PROJECT_ENVIRONMENT=.run/venv uv run python -m ogip.tasks "$@"; }
 
-# spec/ (Bruin) is the SSoT — the dbt project is generated, never hand-authored (ADR-0005/0015).
-compile_dbt() {
-  PYTHONPATH="$REPO/src" .venv/bin/python - "$REPO" <<'PY'
-import sys
-from pathlib import Path
+# `cdc_flag` runs inside a `$(...)` subshell (see the `cdc)` branch below), so a plain `exit`
+# there only ends that subshell — the script would keep going with an empty substitution. Trap
+# our own SIGTERM so signalling ourselves from inside the subshell actually aborts the script
+# with exit 2; this is the standard escape hatch for "exit the parent from inside $(...)".
+trap 'exit 2' TERM
 
-from ogip.spec_compile.to_dbt import compile_to_dbt
-
-root = Path(sys.argv[1]).resolve()
-compile_to_dbt(
-    root / "spec" / "sql", Path("dbt"),
-    warehouse=root / ".run" / "data" / "warehouse" / "ogip.duckdb", repo_root=root,
-)
-print("dbt project regenerated from spec/")
-PY
+# Map cdc's optional second positional arg to the matching registry flag; "" (no arg) expands
+# to zero words downstream, so the `cdc)` branch stays the single-line `ogip_task cdc.catchup
+# $(cdc_flag "${2:-}")` shape (unquoted on purpose — see the call site).
+cdc_flag() {
+  case "$1" in
+    "")          ;;
+    --dry-run)   echo "--dry_run=true" ;;
+    --stream)    echo "--stream=true" ;;
+    *)
+      echo "[dg-tasks] cdc: unknown flag '$1' (expected --dry-run or --stream)" >&2
+      kill -s TERM "$$"
+      exit 2
+      ;;
+  esac
 }
 
-ensure_raw() {
-  mkdir -p "$REPO/.run/data/warehouse"
-  if ! ls "$REPO"/.run/data/raw/rawg__games/*.parquet >/dev/null 2>&1; then
-    echo "[dg-tasks] raw absent — running dlt ingestion first"
-    uv run dg launch --assets 'key:"raw/rawg__games"'
-  fi
-}
-
-# Install the dbt-hub packages once (packages.yml is emitted by the compiler). Idempotent —
-# dbt caches into dbt/dbt_packages/, so skip when already present.
-ensure_deps() {
-  [[ -d dbt/dbt_packages ]] || dbt_run deps
-}
+DBT_PROJECT="experimental/orchestration/dagster_ogip/dbt"
 
 case "$task" in
-  build-dwh)
-    compile_dbt
-    ensure_deps
-    ensure_raw
-    dbt_run build
-    ;;
-  build-dwh-full)
-    compile_dbt
-    ensure_deps
-    ensure_raw
-    dbt_run build --full-refresh
-    ;;
-  dbt-evaluate)
-    # Use a package: dbt_project_evaluator audits the project for modeling/testing/docs issues.
-    compile_dbt
-    ensure_deps
-    ensure_raw
-    dbt_run build --select package:dbt_project_evaluator
-    ;;
-  dbt-deps)
-    compile_dbt
-    dbt_run deps
-    ;;
-  update-dbt)
-    compile_dbt
-    ensure_deps
-    dbt_run parse
-    ;;
-  update-dbt-changed)
-    compile_dbt
-    # state:modified needs a prior manifest; fall back to a full build on the first run.
-    if [[ -f dbt/target/manifest.json ]]; then
-      cp dbt/target/manifest.json dbt/.prev_manifest.json
-      dbt_run build --select 'state:modified+' --state dbt || dbt_run build
-    else
-      dbt_run build
-    fi
-    ;;
-  parsing)
-    echo "[dg-tasks] parsing: scraper → Postgres landing is the ingestion lane's P1 (async ScraperSource, ADR-0014)."
-    echo "[dg-tasks] placeholder no-op — wire ingestion/sources/*scraper* here when it lands."
-    ;;
-  prefect)
-    if [[ -f "$REPO/pipelines/flows/main.py" ]]; then
-      echo "[dg-tasks] triggering the root Prefect flow (alt orchestrator)"
-      (cd "$REPO" && UV_PROJECT_ENVIRONMENT=.run/venv uv run python -m pipelines.flows.main)
-    else
-      echo "[dg-tasks] pipelines/flows/main.py absent — Prefect lane not present in this checkout."
-    fi
-    ;;
-  cdc)
-    bash "$PROJECT/cdc/ingestr_cdc.sh" "${@:2}"
-    ;;
+  build-dwh)          ogip_task dbt.build --project_dir="$DBT_PROJECT" ;;
+  build-dwh-full)     ogip_task dbt.build --project_dir="$DBT_PROJECT" --full_refresh=true ;;
+  dbt-evaluate)       ogip_task dbt.build --project_dir="$DBT_PROJECT" --select=package:dbt_project_evaluator ;;
+  update-dbt-changed) ogip_task dbt.build --project_dir="$DBT_PROJECT" --select=state:modified+ --state="$DBT_PROJECT" ;;
+  dbt-deps)           ogip_task dbt.deps  --project_dir="$DBT_PROJECT" --force=true ;;
+  update-dbt)         ogip_task dbt.parse --project_dir="$DBT_PROJECT" ;;
+  parsing)            ogip_task ingest.parse_to_landing ;;
+  prefect)            ogip_task integrations.trigger_prefect ;;
+  cdc)                ogip_task cdc.catchup $(cdc_flag "${2:-}") ;;
   *)
     echo "[dg-tasks] unknown task: $task" >&2
     exit 2

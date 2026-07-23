@@ -47,20 +47,47 @@ just vps-provision                      # bootstrap the box (once)
 
 # fill secrets on the host: ssh in, edit /opt/ogip/.env  (ADR-0011: gitignored .env)
 
-just vps-deploy-dry                     # preview the deploy
+just vps-deploy-preview                 # host-free: validate deploy logic + preflight (no ssh)
+just vps-deploy-dry                     # on-host preview (needs a reachable host)
 just vps-deploy                         # deploy deploy.vps.branch
 just vps-deploy abc1234                 # deploy/roll back to a specific sha
 just vps-smoke                          # verify
 just vps-status                         # containers + current ref
 ```
 
+## Go live on Hetzner CX32
+
+Recommended target: **Hetzner CX32** (4 vCPU / 8 GB / 80 GB NVMe, ~€7/mo) + **Cloudflare R2**
+for the lake (zero egress). Ubuntu 24.04 LTS. Reachable UIs stay closed — reach Prefect/Grafana
+over an SSH tunnel, not a public port (ADR-0012).
+
+```bash
+# 1. On Hetzner: create a CX32, image Ubuntu 24.04, add YOUR ssh key. Note the IP.
+# 2. Point the tooling at it (never committed — operator-specific):
+export OGIP_VPS_HOST=<the-ip>
+
+# 3. Bootstrap once (idempotent: safe to re-run), then fill secrets on the box:
+just vps-provision
+ssh ogip@$OGIP_VPS_HOST 'nano /opt/ogip/.env'   # RAWG_API_KEY, R2 creds — ADR-0011
+
+# 4. Deploy + verify:
+just vps-deploy
+just vps-smoke
+```
+
+Add `+2–4 GB swap` (DuckDB spikes are bursty) and `ufw allow 22` only. Russian-issued card?
+Hetzner declines it — use **Timeweb Cloud** or **Selectel** (4 vCPU/8 GB ≈ 700–1200 ₽/mo);
+`provision.sh` is host-agnostic Ubuntu, so nothing else changes.
+
 ## Known gaps (blocking a real deploy)
 
-`deploy.sh` runs a **preflight** and refuses to start unless these exist — they are owned by
-other lanes and tracked in [`.ai/STATUS.md`](../../.ai/STATUS.md):
+`deploy.sh` runs a **preflight** and refuses to start unless these exist — tracked in
+[`.ai/STATUS.md`](../../.ai/STATUS.md):
 
-- `integrations/prefect/deploy.py` — referenced by `just prefect-deploy`; **not yet written**.
-- `deploy/docker-compose.yml` — referenced by `make up`; **not yet written**.
+- `integrations/prefect/deploy.py` — referenced by `just prefect-deploy`; **not yet written**
+  (core-pipeline lane). This is the **only** remaining blocker; see the STATUS.md handoff for
+  the Prefect run-model decision it carries.
+- ~~`deploy/docker-compose.yml`~~ — **landed** with the compose/obs lane (2026-07-17).
 
-Until both land, `provision.sh` works end-to-end and `deploy.sh` stops cleanly at preflight
-rather than half-deploying.
+Until `deploy.py` lands, `provision.sh` works end-to-end and `deploy.sh` stops cleanly at
+preflight rather than half-deploying.

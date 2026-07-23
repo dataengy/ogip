@@ -71,6 +71,11 @@ run_profiles:
     orchestrator: prefect
     ingestion: dlt
     transform: dbt
+  prefect-opendbt: # dbt-core extended (opendbt) over the SAME generated dbt project
+    services: [postgres, prefect]
+    orchestrator: prefect
+    ingestion: dlt
+    transform: opendbt
   prefect-sqlmesh-over-dbt:
     services: [postgres, prefect]
     orchestrator: prefect
@@ -81,17 +86,48 @@ run_profiles:
     orchestrator: dagster
     ingestion: dlt
     transform: dbt
+  prefect-over-dagster: # Prefect wraps Dagster (dlt+dbt only); Prefect owns ML/scraping/obs/alerting
+    services: [postgres, prefect]
+    orchestrator: prefect
+    ingestion: dlt
+    transform: dagster
 
 sources:
   rawg: # M0 walking-skeleton source (clean documented REST)
     enabled: true
     entities: [games]
+  metacritic: # first scraped source (#18; HLTB is legally blocked — see spec/sources/)
+    enabled: true # demo-safe: fixture-driven without network; live mode reads `slugs`
+    entities: [game]
+    slugs: [hades] # live-mode page set; discovery-from-raw is the next increment
+  opencritic: # second critic aggregator (#18); publishable:false until ToS review — spec/sources/
+    enabled: true # demo-safe by default; live mode (OGIP_OPENCRITIC_LIVE=1) reads `pages`
+    entities: [game]
+    pages: ["1548/the-legend-of-zelda-breath-of-the-wild"] # id/slug; the id governs, slug is decorative
+  psn: # console regional pricing (#18); publishable:false until Sony ToS review — spec/sources/
+    enabled: true # demo-safe by default; live mode (OGIP_PSN_LIVE=1) reads `concepts`
+    entities: [concept]
+    concepts: ["en-us/concept/232093"] # {locale}/concept/{id}; one row per regional storefront
+  steamcharts: # concurrent-player traction (#18); css scrape; publishable:false — spec/sources/
+    enabled: true # demo-safe by default; live mode (OGIP_STEAMCHARTS_LIVE=1) reads `appids`
+    entities: [app]
+    appids: [730] # discovery-from-raw (steamspy/steam crosswalk) is the next increment
   steam:
     enabled: true
     entities: [games, reviews]
   igdb:
     enabled: false
     entities: [games]
+
+# Scraping resilience knobs (ADR-0014) — consumed by ingestion/common/http.py.
+scraping:
+  max_connections: 8 # global concurrent-fetch cap
+  per_domain: 1 # concurrent connections per domain (polite default)
+  min_interval_ms: 2000 # per-domain minimum spacing between requests
+  timeout_secs: 30
+  retry_attempts: 4
+  user_agent: "ogip-scraper/0.1 (+https://github.com/dataengy/ogip)"
+  parse_workers: 0 # 0 = parse inline; >0 = ProcessPoolExecutor (next increment)
 
 raw: # Layer 0 — 1:1 AS-IS (only optional _ingested_at / etl_batch_id added)
   format: parquet
@@ -111,3 +147,17 @@ deploy:
     branch: main # git ref to deploy
     repo_url: https://github.com/dataengy/ogip.git
     compose_profiles: [] # extra compose profiles to enable on the host, e.g. [obs]
+
+  hetzner: # creates the box that deploy.vps then targets (deploy/vps/hetzner.sh)
+    # Only used to CREATE/reuse the server; the bootstrap itself is provision.sh. Idempotent
+    # by server_name — a second run reuses the existing box rather than billing a second one.
+    # Each key is overridable via an OGIP_HETZNER_* env var.
+    server_name: ogip-1
+    server_type: cx32 # 4 vCPU / 8 GB / 80 GB — DuckDB transform peaks at 2-4 GB (ADR-0008)
+    image: ubuntu-24.04
+    location: fsn1 # Falkenstein, DE
+    ssh_key_path: ~/.ssh/id_ed25519.pub
+    ssh_key_name: ogip-deploy # name the key is registered under in the Hetzner project
+    api_base: https://api.hetzner.cloud/v1
+    token_url: https://console.hetzner.cloud/ # project → Security → API tokens (Read & Write)
+    ssh_wait_secs: 300 # bound the post-create wait for sshd; fail loudly instead of hanging

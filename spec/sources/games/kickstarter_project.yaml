@@ -1,0 +1,65 @@
+# ── GENERATED FILE — DO NOT EDIT ──────────────────────────────────────────────
+# Projected from the ingestion registry (the SSoT):
+#   ~/.ai/skills/.settings/de/ingestion/sources/games/kickstarter_project.yml
+# Edit THAT file, then regenerate:
+#   just -f ~/.ai/skills/_scripts/de/ingestion/Justfile spec-emit /Users/nk.myg/gi/@dataengy/OGIP
+# Hand edits here WILL be overwritten and were measured to be unsyncable by
+# hardlink (git checkout severs the link) — hence this one-way projection.
+# ──────────────────────────────────────────────────────────────────────────────
+# Source: kickstarter_project
+# Split from ingestion.yml — edit HERE, this is the SSoT.
+  kickstarter_project:
+    system: kickstarter
+    entity: project
+    # ⛔ DO NOT IMPLEMENT. Present ONLY to record the prohibition, because Kickstarter is
+    # nominated in .ai/tasks/sources-backlog.md row 12 as a candidate for the disclosed-budget
+    # dimension — the one dimension OGIP currently has NO permitted source for.
+    # That nomination predates this check and must not be executed as written.
+    url: https://www.kickstarter.com/
+    auth: none
+    tier: landed
+    publishable: false
+    # Hard gate: the probe returns FORBIDDEN without opening a connection. Removing this
+    # line makes `probe-all` fetch a host that refuses to serve its own permission document.
+    do_not_fetch: true
+    license: FORBIDDEN-unreadable-robots
+    license_note: >
+      BLOCKING — do not scrape, do not ship a connector. `https://www.kickstarter.com/robots.txt`
+      returns HTTP 403 with a Cloudflare interstitial, VERBATIM `<title>Just a moment...</title>`
+      and `<meta name="robots" content="noindex,nofollow">` (5568 B, text/html; re-verified
+      2026-07-20 with an honest contactable User-Agent; independently observed 2026-07-18).
+      This is a DIFFERENT prohibition from HLTB's: there, a readable robots.txt states the ban;
+      here the PERMISSION DOCUMENT ITSELF IS UNREADABLE. No fetch grant can be established, and
+      absence of a readable grant is not permission. Getting past the challenge would require
+      TLS-fingerprint spoofing (`curl_cffi`) or a headless browser — that is routing around a
+      refusal, not solving a technical problem, and ADR-0014's escalation ladder explicitly does
+      not license it.
+      THE THIRD-PARTY DATASET IS ALSO NOT A WAY IN. webrobots.io/kickstarter-datasets/ publishes
+      monthly CSV/JSON crawls (readable, robots-permitted, HTTP 200 verified 2026-07-20) and is
+      the obvious fallback — but its page carries NO licence, NO terms and NO permission
+      statement, only "Copyright 2013-2026 Web Robots". Default copyright is all-rights-reserved,
+      so there is nothing to rely on. Two defects stack: Web Robots grants nothing, and it could
+      not grant redistribution rights over Kickstarter's content it does not own. Its own page
+      describes it as a "Web Scraping Service" — i.e. this is scraped Kickstarter content.
+      The disclosed-budget dimension must come from a source that states its own permissions.
+    key_param: null
+    slot: null
+    records_path: null
+    probe_params: {}
+    rate_limit_note: "n/a — must not be fetched"
+    traps: >
+      The blocker is legal, not technical — and the trap is that it LOOKS technical. A 403 from
+      Cloudflare reads like an anti-bot nuisance to be engineered past, so the natural next move
+      is to escalate the fetch tier. It is not a nuisance: robots.txt is the one document a
+      crawler is always entitled to read, and a host that will not serve it to an honest bot has
+      answered the permission question.
+    docs: https://www.kickstarter.com/terms-of-use
+    provenance:
+      added: 2026-07-20
+      actor: Claude (Opus 4.8) agent session — OGIP ingestion lane
+      directive: >
+        /add-data-source kickstarter — requested as a new source; refused at the Step 3
+        legality gate and registered as a prohibition instead
+      evidence_verified: 2026-07-20
+      refs: [OGIP#18, OGIP#19]
+      batch: 2026-07-20-forbidden-sweep
