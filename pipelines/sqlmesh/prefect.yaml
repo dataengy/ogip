@@ -1,0 +1,10 @@
+name: ogip-sqlmesh
+prefect-version: 3.0.0
+deployments:
+  - name: ingest-transform-publish-sqlmesh
+    entrypoint: pipelines/sqlmesh/flow.py:flow
+    work_pool:
+      name: default
+    schedule:
+      cron: "0 6 * * *"
+      timezone: UTC
