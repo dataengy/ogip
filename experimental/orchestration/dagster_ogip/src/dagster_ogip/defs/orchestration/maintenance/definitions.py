@@ -4,9 +4,10 @@
 only the models a spec change touched, and audit the project with dbt_project_evaluator.
 """
 
+from dagster_ogip._lib.orchestration import SPEC_SQL, run_task
+
 import dagster as dg
 from dagster import OpExecutionContext, SensorEvaluationContext
-from dagster_ogip._lib.orchestration import SPEC_SQL, run_task
 
 
 @dg.op
