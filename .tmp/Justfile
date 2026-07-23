@@ -40,6 +40,28 @@ agentic-otel-check:
 # are committed in the skills repo + spec/sources/. The scripts + MANIFESTs stay in
 # .once/ as the gitignored record. Replay, if ever needed: run them directly with python3.)
 
+# Mirror the Hushcrasher newsletter into .ai/newsletter.hushcrasher.com/ (domain research).
+# Network + writes; idempotent. SUMMARY.md is hand-authored and never overwritten.
+fetch-hushcrasher-newsletter:
+    @test -f "{{justfile_directory()}}/.once/fetch-hushcrasher-newsletter.sh" \
+      || { echo "bundle absent — see .once/MANIFEST.hushcrasher-newsletter.md"; exit 1; }
+    bash "{{justfile_directory()}}/.once/fetch-hushcrasher-newsletter.sh"
+
+# Verify the newsletter mirror is complete and genuinely git-ignored (read-only, no network).
+verify-hushcrasher-newsletter:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd "{{justfile_directory()}}/.."
+    d=.ai/newsletter.hushcrasher.com
+    test -d "$d" || { echo "absent: $d — run fetch-hushcrasher-newsletter"; exit 1; }
+    n=$(find "$d" -maxdepth 1 -name '*.md' ! -name 'SUMMARY.md' ! -name 'INDEX.md' | wc -l | tr -d ' ')
+    test "$n" -ge 5 || { echo "only $n article(s) — expected >= 5"; exit 1; }
+    while read -r f; do
+      test "$(wc -c < "$f")" -gt 2000 || { echo "suspiciously small: $f"; exit 1; }
+    done < <(find "$d" -maxdepth 1 -name '*.md' ! -name 'INDEX.md')
+    git check-ignore -q "$d/INDEX.md" || { echo "NOT ignored: $d is committable"; exit 1; }
+    echo "ok: $n articles + SUMMARY.md, all non-empty, mirror is git-ignored"
+
 # Verify the VPS-provisioning + skills bundle is intact (read-only; no box, no token, no writes).
 # Path via justfile_directory(): `just` runs recipes from the Justfile's own dir, so a bare
 # `.tmp/.once/…` would double-prefix. The script cd's to the repo root itself.

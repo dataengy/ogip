@@ -46,6 +46,23 @@ platforms) or from your own database. OGIP ingests **public** market data. `sour
 exception: GitHub's public data *is* the product. It is `language: python`,
 `releaseStage: generally_available`, certified, v2.1.37.
 
+**2.6 — "Certified" measures support commitment, not implementation depth.** Certified splits by
+implementation language as **39 manifest-only · 11 python · 9 java**. A manifest-only connector is
+a declarative YAML — it embeds no engineering that dlt's `rest_api` does not equally provide, and
+`source-airtable`, `source-google-sheets`, `source-typeform` are all in that bucket despite being
+certified. So the pool that is *both* certified and real code is **20 of 591 (3.4%)**. Of the 11
+certified Python sources, five are file/blob readers (`s3`, `gcs`, `azure-blob-storage`,
+`google-drive`, `file`) and five are own-account SaaS (`facebook-marketing`, `google-ads`,
+`salesforce`, `shopify`, `sharepoint-enterprise`). **`source-github` is the only certified,
+real-code connector in the entire registry that reads public data.** That is the whole reason it is
+the lane's anchor — not domain centrality.
+
+**2.7 — The target domain has zero connector coverage.** Searched the registry for every source the
+domain actually runs on: **Steam, MobyGames, Gamalytic, SteamDB, HowLongToBeat, IGDB, itch.io,
+Epic, GOG, PlayStation, Xbox, Nintendo, Kickstarter — zero hits, at any support level.** Games
+market intelligence is public-web data reached by API and scraping, which is precisely the shape
+Airbyte does not serve. This is a structural property of the domain, not a gap Airbyte will close.
+
 ## 3. Decisions
 
 | # | Decision | Rationale |
@@ -151,6 +168,32 @@ every one of them**. So: a dedicated **git worktree** plus an `obj--airbyte` lan
 not used — the Terraform reads `spec/sources/games/*.yaml` from above its own prefix, so a vendored
 subtree would not be self-contained, and closing that gap would mean a second projection layer on
 top of the registry→`spec/` one that already exists.
+
+## 8a. What this lane is actually for
+
+A domain re-read (Hushcrasher's site + newsletter archive, 2026-07-23) changed why this lane is
+worth building — not what it builds.
+
+Their published method rests on: Steam (~100k games), **MobyGames** credits, **SteamDB** release
+stats, **Gamalytic** revenue estimates, plus budget ground truth scavenged from "web archives, news
+articles, data leaks, post-mortems, and forums" and a developer-submission channel. The model's
+stated drivers are *"credit length and disk size, far outweighing all the other metrics"*, plus
+distinct job titles, supported languages, and publisher/studio experience.
+
+None of those sources has an Airbyte connector (§2.7). Their engineering framing is explicit that
+the work is *"writing Python ingestion pipelines (API + scraping) into an analytical lake — not
+wiring managed connectors"*.
+
+So the lane's deliverable is **a documented, evidence-based tool evaluation with a negative
+result**, and `github_repos` exists to make that evaluation *real rather than theoretical*: one
+connector actually deployed and syncing, so the conclusion rests on a measurement instead of an
+opinion. The lane must therefore stay visibly in `experimental/` and be framed as an evaluation
+everywhere it is described. Presenting it as ingestion infrastructure would misrepresent both the
+evidence and the architecture.
+
+Corollary for the ingestion lane (not this one): **Gamalytic is absent from the source registry**
+and is a named revenue-estimate source in the domain. Worth a descriptor. Handed off, not actioned
+here.
 
 ## 9. Risks
 
