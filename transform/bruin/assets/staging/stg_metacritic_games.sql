@@ -16,6 +16,9 @@ columns:
     checks: [{name: not_null}]
   - name: metascore
     type: integer
+    checks: [{name: between, args: [0, 100]}]
+  - name: review_count
+    type: integer
     checks: [{name: non_negative}]
 @bruin */
 select

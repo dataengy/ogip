@@ -15,6 +15,9 @@ columns:
   - name: title
     type: varchar
     checks: [{name: not_null}]
+  - name: metacritic
+    type: integer
+    checks: [{name: between, args: [0, 100]}]
 @bruin */
 select
     md5(cast(game_id as varchar)) as game_sk

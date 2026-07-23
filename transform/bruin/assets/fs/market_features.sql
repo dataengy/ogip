@@ -17,6 +17,9 @@ columns:
   - name: popularity_score
     type: double
     checks: [{name: non_negative}]
+  - name: critic_score
+    type: double
+    checks: [{name: between, args: [0, 1]}]
   - name: metacritic_score
     type: integer
     checks: [{name: between, args: [0, 100]}]

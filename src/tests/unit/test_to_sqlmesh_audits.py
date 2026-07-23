@@ -94,7 +94,13 @@ def test_generated_models_load_via_real_sqlmesh_parser(tmp_path: Path) -> None:
     game_expressions = parse_sqlmesh_expressions(game_path.read_text(), default_dialect="duckdb")
     game_model = load_sql_based_model(game_expressions, dialect="duckdb", path=game_path)
     assert game_model.name == "core.game"
-    assert {name for name, _ in game_model.audits} == {"not_null", "unique_values"}
+    # game_sk contributes not_null/unique_values; the Part 2b `metacritic` between-check
+    # (core.game.metacritic is a 0-100 score column) adds accepted_range.
+    assert {name for name, _ in game_model.audits} == {
+        "not_null",
+        "unique_values",
+        "accepted_range",
+    }
 
     pricing_path = tmp_path / "models" / "core" / "console_pricing.sql"
     pricing_expressions = parse_sqlmesh_expressions(

@@ -11,6 +11,12 @@ columns:
   - name: appid
     type: varchar
     checks: [{name: not_null}, {name: unique}]
+  - name: current_players
+    type: bigint
+    checks: [{name: non_negative}]
+  - name: peak_24h
+    type: bigint
+    checks: [{name: non_negative}]
   - name: peak_all
     type: bigint
     checks: [{name: non_negative}]

@@ -27,6 +27,7 @@ models:
   - name: title
     data_tests:
     - not_null
+  - name: metacritic
 - name: traction
   columns:
   - name: game_sk
@@ -43,6 +44,7 @@ models:
     - not_null
     - unique
   - name: popularity_score
+  - name: critic_score
   - name: metacritic_score
   - name: opencritic_score
   - name: avg_critic_score
@@ -61,21 +63,66 @@ models:
 - name: metacritic__game
   description: Layer-0 registration of the immutable Metacritic games Parquet (1:1
     AS-IS).
+  columns:
+  - name: slug
+    data_tests:
+    - not_null
+  - name: content_hash
+    data_tests:
+    - not_null
+  - name: source_url
+    data_tests:
+    - not_null
 - name: opencritic__game
   description: Layer-0 registration of the immutable OpenCritic games Parquet (1:1
     AS-IS).
+  columns:
+  - name: game_id
+    data_tests:
+    - not_null
+  - name: content_hash
+    data_tests:
+    - not_null
+  - name: source_url
+    data_tests:
+    - not_null
 - name: psn__concept
   description: Layer-0 registration of the immutable PSN concept Parquet (1:1 AS-IS).
+  columns:
+  - name: row_key
+    data_tests:
+    - not_null
+  - name: content_hash
+    data_tests:
+    - not_null
+  - name: source_url
+    data_tests:
+    - not_null
 - name: rawg__games
   description: Layer-0 registration of the immutable RAWG games Parquet (1:1 AS-IS).
+  columns:
+  - name: id
+    data_tests:
+    - not_null
 - name: steamcharts__app
   description: Layer-0 registration of the immutable SteamCharts app Parquet (1:1
     AS-IS).
+  columns:
+  - name: appid
+    data_tests:
+    - not_null
+  - name: content_hash
+    data_tests:
+    - not_null
+  - name: source_url
+    data_tests:
+    - not_null
 - name: stg_game_match
   columns:
   - name: game_sk
     data_tests:
     - not_null
+    - unique
   - name: match_key
     data_tests:
     - not_null
@@ -88,6 +135,9 @@ models:
   - name: name
     data_tests:
     - not_null
+  - name: ratings_count
+  - name: playtime_hours
+  - name: added_count
 - name: stg_metacritic_games
   columns:
   - name: slug
@@ -98,6 +148,7 @@ models:
     data_tests:
     - not_null
   - name: metascore
+  - name: review_count
 - name: stg_opencritic_games
   columns:
   - name: game_id
@@ -108,6 +159,7 @@ models:
     data_tests:
     - not_null
   - name: score
+  - name: review_count
 - name: stg_psn_concepts
   columns:
   - name: row_key
@@ -124,4 +176,6 @@ models:
     data_tests:
     - not_null
     - unique
+  - name: current_players
+  - name: peak_24h
   - name: peak_all

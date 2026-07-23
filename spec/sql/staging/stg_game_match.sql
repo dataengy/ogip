@@ -10,7 +10,7 @@ depends:
 columns:
   - name: game_sk
     type: varchar
-    checks: [{name: not_null}]
+    checks: [{name: not_null}, {name: unique}]
   - name: match_key
     type: varchar
     checks: [{name: not_null}]
