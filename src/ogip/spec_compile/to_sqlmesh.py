@@ -19,6 +19,11 @@ from .dialect import SqlSpecError
 _KIND = {"table": "FULL", "view": "VIEW"}
 
 
+def _is_numeric(value: Any) -> bool:
+    """`bool` is a `int` subclass in Python — exclude it, a check arg must be a real number."""
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
 def _audit_for(model: str, col: str, chk: dict[str, Any]) -> str:
     """One `@bruin` check -> one SQLMesh audit call. Raises on an unknown check name."""
     name = chk.get("name")
@@ -29,10 +34,21 @@ def _audit_for(model: str, col: str, chk: dict[str, Any]) -> str:
     if name == "non_negative":
         return f"accepted_range(column := {col}, min_v := 0)"
     if name == "between":
-        lo, hi = chk["args"]
+        raw_args = chk.get("args")
+        args = cast("list[Any]", raw_args) if isinstance(raw_args, list) else []
+        if len(args) != 2 or not all(_is_numeric(a) for a in args):
+            raise SqlSpecError(f"{model}.{col}: 'between' needs args [min, max], got {raw_args!r}")
+        lo, hi = args
         return f"accepted_range(column := {col}, min_v := {lo}, max_v := {hi})"
     if name == "accepted_values":
-        values = ", ".join(f"'{v}'" for v in chk["args"])
+        raw_args = chk.get("args")
+        args = cast("list[Any]", raw_args) if isinstance(raw_args, list) else []
+        if not args:
+            raise SqlSpecError(
+                f"{model}.{col}: 'accepted_values' needs args [v1, ...], got {raw_args!r}"
+            )
+        # quotes string-style — correct for the locale/currency values this check targets today.
+        values = ", ".join(f"'{v}'" for v in args)
         return f"accepted_values(column := {col}, is_in := ({values}))"
     raise SqlSpecError(f"{model}: column {col!r} has unknown check {name!r}")
 
@@ -46,13 +62,14 @@ def _audits(asset: Asset) -> list[str]:
             audits.append(_audit_for(asset.name, col, chk))
     for chk in cast("list[dict[str, Any]]", asset.meta.get("checks") or []):
         name = chk.get("name")
-        if name == "unique" and "columns" in chk:
-            cols = ", ".join(str(c) for c in chk["columns"])
-            audits.append(f"unique_combination_of_columns(columns := ({cols}))")
-        else:
+        if name != "unique":
             # the only top-level (cross-column) check the ODTS vocabulary defines is a
             # composite `unique` over `columns:` - anything else at this level is unknown.
             raise SqlSpecError(f"{asset.name}: unknown top-level check {name!r}")
+        if "columns" not in chk:
+            raise SqlSpecError(f"{asset.name}: top-level 'unique' check requires a 'columns:' list")
+        cols = ", ".join(str(c) for c in chk["columns"])
+        audits.append(f"unique_combination_of_columns(columns := ({cols}))")
     return audits
 
 
