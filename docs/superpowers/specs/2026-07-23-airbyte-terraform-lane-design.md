@@ -65,9 +65,27 @@ rather than a demo:
 
 | Source | Connector | Support | What it proves |
 |---|---|---|---|
-| `github_repos` | `airbyte/source-github` 2.1.37 | **certified**, Python CDK, GA | The genuine case: ~40 streams over a repo list, real incremental cursors with per-repo state, pagination + secondary-rate-limit handling. Domain fit: game-engine ecosystem activity (Godot/Bevy/O3DE + modding long tail) — engine is a literal input to the cost×scope×revenue models. |
+| `github_repos` | `airbyte/source-github` 2.1.37 | **certified**, Python CDK, GA | The genuine case — see §4.1. Domain fit: game-engine ecosystem activity (Godot/Bevy/O3DE + modding long tail) — engine is a literal input to the cost×scope×revenue models. |
 | `reddit_posts` | `airbyte/source-reddit` 0.0.57 | community, manifest-only, alpha | The counter-example. Kept *because* it is weak: it demonstrates that "there is a connector" is not by itself an argument. |
 | `twitch_streams` | in-house declarative manifest | n/a — we maintain it | The custom-connector path (`airbyte_declarative_source_definition`), and the honest admission that lane uniformity — not maintenance savings — is the only remaining benefit. |
+
+### 4.1 Why `source-github` is the one that earns the lane
+
+Verified against <https://docs.airbyte.com/integrations/sources/github> on 2026-07-23:
+
+- **39 enumerated streams**, 26 of them incremental. (The page's own summary header says 53 —
+  the enumeration and the header disagree; 39 is what is actually listed. Either number is an
+  order of magnitude past what a hand-rolled client stays cheap at.)
+- **Mixed REST + GraphQL.** The `releases` stream goes through GraphQL while most others are REST.
+  Hand-rolling means implementing *two* API paradigms and their two pagination models.
+- **Multi-token rotation** with client-side throttling: the connector rotates through several PATs
+  and waits out rate limits (configurable, up to 240 min) rather than failing the sync.
+- **Per-repo incremental state** across a repo list — N repos × M streams of cursor bookkeeping.
+- **OSS caveat:** Open Source supports **PAT only**; OAuth is Cloud-only. Matches our
+  `GITHUB_TOKEN` slot, so no design change — but it is not the same auth story as Cloud docs imply.
+
+None of this is expressible in dlt's declarative `rest_api`; it would become a typed client we own
+and maintain. That is the exact cost the `airbyte:` blocks claim to avoid, and here the claim holds.
 
 ## 5. Architecture
 
