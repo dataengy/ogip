@@ -17,8 +17,29 @@ The rest exist so `docs/comparisons/*` measures real runs. Builds `staging → c
 | `bruin/` | `prefect-bruin` | pass-through — `spec/` *is* Bruin, so assets are copied verbatim + a project shell |
 | `engines.py` | — | launcher: regenerates the engine's project from `spec/`, then runs it |
 
-Generated projects are **committed** (reviewable diffs when the spec changes) and carry
-repo-relative paths, so run every engine **from the repo root**.
+Four engine snapshots are **committed** — `dbt/`, `opendbt/`, `sqlmesh_dbt/`, `bruin/`
+(reviewable diffs when the spec changes) — and carry repo-relative paths, so run every engine
+**from the repo root**. Regenerate them with `just spec-compile` / `uv run python -m
+ogip.spec_compile all` (`export UV_PROJECT_ENVIRONMENT=.run/venv` first); a single engine via
+`uv run python -m ogip.spec_compile <engine>`. `src/tests/unit/test_engine_projects_cover_spec.py`
+is the drift guard — it fails if any committed snapshot is missing a model that `spec/sql`
+declares, so a `spec/sql` change that forgets regeneration cannot pass `make check`.
+
+`transform/sqlmesh/models/` is the exception: it is **`.gitignore`d, not committed**. SQLMesh is
+the production engine and `pipelines/_shared/steps.py::build_warehouse` recompiles it fresh from
+`spec/sql` immediately before every real run, so there is no committed snapshot for it to drift
+from — the same test file guards it differently, by exercising the live `compile_to_sqlmesh`
+compiler against a temp dir instead of checking a directory in the repo.
+
+**Known gap — SQLMesh audits compile but are not executed by `make check`.** The `checks:` on
+every `spec/sql` model project into SQLMesh `audits (...)` clauses (`to_sqlmesh.py`), but
+`make check` runs `pytest -m "not integration and not e2e"`, which never plans/applies SQLMesh
+against a real warehouse — so those audits are never evaluated by the default gate. Only
+`uv run pytest src/tests/e2e/test_all_setups.py::test_base_setup_builds_and_produces_ml -k
+sqlmesh` (marked `e2e`, excluded from `make check`) or a live `prefect-sqlmesh` run actually
+executes them. A `not_null` regression can — and did — ship past a green `make check`. See
+[ADR-0019](../docs/adr/ADR-0019-odts-dq-projection-and-seven-prefect-subprojects.md) and
+[ODTS IMPLEMENTATION.md](../spec/ODTS/IMPLEMENTATION.md).
 
 ## Why the compiler parses SQL instead of string-matching it
 

@@ -2,6 +2,27 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **STALE-PATH NOTE (added 2026-07-23, still open — do NOT implement against the paths below).**
+> The Part 3 restructure of the [transform-expansion
+> plan](2026-07-23-transform-expansion-and-six-prefect-subprojects.md) (see
+> [ADR-0019](../../adr/ADR-0019-odts-dq-projection-and-seven-prefect-subprojects.md)) deleted
+> every file this plan edits or references below. Before touching any task here, remap:
+>
+> | This plan says | Now lives at |
+> |---|---|
+> | `pipelines/flows/_common.py` (incl. `make_engine_flow`, `ingest_raw`, `scraper_raw_keys`, `make_ingest_assets`) | [`pipelines/_shared/steps.py`](../../../pipelines/_shared/steps.py) |
+> | `pipelines/flows/_paths.py` | [`pipelines/_shared/paths.py`](../../../pipelines/_shared/paths.py) |
+> | `pipelines/alerting_hooks.py` | [`pipelines/_shared/alerting.py`](../../../pipelines/_shared/alerting.py) |
+> | `pipelines/flows/engines/prefect_dagster.py` | [`pipelines/dagster/flow.py`](../../../pipelines/dagster/flow.py) |
+> | `pipelines/flows/engines/prefect_bruin.py` (and the other `prefect_*.py` one-liners) | `pipelines/<engine>/flow.py` — one directory per engine (`sqlmesh`, `plain_sql`, `dbt`, `opendbt`, `sqlmesh_dbt`, `bruin`, `dagster`), each `{__init__.py, flow.py, prefect.yaml}` |
+> | engine → module lookup (previously implicit/hand-imported) | [`pipelines/_shared/engines.py`](../../../pipelines/_shared/engines.py) `ENGINE_FLOWS` |
+>
+> `make_engine_flow` itself is unchanged behaviourally — it moved, not mutated — so this plan's
+> designs (per-source scraper assets, `raw_asset_key`, the landing-hop gate) still apply; only
+> the file paths in the Task/Files blocks below are dead. See
+> [`spec/ODOS/IMPLEMENTATION.md`](../../../spec/ODOS/IMPLEMENTATION.md) §4 and
+> [`pipelines/README.md`](../../../pipelines/README.md) for the current layout.
+
 **Goal:** Make every scraper/parser registry task (`ingest.opencritic`, `ingest.psn`, `ingest.steamcharts`, and the `ingest.parse_to_landing` placeholder) a first-class, drift-gated citizen of all four orchestration layers — ODOS spec, main Prefect, alt Prefect+Dagster, alt Bruin — reusing one deterministic projection instead of hand-editing four places.
 
 **Architecture:** The registry (`src/ogip/tasks/`) is the SSoT; every orchestration layer is a *projection* of it. Today those projections are hand-written and silently drift (three scrapers shipped without any ODOS/Prefect-lineage projection). This plan (a) closes the drift for the three shipped scrapers, (b) extracts the projection into a deterministic script + a scraper-scoped equivalence gate — the compiler-prep slice of ODOS #37 — so the *next* scraper cannot ship half-wired. Layers 3 and 4 are described **only as their delta** from layer 2, and the central finding is that the delta is nearly empty: scrapers never move into Dagster/Airbyte/Bruin because those tools have no bespoke-HTML-parser source. Scrapers stay Prefect-side Python assets; only the *warehouse core* (rawg dlt + dbt SQL) is what each alt profile swaps.

@@ -3,8 +3,9 @@
 [`examples/`](examples/README.md) is the normative six-group conformance model. This document
 anchors every object in those fixtures to the code that implements it today:
 [`experimental/orchestration/dagster_ogip/`](../../experimental/orchestration/dagster_ogip/README.md)
-(the Dagster projection) and [`pipelines/flows/`](../../pipelines/flows/) (the Prefect
-projection) — both currently hand-written. The ODOS compiler
+(the Dagster projection) and [`pipelines/_shared/`](../../pipelines/_shared/) + the seven
+per-engine sub-projects under `pipelines/<engine>/` (the Prefect projection) — both currently
+hand-written. The ODOS compiler
 ([#37](https://github.com/dataengy/ogip/issues/37)) will generate both sides from lowercase
 `spec/orchestration/`; until then this mapping is the review checklist for *"do the fixtures
 still describe reality?"*.
@@ -15,7 +16,7 @@ still describe reality?"*.
 |---|---|
 | Task registry (`registry: ogip.tasks`) | **live** — [`src/ogip/tasks/`](../../src/ogip/tasks/), ten `@odos_task` entries |
 | Dagster projection | hand-written — `defs/orchestration/<group>/definitions.py`, six groups |
-| Prefect projection | hand-written — `make_engine_flow` in [`pipelines/flows/_common.py`](../../pipelines/flows/_common.py) + one module per engine |
+| Prefect projection | hand-written — `make_engine_flow` in [`pipelines/_shared/steps.py`](../../pipelines/_shared/steps.py), wrapped by **seven** separated, individually-deployable sub-projects (`pipelines/{sqlmesh,plain_sql,dbt,opendbt,sqlmesh_dbt,bruin,dagster}/flow.py`, each with its own `prefect.yaml`) |
 | The design's §2 drift (`ensure_raw`) | **resolved at the task layer** — both lanes call the same registry callables |
 | Compiler, adapters, equivalence test | not built — the remaining scope of [#37](https://github.com/dataengy/ogip/issues/37) |
 
@@ -139,12 +140,34 @@ Per [SPEC.md](SPEC.md) §1, orchestrator Components stay outside portable docume
 
 ## 4. The Prefect projection
 
-[`make_engine_flow`](../../pipelines/flows/_common.py) is today's hand-written equivalent of the
+[`make_engine_flow`](../../pipelines/_shared/steps.py) is today's hand-written equivalent of the
 ordered-flow projection: one flow per engine running the chain
 `ingest.all → build_warehouse(engine) → build_ml_outputs → publish_outputs` as `@materialize`
 steps. In fixture terms it corresponds to `dwh_assets_job` (`select: raw.rawg__games+`) extended
 with the ML/publish tail, which belongs to the production pipeline rather than to the six-group
 model.
+
+As of Part 3 of the [transform-expansion
+plan](../../docs/superpowers/plans/2026-07-23-transform-expansion-and-six-prefect-subprojects.md)
+(see [ADR-0019](../../docs/adr/ADR-0019-odts-dq-projection-and-seven-prefect-subprojects.md)),
+the projection is no longer one shared `_common.py` plus a thin one-liner module per engine —
+that layout (`pipelines/flows/engines/prefect_*.py` over `pipelines/flows/_common.py`) was
+retired once every consumer resolved through the sub-projects. The step library now lives once
+in [`pipelines/_shared/`](../../pipelines/_shared/) (`steps.py` — `ingest_raw`, `build_warehouse`,
+`build_ml_outputs`, `publish_outputs`, `make_engine_flow`; `alerting.py` —
+`notify_flow_failure`; `paths.py` — repo-relative constants; `engines.py` — `ENGINE_FLOWS`,
+the transform-name → sub-project-module map), and each of the seven SQL/orchestration profiles
+(`sqlmesh`, `plain_sql`, `dbt`, `opendbt`, `sqlmesh_dbt`, `bruin`, `dagster`) is its own
+directory under `pipelines/<engine>/` — `{__init__.py, flow.py, prefect.yaml}` — separately
+`prefect deploy`-able without pulling in the other six. `pipelines/flows/main.py` survives only
+as the `ingest_transform_publish` re-export of `pipelines.sqlmesh.flow` (the production setup),
+because `src/ogip/tasks/integrations.py` shells `python -m pipelines.flows.main` and that entry
+point must stay importable at its historical path. `src/scripts/run-profile.py` resolves a
+`config.yml run_profiles[<name>].transform` name through `ENGINE_FLOWS` rather than importing
+all seven eagerly. The `dagster` sub-project (`pipelines/dagster/flow.py`) is the one exception
+to the plain per-engine shape: Prefect stays the outer orchestrator, but the dlt-ingest + dbt
+combo runs *under* Dagster (`dg launch`) — see [`pipelines/README.md`](../../pipelines/README.md)
+"Dagster sub-project" and §3 below for the Components this wraps.
 
 Two facts the governing design (§7.3) assigns to ODOS are visible here:
 

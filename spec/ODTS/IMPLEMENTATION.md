@@ -68,6 +68,45 @@ Generated projects are committed (reviewable diffs when the spec changes) and ca
 repo-relative paths. Column `checks` become dbt `schema.yml` tests, Bruin checks, SQLMesh
 audits — one declaration, per-target rendering, as SPEC.md §6 requires.
 
+### DQ projection: `checks:` → SQLMesh audits
+
+`to_sqlmesh.py` (`_audits` / `_audit_for`) projects every `columns[].checks` entry — plus the
+composite top-level `checks: [{name: unique, columns: [...]}]` form — into the `MODEL(...)`
+block's `audits (...)` clause. This used to be a silent drop (`_model_text` emitted
+`MODEL(name, kind)` and discarded `columns.checks` entirely); the compiler now renders every
+check, and an unrecognized check name is a compile-time `SqlSpecError` — SPEC.md §5's
+"attributes outside the check vocabulary MUST fail compilation" — never a silent skip.
+
+| ODTS check | SQLMesh audit |
+|---|---|
+| `not_null` | `not_null(columns := (col))` |
+| `unique` (column-level) | `unique_values(columns := (col))` |
+| `non_negative` | `accepted_range(column := col, min_v := 0)` |
+| `between(a, b)` | `accepted_range(column := col, min_v := a, max_v := b)` |
+| `accepted_values(v1, ...)` | `accepted_values(column := col, is_in := (v1, ...))` |
+| top-level `unique(columns: [...])` | `unique_combination_of_columns(columns := (...))` |
+| anything else | compile-time `SqlSpecError` — never silently dropped |
+
+70 audits render this way across raw/staging/core/fs today (the comprehensive-DQ pass of the
+[transform-expansion plan](../../docs/superpowers/plans/2026-07-23-transform-expansion-and-six-prefect-subprojects.md)).
+
+**ODTS §6 boundary — checks ≠ monitors.** Only correctness constraints (the table above) belong
+in `columns[].checks:`. Freshness and row-count **monitors** are a separate concern, declared in
+[`spec/dq/policy.yml`](../dq/policy.yml) — never in `spec/sql` `checks:` — and are loaded +
+reported (not yet executed) by [`dq/run.py`](../../dq/run.py); the executor (query the
+warehouse, evaluate thresholds, record to `platform_meta.dq_results`) is Phase 4. A `checks:`
+entry shaped like a monitor (`freshness`, `row_count`) is a spec defect, not an alternate
+authoring style.
+
+**Known gap — audits are compiled but not executed by the default gate.** `make check` runs
+`pytest -m "not integration and not e2e"`; the generated `audits (...)` clauses are only
+evaluated when SQLMesh actually plans/applies against a warehouse (`sqlmesh plan --auto-apply`),
+which happens in `src/tests/e2e/test_all_setups.py::test_base_setup_builds_and_produces_ml -k
+sqlmesh` (marked `e2e`, excluded from `make check`) or a live `prefect-sqlmesh` run. A regression
+in a rendered `not_null`/`accepted_range` audit can compile clean and pass `make check` while
+still being broken at run time — only the e2e test (or a manual `sqlmesh audit` run) catches it.
+See [ADR-0019](../../docs/adr/ADR-0019-odts-dq-projection-and-seven-prefect-subprojects.md).
+
 The boundary the standards family draws is visible in this table's consumers: Prefect and
 Dagster appear nowhere in it. Orchestrators consume these compiled projects through the ODOS
 task registry (`dbt.build` regenerates-then-builds; `build_warehouse("sqlmesh")` compiles then
