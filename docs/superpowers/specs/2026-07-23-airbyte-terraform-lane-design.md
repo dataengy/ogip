@@ -164,7 +164,18 @@ The local path skips cleanly when credentials are absent — it never fails as i
 
 This checkout is shared by 4+ live agent sessions committing to `dev` (session start reported 28
 live agent processes and a held repo lock). `git checkout -b` would move the working tree **for
-every one of them**. So: a dedicated **git worktree** plus an `obj--airbyte` lane lock. Subtree is
+every one of them**. So: a dedicated **git worktree** plus an `obj--airbyte` lane lock.
+
+The repo already has this convention — `git worktree list` shows `OGIP.worktrees/<lane>` checkouts
+on `lane/<name>` branches (`core-pipeline`, `dagster`, `evidence`, `obs`, `s3`, `transform-dq`,
+`vps`). This lane follows it as `OGIP.worktrees/airbyte` on `lane/airbyte`; it does not invent a
+new mechanism.
+
+Measured cost of *not* doing this (2026-07-23): a `git pull --rebase` on the shared checkout
+aborted because incoming commits collided with another session's **untracked, uncommitted** plan
+doc. Deleting it to unblock the rebase would have destroyed their in-flight work; the fix was to
+cherry-pick onto `origin/dev` in a throwaway worktree and push from there, leaving the shared tree
+untouched. Subtree is
 not used — the Terraform reads `spec/sources/games/*.yaml` from above its own prefix, so a vendored
 subtree would not be self-contained, and closing that gap would mean a second projection layer on
 top of the registry→`spec/` one that already exists.
