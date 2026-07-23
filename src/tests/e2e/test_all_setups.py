@@ -1,7 +1,7 @@
 """E2E — run every separated Prefect/Dagster setup and assert it produces real results.
 
 One test per SQL-tool setup (A12 run-profile matrix). Each cleans the warehouse, drives the same
-ingest → transform → ML → publish chain the setup's Prefect flow runs (via `pipelines.flows._common`
+ingest → transform → ML → publish chain the setup's Prefect flow runs (via `pipelines._shared.steps`
 — no ephemeral Prefect server needed; the server startup is flaky under many concurrent sessions
 and is proved separately by `test_pipeline.py`), and asserts the warehouse layer + the ML feature
 outputs actually materialized.
@@ -78,12 +78,12 @@ def _run_setup_chain(engine: str) -> dict[str, int]:
     Ingest is part of the chain (not just build): on a clean checkout there is no raw Parquet,
     and every setup's flow ingests first. Demo mode makes it a cheap synthetic fixture.
     """
-    from pipelines.flows import _common
+    from pipelines._shared import steps
 
-    _common.ingest_raw()
-    _common.build_warehouse(engine)
-    ml = _common.build_ml_outputs()
-    _common.publish_outputs()
+    steps.ingest_raw()
+    steps.build_warehouse(engine)
+    ml = steps.build_ml_outputs()
+    steps.publish_outputs()
     return ml
 
 
@@ -107,13 +107,13 @@ def test_heavy_setup_builds_and_produces_ml(engine: str, _clean: None) -> None:
 )
 def test_dagster_wrapped_in_prefect(_clean: None) -> None:
     """Dagster (dlt+dbt) wrapped in Prefect (ML+publish) — needs the Dagster project env."""
-    from pipelines.flows.engines.prefect_dagster import DAGSTER_PROJECT, run_dagster_dlt_dbt
+    from pipelines.dagster.flow import DAGSTER_PROJECT, run_dagster_dlt_dbt
 
     if not (DAGSTER_PROJECT / ".venv").exists():
         pytest.skip(
             "Dagster project env not set up (cd experimental/orchestration/dagster_ogip && uv sync)"
         )
     run_dagster_dlt_dbt()
-    from pipelines.flows import _common
+    from pipelines._shared import steps
 
-    _assert_warehouse_and_ml(_common.build_ml_outputs())
+    _assert_warehouse_and_ml(steps.build_ml_outputs())

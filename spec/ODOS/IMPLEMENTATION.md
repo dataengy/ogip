@@ -51,7 +51,7 @@ Names the fixtures reference that are **not yet registry entries** (bodies still
 | `checks.market_features_nonempty` | `market_features_check` in `defs/orchestration/warehouse/definitions.py` |
 | `sensors.landing_rowcount` | `new_postgres_raw_sensor` in `defs/orchestration/warehouse/definitions.py` |
 | `sensors.spec_sql_mtime` | `spec_change_sensor` in `defs/orchestration/maintenance/definitions.py` |
-| `alerting.notify_run_failure` | Prefect: [`pipelines/alerting_hooks.py`](../../pipelines/alerting_hooks.py) `notify_flow_failure`; Dagster: log-only `dwh_failure_sensor` |
+| `alerting.notify_run_failure` | Prefect: [`pipelines/_shared/alerting.py`](../../pipelines/_shared/alerting.py) `notify_flow_failure`; Dagster: log-only `dwh_failure_sensor` |
 
 Extracting these four into the registry is compiler prep: `poll(...)` and `checks:` can only be
 validated against names that exist.

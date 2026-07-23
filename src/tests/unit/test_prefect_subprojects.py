@@ -1,9 +1,10 @@
-"""Guard: each engine gets a separately-deployable Prefect sub-project (#37, Part 3.2).
+"""Guard: each engine gets a separately-deployable Prefect sub-project (#37, Part 3.2/3.3).
 
-`pipelines/<engine>/{__init__.py,flow.py,prefect.yaml}` — one per SQL profile plus `dagster` —
-each importing the shared step library from `pipelines._shared` (Part 3.1). Old
-`pipelines/flows/engines/prefect_*.py` modules keep working (retired in Part 3.3); this is
-purely additive.
+`pipelines/<engine>/{__init__.py,flow.py,prefect.yaml}` — one per SQL profile (including
+`plain_sql`) plus `dagster` — each importing the shared step library from `pipelines._shared`
+(Part 3.1). The old `pipelines/flows/engines/prefect_*.py` modules and the `ENGINE_FLOWS`
+registry that lived alongside them were retired in Part 3.3: every consumer now resolves an
+engine's flow through one of these sub-projects (see `pipelines._shared.engines.ENGINE_FLOWS`).
 """
 
 from __future__ import annotations
@@ -14,7 +15,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-_ENGINES = ["sqlmesh", "dbt", "bruin", "opendbt", "sqlmesh_dbt", "dagster"]
+_ENGINES = ["sqlmesh", "plain_sql", "dbt", "bruin", "opendbt", "sqlmesh_dbt", "dagster"]
 
 
 @pytest.mark.parametrize("engine", _ENGINES)
@@ -33,10 +34,11 @@ def test_prefect_yaml_is_valid_with_deployments(engine: str) -> None:
     assert doc.get("deployments")
 
 
-def test_dagster_shim_reexports_moved_seam() -> None:
-    import pipelines.dagster.flow as moved
-    from pipelines.flows.engines.prefect_dagster import DAGSTER_PROJECT, flow, run_dagster_dlt_dbt
+def test_engine_flows_registry_points_at_every_subproject() -> None:
+    """`pipelines._shared.engines.ENGINE_FLOWS` is the ONLY registry now — no `engines/` package."""
+    from pipelines._shared.engines import ENGINE_FLOWS
 
-    assert DAGSTER_PROJECT is moved.DAGSTER_PROJECT
-    assert flow is moved.flow
-    assert run_dagster_dlt_dbt is moved.run_dagster_dlt_dbt
+    assert set(ENGINE_FLOWS) == set(_ENGINES)
+    for engine, module_path in ENGINE_FLOWS.items():
+        assert module_path == f"pipelines.{engine}.flow"
+        assert callable(importlib.import_module(module_path).flow)

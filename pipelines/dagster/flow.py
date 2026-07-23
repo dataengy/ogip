@@ -10,7 +10,8 @@ Prerequisite: the Dagster project has its own uv env (`cd experimental/orchestra
 && uv sync`) and the `dg` CLI. Without them the Dagster step raises a clear, actionable error.
 
 Separately deployable (prefect.yaml) — moved here from `pipelines/flows/engines/prefect_dagster.py`
-in Part 3.2; that module is now a back-compat re-export shim over this one.
+in Part 3.2; that module (and the rest of `pipelines/flows/engines/`) was deleted in Part 3.3 once
+every consumer resolved through `pipelines._shared.engines.ENGINE_FLOWS` instead.
 """
 
 from __future__ import annotations

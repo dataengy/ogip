@@ -242,14 +242,14 @@ def test_cli_a_task_that_raises_returns_exit_1_instead_of_propagating():
 def test_both_lanes_reach_ingestion_through_the_same_registry_task():
     """The drift guard this whole registry exists for.
 
-    `jobs/dg-tasks.sh` and `pipelines/flows/_common.py` once had independent ingestion bodies —
+    `jobs/dg-tasks.sh` and `pipelines/_shared/steps.py` once had independent ingestion bodies —
     one conditional and routed through Dagster, one unconditional and straight to dlt. Identity,
     not equivalence: the two lanes must resolve to the SAME object, so a change to one cannot
     miss the other.
     """
-    from pipelines.flows import _common
+    from pipelines._shared import steps
 
-    assert _common.ingest_raw is get_task("ingest.all")
+    assert steps.ingest_raw is get_task("ingest.all")
 
 
 def test_every_dg_tasks_branch_dispatches_to_the_registry():

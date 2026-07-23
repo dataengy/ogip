@@ -8,7 +8,7 @@ Regenerate with `just spec-compile` (or the command above) whenever it fails.
 
 `transform/sqlmesh/models/` is deliberately excluded from that list: it is `.gitignore`d
 (since M0, "generated models... spec/ is the SSoT") because SQLMesh is the production engine
-and recompiles fresh immediately before every real run (`pipelines/flows/_common.py::
+and recompiles fresh immediately before every real run (`pipelines/_shared/steps.py::
 build_warehouse`) — there is no committed snapshot for it to drift. It gets its own guard below
 that exercises the live compiler instead of a checked-in directory.
 """

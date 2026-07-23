@@ -76,7 +76,7 @@ def main(argv: list[str] | None = None) -> int:
     sys.path.insert(0, str(REPO))  # `pipelines`/`transform` are repo-root packages
     import importlib
 
-    from pipelines.flows.engines import ENGINE_FLOWS
+    from pipelines._shared.engines import ENGINE_FLOWS
 
     transform = str(profile.get("transform", "sqlmesh"))
     module_path = ENGINE_FLOWS.get(transform)
