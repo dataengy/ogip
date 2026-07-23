@@ -1,9 +1,7 @@
-"""Repo-relative paths shared by every flow module (no imports → no cycles)."""
+"""Back-compat shim — repo-relative paths moved to `pipelines._shared.paths` (Part 3.1, #37)."""
 
 from __future__ import annotations
 
-from pathlib import Path
+from pipelines._shared.paths import REPO, SPEC_SQL, SQLMESH_DIR
 
-REPO = Path(__file__).resolve().parents[2]
-SPEC_SQL = REPO / "spec" / "sql"
-SQLMESH_DIR = REPO / "transform" / "sqlmesh"
+__all__ = ["REPO", "SPEC_SQL", "SQLMESH_DIR"]
