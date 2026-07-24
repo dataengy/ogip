@@ -5,8 +5,6 @@ Two families: **asset jobs** select over the dbt/dlt assets (one per layer + the
 schedules and the raw-data sensors live here too, next to the jobs they drive.
 """
 
-import dagster as dg
-from dagster import OpExecutionContext, SensorEvaluationContext
 from dagster_ogip._lib.orchestration import (
     K_CORE,
     K_FS,
@@ -15,6 +13,9 @@ from dagster_ogip._lib.orchestration import (
     WAREHOUSE,
     run_task,
 )
+
+import dagster as dg
+from dagster import OpExecutionContext, SensorEvaluationContext
 
 # ---- asset jobs (idiomatic selection, one per EDW layer + the whole DWH) ----
 raw_ingest_job = dg.define_asset_job(

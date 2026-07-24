@@ -4,9 +4,10 @@ dlt is the default ingester (batch API sources); ingestr does CDC from the Postg
 zone; parsing is the scraper→landing step (placeholder until the ingestion lane picks a tool).
 """
 
+from dagster_ogip._lib.orchestration import K_CDC, K_RAW_DLT, run_task
+
 import dagster as dg
 from dagster import OpExecutionContext
-from dagster_ogip._lib.orchestration import K_CDC, K_RAW_DLT, run_task
 
 dlt_ingest_job = dg.define_asset_job(
     "dlt_ingest_job",
