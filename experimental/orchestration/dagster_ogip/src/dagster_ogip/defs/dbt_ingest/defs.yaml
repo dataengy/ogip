@@ -1,0 +1,11 @@
+# The dbt manifest becomes a set of Dagster assets.
+#
+# The dbt project under ./dbt is GENERATED from spec/ (Bruin format) by
+# ogip.spec_compile.to_dbt — spec/ stays the SSoT (ADR-0005); never hand-edit it.
+# `tag:daily` comes from each spec asset's Bruin `tags:`, so asset selection is driven
+# by the specification rather than by dbt-specific config.
+type: dagster_dbt.DbtProjectComponent
+
+attributes:
+  project: "{{ project_root }}/dbt"
+  select: "tag:daily"

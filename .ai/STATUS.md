@@ -12,6 +12,15 @@ Detail: [tasks/m0-walking-skeleton.md](tasks/m0-walking-skeleton.md).
 
 Phase 0 (scaffold) also ✅ shipped — [tasks/phase-0-scaffold.md](tasks/phase-0-scaffold.md).
 
+**Reprioritized 2026-07-17** (SWOT against the target use-case brief):
+**P1 — resilient scraping slice** ([tasks/scraping-resilient.md](tasks/scraping-resilient.md),
+lane `ingestion`, [ADR-0014](../docs/adr/ADR-0014-resilient-scraping-concurrency.md)) ·
+**P1 — finalize R2 + VPS deploy** ([tasks/r2-vps-finalize.md](tasks/r2-vps-finalize.md) —
+every remaining item sits in lane `core-pipeline`) · **P2 — sources backlog**
+([tasks/sources-backlog.md](tasks/sources-backlog.md)). M1–M4 toolset replication is demoted
+below the P1s. Open requirement questions (scraping · volumes · serving/FS/semantic ·
+SQL+Python): [docs/OPEN-QUESTIONS.md](../docs/OPEN-QUESTIONS.md).
+
 ## Parallel-session lanes (claim a lock before writing!)
 
 Work is split across concurrent agent sessions. **Claim your lane** with an object lock before
@@ -23,15 +32,24 @@ bash ~/.ai/skills/_scripts/session/agent-session-lock.sh acquire --repo . --obje
 
 | Lane (lock object) | Scope | Owner |
 |---|---|---|
-| `core-pipeline` | `spec/` `src/ogip/` `ingestion/` `transform/` `pipelines/` `config/` `.ci/` | **this session** — M1 `prefect-bruin` · `prefect-dbt` · `prefect-sqlmesh-over-dbt` |
+| `core-pipeline` | `spec/` `src/ogip/` `transform/` `pipelines/` `config/` `.ci/` | parallel session — M1 alt profiles; **lock STALE since 16:00** (see lock audit below); also owns every `r2-vps-finalize` item |
+| `ingestion` | `ingestion/` (sources registry, connectors, raw landing) — **carved out of `core-pipeline` 2026-07-17** | parallel session (live) — home of the **P1 scraping slice** |
 | `obs` | `deploy/obs/`, `src/scripts/obs-*.sh`, `docs/architecture/observability.md` | **parallel session** — Phase 7 stack shipped; 2 handoffs below |
 | `evidence` | `experimental/bi/evidence/` | parallel session |
 | `dagster` | `experimental/orchestration/dagster*`, `prefect-dagster-dlt-dbt` profile | parallel session |
 | `vps` | `deploy/vps/`, `vps-*` recipes, `config/config.yml → deploy.vps.*` | **parallel session** — tooling shipped; 1 handoff below |
 | `s3` | MinIO in `deploy/`, `storage` config, dlt/duckdb S3 destination | parallel session |
+| `alerting` | `src/ogip/alerting/`, `src/tests/unit/test_alerting.py` | **parallel session** — Notifier + tg/mm/slack shipped ([#11](https://github.com/dataengy/ogip/issues/11)); 1 handoff below |
 
 Use the **direct script**, not `just -f … agent-lock` — its recipe re-parses `--reason` through
 `bash -c`, so parentheses break it.
+
+**Lock audit 2026-07-17 ~21:00.** `core-pipeline` and `dagster` locks are **STALE** (TTL
+expired 16:00 / 16:36; the holder session runs from outside this repo and both lanes belong
+to it) — `break` and re-acquire before touching those lanes, and note `ingestion/` no longer
+belongs to `core-pipeline`'s scope. The `ingestion` lock is also past TTL but its session is
+**live** — coordinate, don't steal. Holder details (session ids, resume commands): local
+`.ai/.locks/*/owner.env` (gitignored).
 
 ### Handoffs: lane `obs` → lane `core-pipeline`
 
@@ -51,6 +69,44 @@ Optional later: export OTLP metrics to `localhost:4318` (prefix `ogip_`) — All
 receives them and the dashboard panel is waiting. Detail:
 [docs/architecture/observability.md](../docs/architecture/observability.md) → "Not wired yet".
 
+### Handoff: lane `alerting` → lane `core-pipeline`
+
+`src/ogip/alerting/` ships the `Notifier` + Telegram/Mattermost/Slack ([#11](https://github.com/dataengy/ogip/issues/11),
+[tasks/alerting.md](tasks/alerting.md)) — verified against the live Telegram API. New files only;
+nothing of yours was edited. One thing is deliberately off-SSoT and needs you:
+
+- **Routing lives in env vars, not `config/config.yml`** — because that file and
+  `config/.env-render.py` are yours. To close it: add an `alerting:` section (`backend`,
+  `fallback_backend`, `dry_run`), map it in `_derived()`, add the secret slots
+  (`OGIP_TG_BOT_TOKEN`, `OGIP_MM_TOKEN`, `OGIP_MM_WEBHOOK_URL`, `OGIP_SLACK_TOKEN`,
+  `OGIP_SLACK_WEBHOOK_URL`), then swap the literal defaults in `alerting/settings.py` for
+  `_yaml("alerting", …)`. The env names are already `OGIP_`-prefixed, so no namespace clash.
+
+~~Also yours when you want alerts to actually fire: `pipelines/flows/` has no failure hook.~~
+**Done 2026-07-18** (lane was FREE, held core-pipeline briefly): `pipelines/alerting_hooks.py`
+→ `notify_flow_failure` wired as `on_failure=[…]` on the flow. Verified by running — Prefect
+fires it on a real failure and it builds `🔴 OGIP flow failed: <flow> / run: <run> / state:
+<exception>`. Silent without creds (`make_notifier()` is `None`), never raises. Still SSoT-open:
+the routing-in-env-vars item above is unchanged.
+
+### Handoff: lane `hygiene` → lane `core-pipeline`
+
+`src/scripts/public-hygiene.sh` refuses to publish another org's identifiers (tracker ids,
+internal hosts, private checkout paths, org/bot names) — the half of a leak gitleaks does not
+cover, since these are not secret, only not-ours. It exists because an agent file in this repo
+leaked a private path to a public commit despite a hand grep. New file, exercised (5/5 marker
+patterns unit-checked, and it caught the real leak, now fixed). It is not yet a gate — to wire
+it (both are your lane):
+
+1. **CI**: add `.ci/steps/public-hygiene.sh` (one line: `source _common.sh; exec bash
+   "$REPO_ROOT/src/scripts/public-hygiene.sh"`) and append `public-hygiene` to the step list in
+   `.ci/run.sh` and to `.github/workflows/ci.yml`.
+2. **prek**: add a local hook to `config/.pre-commit-config.yaml`
+   (`entry: bash src/scripts/public-hygiene.sh`, `language: system`, `pass_filenames: false`).
+
+Marker list is literal inside the script rather than in `config/config.yml` for the same reason
+as alerting — `config/` is yours. Fold it into the SSoT if you prefer it centralized.
+
 ### Handoff: lane `vps` → lane `core-pipeline`
 
 `deploy/vps/` is complete and verified ([tasks/vps-deploy-tooling.md](tasks/vps-deploy-tooling.md)),
@@ -63,6 +119,28 @@ but a real deploy still stops at preflight on one missing artifact in **your** l
 `deploy.sh` preflights and refuses to start rather than half-deploying, so this is a clean
 block, not a landmine. Nothing else in `deploy/vps/` needs you: settings are read straight from
 `config/config.yml → deploy.vps.*` via `yq`, so `config/.env-render.py` needed **no** change.
+
+**The decision `deploy.py` carries (not just a missing file — flagged from the vps lane, 2026-07-18):**
+Writing it means choosing a Prefect **run model**, and the repo currently under-specifies it —
+worth resolving before you write, because the choice reaches into the compose lane too.
+
+- `deploy.sh` step 5 is a **one-shot** (`uv run python integrations/prefect/deploy.py`), so
+  `deploy.py` must **register a deployment and return** — `flow.serve()` blocks forever and
+  would hang the deploy step. Register, don't serve.
+- The compose stack (`deploy/docker-compose.yml`) runs a **Prefect server but no worker**, and
+  `pipelines/flows/main.py` documents the flow as *"runs ephemerally (no server needed)"* —
+  those two facts contradict, so the intended runtime isn't yet pinned. Prefect 3.7.8.
+- Two coherent resolutions:
+  - **serve()-based** (vps lane's recommendation — simplest, self-contained): `deploy.py`
+    creates a scheduled deployment and a **separate** long-lived `flow.serve(cron=…)` process
+    runs as one compose/systemd service. No work pool, no worker. Fewest moving parts; the
+    server stays UI-only. Matches "no extra infra".
+  - **worker + work-pool** (more scale, more parts): `deploy.py` does `flow.deploy(work_pool_name=…)`
+    against the server, and a **new `prefect-worker` service** is added to compose (that half is
+    the compose lane's). Only pick this if horizontal execution is actually wanted.
+- Either way this is **~1 file + 1 compose service**, not just `deploy.py` alone — the worker/
+  serve process is what actually executes runs; `deploy.py` on its own registers a deployment
+  that nothing would pick up. Confirm the model, then the file is small.
 
 ### Handoff: lane `s3` → lane `core-pipeline`
 
@@ -141,13 +219,14 @@ flagged for the user; alternative is authoring natively in SQLMesh.
 
 ## Next steps
 
-Plan finalized (D0–D14) incl. the walking-skeleton delivery strategy. Awaiting **go** to start building.
+Reprioritized 2026-07-17 — driver checklist in [TODO.md](TODO.md), map in
+[docs/ROADMAP.md](../docs/ROADMAP.md):
 
-1. **Phase 0 — Scaffold & identity**: git init, pyproject/uv, tooling, config SSoT, secrets,
-   CI, task-sync, `.run/`/`.tmp/`.
-2. **M0 — walking skeleton**: RAWG → raw Parquet → 1st ODCS contract + Bruin SQL → SQLMesh
-   (stg→core→mart/fs) → 1 ML `*.parquet` → 1 notebook + 1 Evidence page, on a Prefect flow (dlt).
-   Then `make up` (Docker) + run the Prefect job green.
-3. **M1–M4** — replicate the slice across the alt toolsets; broaden per Phases 4–10.
-
-Open call: spec compiler kept (thin shim in M0, grown later) unless you say author-native-SQLMesh.
+1. **P1 — resilient scraping slice** (lane `ingestion`): async `ScraperSource` + landing +
+   HLTB end to end, per [ADR-0014](../docs/adr/ADR-0014-resilient-scraping-concurrency.md)
+   → [tasks/scraping-resilient.md](tasks/scraping-resilient.md).
+2. **P1 — finalize R2 + VPS deploy** (lane `core-pipeline`): staged s3 items →
+   `integrations/prefect/deploy.py` → real R2 bucket → host deploy + smoke
+   → [tasks/r2-vps-finalize.md](tasks/r2-vps-finalize.md).
+3. **P2** — groom [tasks/sources-backlog.md](tasks/sources-backlog.md); then M1–M4 toolset
+   replication; broaden per Phases 4–10.

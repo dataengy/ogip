@@ -9,7 +9,8 @@ Engineers, and Analysts.
 | [architecture/](architecture/) | System design: [overview](architecture/overview.md) + per-topic sub-docs |
 | [adr/](adr/) | Architecture Decision Records (ADR-0001…, indexed) |
 | [runbooks/](runbooks/) | Operational procedures (local dev, run pipeline, deploy, incident triage) |
-| [ROADMAP.md](ROADMAP.md) | Delivery phases |
+| [ROADMAP.md](ROADMAP.md) | Delivery phases + current priorities |
+| [OPEN-QUESTIONS.md](OPEN-QUESTIONS.md) | Open requirement questions (scraping · volumes · serving/FS/semantic · SQL+Python) with defaults + decision triggers |
 | DATASETS.md | ML-ready output catalog _(Phase 5)_ |
 | [CHANGELOG.md](CHANGELOG.md) | Notable changes |
 | `comparisons/` | Educational, isolated research: `dbt-vs-sqlmesh` · `dbt-vs-bruin` · `sqlmesh-vs-bruin` · `plain-sql-vs-frameworks` · `iceberg-vs-ducklake` · `dlt-vs-ingestr` (incl. CDC) · `feature-store-tools` · `visualizers-evidence` · `secrets-management` · `modeling-techniques` _(Phase 9)_ |

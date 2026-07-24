@@ -1,0 +1,22 @@
+---
+odos: 0.1
+group: maintenance
+
+jobs:
+  update_dbt_job: {task: dbt.parse, tags: {maintenance: dbt}}
+  update_dbt_changed_job:
+    task: dbt.build
+    args: {select: "state:modified+", state: dbt}
+    tags: {maintenance: dbt}
+  dbt_project_evaluator_job:
+    task: dbt.build
+    args: {select: "package:dbt_project_evaluator"}
+    tags: {maintenance: dbt, package: dbt_project_evaluator}
+
+automations:
+  daily_dbt_subproject_update: {"on": 'cron("0 2 * * *")', run: update_dbt_job}
+  weekly_dbt_project_evaluator:
+    {"on": 'cron("0 4 * * 1")', run: dbt_project_evaluator_job}
+  spec_change_updates_dbt:
+    "on": poll(sensors.spec_sql_mtime, every=30s)
+    run: update_dbt_changed_job

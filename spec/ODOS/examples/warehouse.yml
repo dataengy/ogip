@@ -1,0 +1,38 @@
+---
+odos: 0.1
+group: warehouse
+doc: Building the DWH from raw to the FS layer.
+
+jobs:
+  raw_ingest_job:
+    select: raw.rawg__games
+    doc: "Layer 0 — RAWG → raw Parquet via dlt."
+  staging_job: {select: staging.stg_games}
+  core_job: {select: core.game}
+  fs_job: {select: fs.market_features}
+  dwh_assets_job:
+    select: raw.rawg__games+
+    doc: "Whole DWH — raw to staging to core to FS."
+  dwh_incremental_job:
+    task: dbt.build
+    tags: {pipeline: dwh, mode: incremental}
+  dwh_full_refresh_job:
+    task: dbt.build
+    args: {full_refresh: true}
+    tags: {pipeline: dwh, mode: full-refresh}
+
+automations:
+  daily_dwh_full_refresh: {"on": 'cron("0 3 * * *")', run: dwh_full_refresh_job}
+  hourly_dwh_incremental: {"on": 'cron("0 * * * *")', run: dwh_incremental_job}
+  daily_raw_ingest: {"on": 'cron("30 1 * * *")', run: raw_ingest_job}
+  raw_landed_runs_dwh:
+    {"on": "asset_materialized(raw.rawg__games)", run: dwh_assets_job}
+  new_postgres_raw_data:
+    "on": poll(sensors.landing_rowcount, every=60s)
+    run: dwh_incremental_job
+
+checks:
+  market_features_nonempty_and_scored:
+    asset: fs.market_features
+    task: checks.market_features_nonempty
+    blocking: false

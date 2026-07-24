@@ -1,9 +1,13 @@
 # Task — S3 object storage (the `minio` / `s3` / `r2` lake profiles)
 
-**Status:** 🚧 in progress — the seam, the MinIO stack, tests and docs are shipped and verified
+**Status:** 🚧 in progress — the seam, the MinIO stack, tests and docs are complete and verified
 green against a real MinIO; every remaining call site is blocked on the `core-pipeline` lane
 (see _Blocked on_ — 4 items, of which Layer-0 is the real one). `local` remains the default,
 so nothing existing changed behaviour.
+
+<!-- tasks-sync reads ONLY this Status line, substring-matching ("✅", "done", "shipped") to
+     decide whether to close the issue. Keep those words out of the prose above until the
+     matcher is anchored, or an in-progress task gets closed as COMPLETED again (it did: #8). -->
 
 Lane: `s3` (parallel-session lock object). Scope: `src/ogip/storage.py`, MinIO in
 `deploy/docker-compose.yml`, the `storage-*` Makefile targets, storage tests and docs.

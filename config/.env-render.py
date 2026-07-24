@@ -36,6 +36,15 @@ SECRET_SLOTS: tuple[str, ...] = (
     "STEAM_API_KEY",
     "IGDB_CLIENT_ID",
     "IGDB_CLIENT_SECRET",
+    # Airbyte evaluation lane (#41) — minted by `abctl local credentials`, 15-min token TTL.
+    # The Terraform provider authenticates with these, never a static bearer.
+    "AIRBYTE_CLIENT_ID",
+    "AIRBYTE_CLIENT_SECRET",
+    # PAT for airbyte/source-github. Name matches the registry descriptor's declared slot
+    # (spec/sources/games/github_repos.yaml -> `slot: GITHUB_TOKEN`); renaming it here would
+    # be silent drift from the SSoT. Safe in this repo: nothing in .ci/ or .github/workflows/
+    # sources .env, so the blank slot cannot clobber the token Actions injects (verified).
+    "GITHUB_TOKEN",
 )
 
 
@@ -81,12 +90,21 @@ def _derived(cfg: dict[str, Any]) -> dict[str, str]:
         "POSTGRES_PORT": str(svc["postgres_port"]),
         "MINIO_API_PORT": str(svc["minio_api_port"]),
         "MINIO_CONSOLE_PORT": str(svc["minio_console_port"]),
+        # Observability stack ports — the obs compose reads these (else it falls back to
+        # literals that duplicate the config.yml SSoT).
+        "VICTORIAMETRICS_PORT": str(svc["victoriametrics_port"]),
+        "LOKI_PORT": str(svc["loki_port"]),
+        "GRAFANA_PORT": str(svc["grafana_port"]),
         # NOTE: never emit bare PREFECT_* names — Prefect 3 loads .env through
         # pydantic-settings, so PREFECT_API_URL would hijack its own setting and force
         # client→server mode, breaking ephemeral runs. Ours stay OGIP_-prefixed; the
         # `server` run-profile exports PREFECT_API_URL explicitly when a server is up.
         "OGIP_PREFECT_PORT": str(svc["prefect_port"]),
         "OGIP_PREFECT_API_URL": str(ep["prefect_api_url"]),
+        # Airbyte evaluation lane (#41) — experimental, off the `make` path. The port is
+        # abctl's local ingress; the schema is the destination inside the shared Postgres.
+        "OGIP_AIRBYTE_PORT": str(svc["airbyte_port"]),
+        "OGIP_AIRBYTE_SCHEMA": str(pg["airbyte_schema"]),
     }
 
 

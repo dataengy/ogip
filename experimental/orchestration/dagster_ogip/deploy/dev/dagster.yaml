@@ -1,0 +1,18 @@
+# DEV instance — zero infrastructure.
+#
+#   export DAGSTER_HOME="$PWD/deploy/dev"   # dagster.yaml must live in DAGSTER_HOME
+#   dg dev                                   # UI + code location, SQLite storage under DAGSTER_HOME
+#
+# Storage is omitted on purpose: Dagster defaults to SQLite inside DAGSTER_HOME, which is what
+# a laptop lane wants — no Postgres, no containers, disposable.
+telemetry:
+  enabled: false
+
+run_coordinator:
+  module: dagster.core.run_coordinator
+  class: DefaultRunCoordinator # no queueing in dev — run immediately
+
+# Cap local concurrency so a laptop stays usable while the graph builds.
+concurrency:
+  runs:
+    max_concurrent_runs: 4

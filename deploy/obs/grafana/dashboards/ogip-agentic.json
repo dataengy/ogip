@@ -1,0 +1,237 @@
+{
+  "uid": "ogip-agentic",
+  "title": "OGIP — Agentic Activity",
+  "description": "The agents building OGIP (epic #33): sessions, tokens/cost by model, tool/skill/subagent usage, API health. Source: Claude Code native OTel → Alloy :4318 → VictoriaMetrics (metrics) + Loki (events). Opt-in — empty panels mean no telemetry-enabled session ran yet (docs/architecture/observability.md § Agentic telemetry).",
+  "tags": ["ogip", "observability", "agentic"],
+  "timezone": "browser",
+  "editable": false,
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-24h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Sessions started",
+      "description": "Telemetry-enabled Claude Code sessions in the dashboard range.",
+      "datasource": { "type": "prometheus", "uid": "ogip-victoriametrics" },
+      "gridPos": { "h": 5, "w": 4, "x": 0, "y": 0 },
+      "targets": [
+        { "refId": "A", "expr": "sum(increase(claude_code_session_count_total[$__range]))", "instant": true }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "graphMode": "none" },
+      "fieldConfig": { "defaults": { "decimals": 0, "noValue": "0" }, "overrides": [] }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Active time",
+      "datasource": { "type": "prometheus", "uid": "ogip-victoriametrics" },
+      "gridPos": { "h": 5, "w": 4, "x": 4, "y": 0 },
+      "targets": [
+        { "refId": "A", "expr": "sum(increase(claude_code_active_time_seconds_total[$__range]))", "instant": true }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "graphMode": "none" },
+      "fieldConfig": { "defaults": { "unit": "s", "noValue": "0" }, "overrides": [] }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Cost",
+      "description": "Sum over all models and sessions in range. The agent-cost-burn alert fires at >$10/h.",
+      "datasource": { "type": "prometheus", "uid": "ogip-victoriametrics" },
+      "gridPos": { "h": 5, "w": 4, "x": 8, "y": 0 },
+      "targets": [
+        { "refId": "A", "expr": "sum(increase(claude_code_cost_usage_USD_total[$__range]))", "instant": true }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "graphMode": "area" },
+      "fieldConfig": { "defaults": { "unit": "currencyUSD", "decimals": 2, "noValue": "0" }, "overrides": [] }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Cache hit ratio",
+      "description": "cacheRead / (cacheRead + input). High is good — cache reads are ~10× cheaper.",
+      "datasource": { "type": "prometheus", "uid": "ogip-victoriametrics" },
+      "gridPos": { "h": 5, "w": 4, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(claude_code_token_usage_tokens_total{type=\"cacheRead\"}[$__range])) / sum(increase(claude_code_token_usage_tokens_total{type=~\"cacheRead|input\"}[$__range]))",
+          "instant": true
+        }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "graphMode": "none" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 1,
+          "noValue": "n/a",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.5 },
+              { "color": "green", "value": 0.85 }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "API errors",
+      "description": "claude_code.api_error events in range (alert bursts at >3/10m).",
+      "datasource": { "type": "loki", "uid": "ogip-loki" },
+      "gridPos": { "h": 5, "w": 4, "x": 16, "y": 0 },
+      "targets": [
+        { "refId": "A", "expr": "sum(count_over_time({service_name=\"claude-code\", event_name=\"api_error\"} [$__range]))", "queryType": "instant" }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "graphMode": "none" },
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Telemetry",
+      "description": "Agent events seen in the last hour. 'idle' = no telemetry-enabled session recently (opt-in).",
+      "datasource": { "type": "loki", "uid": "ogip-loki" },
+      "gridPos": { "h": 5, "w": 4, "x": 20, "y": 0 },
+      "targets": [
+        { "refId": "A", "expr": "sum(count_over_time({service_name=\"claude-code\"} [1h]))", "queryType": "instant" }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "idle",
+          "mappings": [
+            { "type": "special", "options": { "match": "null", "result": { "text": "idle", "color": "yellow" } } }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "yellow", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Tokens by type",
+      "description": "input | output | cacheRead | cacheCreation — rate across all sessions/models.",
+      "datasource": { "type": "prometheus", "uid": "ogip-victoriametrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 5 },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (type) (rate(claude_code_token_usage_tokens_total[$__rate_interval]))",
+          "legendFormat": "{{type}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "cps", "custom": { "fillOpacity": 15 } }, "overrides": [] }
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Tokens by model",
+      "datasource": { "type": "prometheus", "uid": "ogip-victoriametrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 5 },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (model) (rate(claude_code_token_usage_tokens_total[$__rate_interval]))",
+          "legendFormat": "{{model}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "cps", "custom": { "fillOpacity": 15 } }, "overrides": [] }
+    },
+    {
+      "id": 9,
+      "type": "bargauge",
+      "title": "Tool usage",
+      "description": "tool_result events by tool (json attribute attributes.tool_name → flattened label). Agent = subagent launches, Skill = skill invocations.",
+      "datasource": { "type": "loki", "uid": "ogip-loki" },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 13 },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (attributes_tool_name) (count_over_time({service_name=\"claude-code\", event_name=\"tool_result\"} | json [$__range]))",
+          "legendFormat": "{{attributes_tool_name}}",
+          "queryType": "instant"
+        }
+      ],
+      "options": { "displayMode": "gradient", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "decimals": 0, "noValue": "no tool events in range" }, "overrides": [] }
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Subagents & skills",
+      "description": "The Agent (subagent) and Skill slices of tool_result — the delegation pulse.",
+      "datasource": { "type": "loki", "uid": "ogip-loki" },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 13 },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (attributes_tool_name) (count_over_time({service_name=\"claude-code\", event_name=\"tool_result\"} | json | attributes_tool_name=~\"Agent|Skill\" [$__auto]))",
+          "legendFormat": "{{attributes_tool_name}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 25 } }, "overrides": [] }
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "API requests vs errors",
+      "datasource": { "type": "loki", "uid": "ogip-loki" },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 13 },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (event_name) (count_over_time({service_name=\"claude-code\", event_name=~\"api_request|api_error\"} [$__auto]))",
+          "legendFormat": "{{event_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 15 } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "api_error" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }]
+          }
+        ]
+      }
+    },
+    {
+      "id": 12,
+      "type": "logs",
+      "title": "Recent agent events",
+      "description": "Raw event stream (attributes carry session.id, tool_name, duration_ms — expand a line).",
+      "datasource": { "type": "loki", "uid": "ogip-loki" },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 21 },
+      "targets": [
+        { "refId": "A", "expr": "{service_name=\"claude-code\"}" }
+      ],
+      "options": { "showTime": true, "wrapLogMessage": false, "sortOrder": "Descending", "dedupStrategy": "none" }
+    }
+  ]
+}

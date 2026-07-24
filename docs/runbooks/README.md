@@ -10,6 +10,7 @@ the operational source of truth. Use [`_template.md`](_template.md) for new runb
 | [run-pipeline.md](run-pipeline.md) | Run the daily pipeline / a `run-profile` in Docker + Prefect | draft |
 | [deploy-vps.md](deploy-vps.md) | Manual deploy to the VPS | draft |
 | [pipeline-failure.md](pipeline-failure.md) | Triage a failed Prefect flow / DQ gate | draft |
+| [run-dagster.md](run-dagster.md) | Run the Dagster alt-orchestration (dbt + dlt + ingestr CDC) | draft |
 | backfill.md | Backfill / full-refresh a source | _planned_ |
 | add-source.md | Add a new ingestion source | _planned_ |
 | rotate-secrets.md | Rotate a secret | _planned_ |

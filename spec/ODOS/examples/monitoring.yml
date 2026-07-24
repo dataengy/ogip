@@ -1,0 +1,9 @@
+---
+odos: 0.1
+group: monitoring
+
+hooks:
+  dwh_run_failure_alert:
+    "on": run_failed(scope=location)
+    task: alerting.notify_run_failure
+    targets: [dagster]

@@ -17,7 +17,26 @@ SSoT config, quality bar, run profiles. This file adds Claude-specific workflow 
 - Batch/one-off work goes through scripts in `.tmp/` (`.tmp/.once/` for one-shots);
   durable interfaces go to Makefile/Justfile + docs.
 - Commits via /smart-commit conventions: Conventional Commits, split by category
-  (chore(ai)/docs/ci/feat/test), no push without asking.
+  (chore(ai)/docs/ci/feat/test).
+- **Push without asking** — standing authorization, no per-push gate. Preconditions, all of
+  them, every time:
+  1. `make check` (or the CI-equivalent subset) is **green locally** for the files you own.
+  2. You are pushing **only your lane's commits** — parallel sessions share this branch, so
+     `git log origin/<branch>..HEAD` must contain nothing you did not write. Never push
+     another lane's work, especially not a red one, to make your own land.
+  3. Every commit carries `Refs: #<issue>` / `Closes: #<issue>` (enforced by
+     `.ci/steps/commit-binding.sh`).
+  4. **Never force-push** a shared branch (`main`, `dev`) — 4+ agent sessions commit here and
+     a rewrite destroys their in-flight work. No exceptions.
+- Branches: work lands on **`dev`**; `dev → main` goes through a **PR** with CI green
+  (`.github/workflows/ci.yml` already runs on `pull_request`). `main` stays releasable.
+
+## Skills
+
+Before reaching for a catalog skill, read **[SKILLS.md](SKILLS.md)**. The shared catalog is built
+mostly for GitLab + Jira + ClickHouse; ~193 of its 521 skills target infrastructure OGIP does not
+have, and they fail *silently* — a well-formed Jira task for a project with no Jira. `SKILLS.md`
+lists what is in use here (with file evidence), what fits the stack, and what not to touch.
 
 ## Commands (target — created during Phase 0)
 

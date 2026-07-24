@@ -1,0 +1,70 @@
+# ── GENERATED FILE — DO NOT EDIT ──────────────────────────────────────────────
+# Projected from the ingestion registry (the SSoT):
+#   ~/.ai/skills/.settings/de/ingestion/sources/games/github_repos.yml
+# Edit THAT file, then regenerate:
+#   just -f ~/.ai/skills/_scripts/de/ingestion/Justfile spec-emit /Users/nk.myg/gi/@dataengy/OGIP
+# Hand edits here WILL be overwritten and were measured to be unsyncable by
+# hardlink (git checkout severs the link) — hence this one-way projection.
+# ──────────────────────────────────────────────────────────────────────────────
+# Source: github_repos
+# Split from ingestion.yml — edit HERE, this is the SSoT.
+github_repos:
+  system: github
+  entity: repos
+  # The ONE genuine Airbyte fit found in the 2026-07-20 registry audit (591 sources
+  # scanned): the certified pool is own-account SaaS extractors, structurally mismatched
+  # with public market data — source-github is the exception because GitHub's public data
+  # IS the product. Domain angle: game-ENGINE ecosystem activity (Godot/Bevy/O3DE and the
+  # modding/tooling long tail) — engine is a literal input to the budget/scope models in
+  # the Hushcrasher domain; stars/releases/contributor velocity are public adoption
+  # signals for it.
+  url: https://api.github.com/repos/godotengine/godot
+  auth: none # keyless works for public data (probe-verified); token raises 60/hr → 5000/hr
+  tier: direct
+  publishable: false
+  license: github-tos-unreviewed
+  license_note: >
+    GitHub ToS permit API use; acceptable-use limits on aggregate redistribution have NOT
+    been reviewed against publishing derived datasets — publishable stays false until that
+    review is recorded here. Public-repo metadata only; never user personal data.
+  key_param: null # token goes in the Authorization header, not a query param
+  slot: GITHUB_TOKEN # optional for probing; REQUIRED for real syncs (rate limits)
+  records_path: null # single repo object at this probe endpoint
+  probe_params: {}
+  rate_limit_note: >
+    MEASURED 2026-07-20: keyless = 60 req/hr (x-ratelimit-limit header); authenticated
+    PAT = 5,000/hr; GraphQL and search have separate budgets. The Airbyte connector
+    handles secondary rate limits (retry-after + abuse detection) itself.
+  traps: >
+    Stars/forks counts on /repos are cached aggregates — near-real-time, not exact at
+    scale. `open_issues_count` INCLUDES pull requests (GitHub API quirk since v3);
+    subtract the PR count or the issues signal is inflated by roughly half on active
+    repos (verified: godot open_issues_count=18597 includes PRs).
+  airbyte:
+    # VERIFIED 2026-07-20, live OSS registry: airbyte/source-github:2.1.36,
+    # supportLevel=certified. No definition_id stored — the Terraform lane resolves it
+    # live (same principle as unstored probe verdicts).
+    connector: airbyte/source-github
+    streams: [repositories, releases, stargazers, issues, commits, contributors]
+    sync_mode: incremental
+    cursor: updated_at # per-stream; source-github manages per-repo state slices itself
+    why: >
+      The genuine maintained-connector case the lane was built on: CERTIFIED (not
+      community), ~40 streams over a repo list, real incremental cursors with per-repo
+      state, and GitHub's pagination + secondary-rate-limit handling is exactly the code
+      nobody should hand-roll in dlt for N streams. dlt's declarative rest_api could do
+      2-3 of these streams cheaply; it could not do the stream breadth + state handling
+      without becoming a maintained client of our own.
+  provenance:
+    added: 2026-07-20
+    actor: Claude (Opus 4.8) agent session — OGIP ingestion lane
+    directive: >
+      Airbyte-refit audit: find sources that ACTUALLY justify the Airbyte lane after
+      source-twitch proved nonexistent and source-reddit proved community/0.0.x —
+      connector existence + supportLevel verified against the live OSS registry, never
+      from memory.
+    evidence_verified: 2026-07-20
+    registered_in: skills (this commit)
+    refs: [OGIP#18, OGIP#19]
+    batch: 2026-07-20-airbyte-refit
+  docs: https://docs.airbyte.com/integrations/sources/github

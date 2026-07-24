@@ -1,0 +1,50 @@
+# E2E for the dagster-dlt-dbt combo profile — a SEPARATE workflow, not part of the core
+# ci.yml, because it uses the self-contained nested uv project under experimental/. It drives
+# the whole pipeline (source → FS layer) through Dagster on the RAWG demo fixture (no Docker).
+name: dagster-e2e
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - "experimental/orchestration/dagster_ogip/**"
+      - "spec/sql/**"
+      - "src/ogip/spec_compile/**"
+      - ".github/workflows/dagster-e2e.yml"
+  pull_request:
+    paths:
+      - "experimental/orchestration/dagster_ogip/**"
+      - "spec/sql/**"
+      - "src/ogip/spec_compile/**"
+      - ".github/workflows/dagster-e2e.yml"
+
+concurrency:
+  group: dagster-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  combo-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with: { enable-cache: true }
+      - name: Sync the nested Dagster project
+        working-directory: experimental/orchestration/dagster_ogip
+        run: uv sync
+      - name: Generate the dbt project from spec/ (DbtProjectComponent needs it; it is gitignored)
+        working-directory: experimental/orchestration/dagster_ogip
+        run: |
+          PYTHONPATH="$GITHUB_WORKSPACE/src" .venv/bin/python - "$GITHUB_WORKSPACE" <<'PY'
+          import sys
+          from pathlib import Path
+          from ogip.spec_compile.to_dbt import compile_to_dbt
+          root = Path(sys.argv[1]).resolve()
+          compile_to_dbt(root / "spec" / "sql", Path("dbt"),
+                         warehouse=root / ".run" / "data" / "warehouse" / "ogip.duckdb", repo_root=root)
+          PY
+      - name: Validate all definitions (jobs · schedules · sensors · checks · partitions)
+        working-directory: experimental/orchestration/dagster_ogip
+        run: uv run dg check defs
+      - name: Combo e2e — source → FS layer via Dagster (dlt → dbt build)
+        run: bash experimental/orchestration/dagster_ogip/e2e/run_combo.sh

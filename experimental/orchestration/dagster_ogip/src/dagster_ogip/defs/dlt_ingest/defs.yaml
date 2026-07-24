@@ -1,0 +1,10 @@
+# Native dlt integration — the dlt pipeline becomes Dagster assets, upstream of the dbt graph.
+# Ingestion engine is dlt (ADR-0006 / D11); ingestr stays the optional CDC loader.
+type: dagster_dlt.DltLoadCollectionComponent
+
+attributes:
+  loads:
+    - source: .loads.rawg_load_source
+      pipeline: .loads.rawg_load_pipeline
+      translation:
+        group_name: ingestion

@@ -3,8 +3,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
+    branches: [main, dev]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -49,11 +50,19 @@ jobs:
       - uses: actions/checkout@v4
       - run: .ci/run.sh bash-lint
 
+  commit-binding:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 } # needs history: the step walks base..HEAD
+      - run: .ci/run.sh commit-binding
+
   structure-validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: .ci/run.sh structure-validate
+      - run: .ci/run.sh lfs-guard # large test datasets must be LFS pointers, not raw blobs
 
   secret-scan:
     runs-on: ubuntu-latest
