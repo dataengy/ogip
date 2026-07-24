@@ -1,8 +1,9 @@
 """Cross-orchestrator integrations — hand off to the platform's other engines."""
 
+from dagster_ogip._lib.orchestration import run_task
+
 import dagster as dg
 from dagster import OpExecutionContext
-from dagster_ogip._lib.orchestration import run_task
 
 
 @dg.op

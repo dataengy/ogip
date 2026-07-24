@@ -128,7 +128,10 @@ def make_engine_flow(engine: str, *, flow_name: str | None = None) -> Flow[[], d
 
     @flow(name=name, on_failure=[notify_flow_failure])
     def _engine_flow() -> dict[str, int]:
-        setup_logging()
+        # Structured log file so the obs stack (Alloy → Loki) has something to tail; honor the
+        # SSoT json/level knobs instead of a bare default (obs handoff — core-pipeline lane, #29).
+        _platform = get_settings().platform
+        setup_logging(json_logs=_platform.log_json, log_file=_platform.log_file)
         raw = _ingest()
         models = _transform(raw)
         ml = _ml_features(models)

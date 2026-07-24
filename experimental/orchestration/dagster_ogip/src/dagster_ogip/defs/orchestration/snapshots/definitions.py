@@ -1,8 +1,9 @@
 """Partitioned snapshots — the daily market snapshot fact, and the backfills it enables."""
 
+from dagster_ogip._lib.orchestration import SNAPSHOTS_DIR, WAREHOUSE, snapshot_partitions
+
 import dagster as dg
 from dagster import AssetExecutionContext
-from dagster_ogip._lib.orchestration import SNAPSHOTS_DIR, WAREHOUSE, snapshot_partitions
 
 
 @dg.asset(
