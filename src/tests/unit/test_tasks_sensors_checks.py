@@ -72,3 +72,25 @@ def test_check_reports_missing_warehouse_as_failed(
     result = market_features_nonempty()
     assert result["passed"] is False
     assert "reason" in result
+
+
+def test_check_never_raises_on_missing_table(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Regression: check must never raise when warehouse exists but table doesn't."""
+    import duckdb
+
+    import ogip.tasks.checks
+
+    # Create a real empty warehouse file
+    warehouse_path = tmp_path / "ogip.duckdb"
+    duckdb.connect(str(warehouse_path)).close()
+
+    stub_settings = MagicMock()
+    stub_settings.platform.warehouse_path = warehouse_path
+    monkeypatch.setattr(ogip.tasks.checks, "get_settings", lambda: stub_settings)
+
+    # This must NOT raise — it should return in-band failure
+    result = market_features_nonempty()
+    assert result["passed"] is False
+    assert "reason" in result

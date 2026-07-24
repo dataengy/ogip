@@ -22,14 +22,18 @@ def market_features_nonempty() -> dict[str, object]:
         return {"passed": False, "reason": "warehouse not built yet"}
     import duckdb
 
-    con = duckdb.connect(str(warehouse), read_only=True)
     try:
-        rows = con.execute("select count(*) from fs.market_features").fetchone()
-        nulls = con.execute(
-            "select count(*) from fs.market_features where popularity_score is null"
-        ).fetchone()
-    finally:
-        con.close()
+        con = duckdb.connect(str(warehouse), read_only=True)
+        try:
+            rows = con.execute("select count(*) from fs.market_features").fetchone()
+            nulls = con.execute(
+                "select count(*) from fs.market_features where popularity_score is null"
+            ).fetchone()
+        finally:
+            con.close()
+    except Exception as exc:  # any warehouse access failure means check cannot run
+        log.warning("market_features check: query failed ({e})", e=type(exc).__name__)
+        return {"passed": False, "reason": f"query failed ({type(exc).__name__})"}
     n = int(rows[0]) if rows else 0
     bad = int(nulls[0]) if nulls else 0
     log.info("market_features check: rows={n} null_scores={b}", n=n, b=bad)
