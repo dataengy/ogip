@@ -21,6 +21,7 @@ postgres: # ADR-0008 — landing zone + platform_meta + Prefect backend
   database: ogip
   landing_schema: landing # scraped/parsed intermediate (D11)
   meta_schema: platform_meta # run stats, watermarks, DQ results
+  airbyte_schema: airbyte_raw # experimental Airbyte evaluation lane (#41) ONLY — not the prod path
 
 services: # compose port mappings (rendered into .env)
   postgres_port: 5432
@@ -31,6 +32,7 @@ services: # compose port mappings (rendered into .env)
   loki_port: 3100
   grafana_port: 3300
   evidence_port: 3400 # optional Evidence visualizer (experimental/bi, D8)
+  airbyte_port: 8000 # experimental Airbyte evaluation lane (#41); abctl's local ingress
 
 endpoints:
   prefect_api_url: http://localhost:4200/api
