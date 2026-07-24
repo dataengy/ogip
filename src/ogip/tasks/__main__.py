@@ -11,11 +11,15 @@ Exit codes are the contract a shell caller branches on:
       caught, logged with `log.exception` (full traceback), and turned into this same code
       so a bug inside a task never leaks a raw traceback past this boundary.
   2 — the task name is not in the registry.
+
+A task that returns a non-None value additionally prints it as a single JSON line on stdout —
+the machine half of the boundary; logs stay on stderr.
 """
 
 from __future__ import annotations
 
 import inspect
+import json
 import sys
 import types
 import typing
@@ -117,10 +121,14 @@ def main(argv: list[str] | None = None) -> int:
     kwargs = _bind_kwargs(name, task, raw_kwargs)
     log.bind(task=name).info("running with {k}", k=kwargs)
     try:
-        task(**kwargs)
+        result = task(**kwargs)
     except Exception:
         log.exception("task {t} failed", t=name)
         return 1
+    if result is not None:
+        # The result contract (ODOS adapters parse this): exactly one JSON line, last on
+        # stdout. Logs go to stderr, so a shell caller can take `tail -1` safely.
+        print(json.dumps(result, default=str))  # noqa: T201
     return 0
 
 
