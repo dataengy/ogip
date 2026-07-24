@@ -16,8 +16,86 @@ from .bruin import Asset, load_assets
 from .dialect import rewrite_refs
 
 _MATERIALIZATION = {"table": "table", "view": "view"}
-# Bruin check name -> dbt generic test name
+# Bruin check name -> dbt generic test name (the argument-free ones)
 _TEST = {"not_null": "not_null", "unique": "unique"}
+
+
+def _numeric(value: Any) -> bool:
+    """`bool` is an `int` subclass in Python — a bound must be a real number."""
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def _range_test(bounds: dict[str, Any]) -> dict[str, Any]:
+    """`dbt_utils.accepted_range`, emitting only the bounds actually authored."""
+    out: dict[str, Any] = {}
+    if _numeric(bounds.get("min")):
+        out["min_value"] = bounds["min"]
+    if _numeric(bounds.get("max")):
+        out["max_value"] = bounds["max"]
+    return {"dbt_utils.accepted_range": out}
+
+
+def _column_test(chk: dict[str, Any]) -> str | dict[str, Any] | None:
+    """One `@bruin` column check -> one dbt test entry (``None`` = not projectable here).
+
+    Unknown names are skipped rather than raised: `to_sqlmesh` is the fail-loud gate for the
+    check vocabulary (ODTS §5) and runs over the same spec, so a typo is already caught there.
+    """
+    name = chk.get("name")
+    if name in _TEST:
+        return _TEST[str(name)]
+    raw_value = chk.get("value")
+    value = cast("dict[str, Any]", raw_value) if isinstance(raw_value, dict) else {}
+    raw_args = chk.get("args")
+    args = cast("list[Any]", raw_args) if isinstance(raw_args, list) else []
+    if name == "relationships":
+        # referential integrity back to the core entity this row describes
+        return {"relationships": {"to": f"ref('{value.get('to')}')", "field": value.get("field")}}
+    if name == "accepted_range":
+        return _range_test(value)
+    if name == "non_negative":
+        return _range_test({"min": 0})
+    if name == "between" and len(args) == 2:
+        return _range_test({"min": args[0], "max": args[1]})
+    if name == "accepted_values" and args:
+        return {"accepted_values": {"values": list(args)}}
+    return None
+
+
+def _model_level_tests(asset: Asset) -> list[dict[str, Any]]:
+    """Top-level (cross-column) `checks:` -> model-level dbt tests.
+
+    These were dropped entirely before, so a composite-uniqueness or non-empty constraint
+    authored in `spec/sql` never ran under dbt.
+    """
+    tests: list[dict[str, Any]] = []
+    for chk in cast("list[dict[str, Any]]", asset.meta.get("checks") or []):
+        name = chk.get("name")
+        if name == "unique" and isinstance(chk.get("columns"), list):
+            cols = [str(c) for c in cast("list[Any]", chk["columns"])]
+            tests.append(
+                {"dbt_utils.unique_combination_of_columns": {"combination_of_columns": cols}}
+            )
+        elif name == "not_empty":
+            # no single column can assert "the table produced rows at all"
+            tests.append(
+                {"dbt_expectations.expect_table_row_count_to_be_between": {"min_value": 1}}
+            )
+    return tests
+
+
+def _unit_tests(assets: list[Asset]) -> list[dict[str, Any]]:
+    """`unit_tests:` -> dbt (>=1.8) unit tests, bound to the model that authored them."""
+    out: list[dict[str, Any]] = []
+    for asset in assets:
+        for raw in cast("list[Any]", asset.meta.get("unit_tests") or []):
+            if not isinstance(raw, dict):
+                continue
+            entry = dict(cast("dict[str, Any]", raw))
+            entry["model"] = asset.model
+            out.append(entry)
+    return out
+
 
 # Well-known dbt-hub packages, emitted into the generated project's packages.yml (installed by
 # `dbt deps`). Version ranges, not pins, so dbt resolves the newest compatible release. These
@@ -89,11 +167,13 @@ def _schema_yml(assets: list[Asset]) -> dict[str, Any]:
             col = cast("dict[str, Any]", col_value)
             checks_value = col.get("checks")
             checks = cast("list[Any]", checks_value) if isinstance(checks_value, list) else []
-            tests = [
-                _TEST[str(cast("dict[str, Any]", c)["name"])]
-                for c in checks
-                if isinstance(c, dict) and cast("dict[str, Any]", c).get("name") in _TEST
-            ]
+            tests: list[str | dict[str, Any]] = []
+            for c in checks:
+                if not isinstance(c, dict):
+                    continue
+                projected = _column_test(cast("dict[str, Any]", c))
+                if projected is not None:
+                    tests.append(projected)
             entry: dict[str, Any] = {"name": str(col.get("name"))}
             if col.get("description"):
                 entry["description"] = str(col["description"])
@@ -105,8 +185,15 @@ def _schema_yml(assets: list[Asset]) -> dict[str, Any]:
             model["description"] = str(asset.meta["description"])
         if columns:
             model["columns"] = columns
+        model_tests = _model_level_tests(asset)
+        if model_tests:
+            model["data_tests"] = model_tests
         models.append(model)
-    return {"version": 2, "models": models}
+    schema: dict[str, Any] = {"version": 2, "models": models}
+    unit_tests = _unit_tests(assets)
+    if unit_tests:
+        schema["unit_tests"] = unit_tests
+    return schema
 
 
 def compile_to_dbt(
@@ -139,6 +226,23 @@ def compile_to_dbt(
     (models_dir / "schema.yml").write_text(
         yaml.safe_dump(_schema_yml(assets), sort_keys=False), encoding="utf-8"
     )
+
+    # `custom_checks:` -> dbt SINGULAR tests: a bespoke assertion that is not a per-column
+    # rule. dbt fails the test when the query returns any row, which is exactly the authored
+    # contract ("must return ZERO rows").
+    tests_dir = project_dir / "tests"
+    for stale in tests_dir.glob("*.sql"):  # regenerate cleanly, like models/
+        stale.unlink()
+    singular: list[tuple[str, str]] = [
+        (str(cast("dict[str, Any]", c)["name"]), str(cast("dict[str, Any]", c).get("query") or ""))
+        for asset in assets
+        for c in cast("list[Any]", asset.meta.get("custom_checks") or [])
+        if isinstance(c, dict) and cast("dict[str, Any]", c).get("name")
+    ]
+    if singular:
+        tests_dir.mkdir(parents=True, exist_ok=True)
+        for name, query in singular:
+            (tests_dir / f"{name}.sql").write_text(query.rstrip() + "\n", encoding="utf-8")
     # Use each model's configured `schema` verbatim (no `<target>_` prefix) so the layer
     # schemas match the SQLMesh target and the platform contract (fs.market_features etc.).
     macros_dir = project_dir / "macros"

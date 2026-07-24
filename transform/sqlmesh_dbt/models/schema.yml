@@ -9,7 +9,15 @@ models:
     data_tests:
     - not_null
   - name: psn_price
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
   - name: psn_currency
+  data_tests:
+  - dbt_utils.unique_combination_of_columns:
+      combination_of_columns:
+      - game_sk
+      - locale
 - name: critic_reception
   columns:
   - name: game_sk
@@ -17,7 +25,15 @@ models:
     - not_null
     - unique
   - name: metacritic_score
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
+        max_value: 100
   - name: opencritic_score
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
+        max_value: 100
 - name: game
   columns:
   - name: game_sk
@@ -28,6 +44,10 @@ models:
     data_tests:
     - not_null
   - name: metacritic
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
+        max_value: 100
 - name: traction
   columns:
   - name: game_sk
@@ -35,8 +55,17 @@ models:
     - not_null
     - unique
   - name: current_players
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
   - name: peak_24h
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
   - name: peak_all
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
 - name: market_features
   columns:
   - name: game_sk
@@ -44,13 +73,38 @@ models:
     - not_null
     - unique
   - name: popularity_score
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
   - name: critic_score
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
+        max_value: 1
   - name: metacritic_score
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
+        max_value: 100
   - name: opencritic_score
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
+        max_value: 100
   - name: avg_critic_score
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
+        max_value: 100
   - name: psn_price_usd
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
   - name: psn_currency
   - name: peak_players
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
   - name: has_critic_reception
     data_tests:
     - not_null
@@ -136,8 +190,17 @@ models:
     data_tests:
     - not_null
   - name: ratings_count
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
   - name: playtime_hours
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
   - name: added_count
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
 - name: stg_metacritic_games
   columns:
   - name: slug
@@ -148,7 +211,14 @@ models:
     data_tests:
     - not_null
   - name: metascore
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
+        max_value: 100
   - name: review_count
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
 - name: stg_opencritic_games
   columns:
   - name: game_id
@@ -159,7 +229,14 @@ models:
     data_tests:
     - not_null
   - name: score
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
+        max_value: 100
   - name: review_count
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
 - name: stg_psn_concepts
   columns:
   - name: row_key
@@ -170,6 +247,9 @@ models:
     data_tests:
     - not_null
   - name: price
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
 - name: stg_steamcharts_apps
   columns:
   - name: appid
@@ -177,5 +257,14 @@ models:
     - not_null
     - unique
   - name: current_players
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
   - name: peak_24h
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
   - name: peak_all
+    data_tests:
+    - dbt_utils.accepted_range:
+        min_value: 0
