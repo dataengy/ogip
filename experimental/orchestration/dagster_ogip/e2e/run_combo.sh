@@ -42,6 +42,15 @@ PY
 log "dg launch — dlt ingestion (source → raw Parquet)"
 uv run dg launch --assets 'key:"raw/rawg__games"'
 
+# 2b. Scraped sources land OUTSIDE dlt (no bespoke-parser dlt source exists) — in the real
+# combo profile Prefect owns this step. Run it from the MAIN OGIP venv, which carries the
+# scraper deps the nested Dagster venv deliberately does not. Without it the dbt build in step 3
+# fails: critic_reception / console_pricing / traction reference scraped-source staging that
+# would otherwise have no raw Parquet to read (issue #38).
+MAIN_VENV="${OGIP_MAIN_VENV:-$REPO/.run/venv}"
+log "land scraped sources (fixture, main venv) — Prefect's half of ingestion"
+PYTHONPATH="$REPO/src:$REPO" "$MAIN_VENV/bin/python" -m ogip.tasks ingest.scraped
+
 # 3. TRANSFORM + DQ: `dbt build` runs models AND the generated tests, in one Dagster run.
 log "dg launch — dbt build (transform + dq) → FS layer"
 uv run dg launch --assets 'key:"rawg__games"+'

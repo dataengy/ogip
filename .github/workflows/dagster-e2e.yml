@@ -29,6 +29,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
         with: { enable-cache: true }
+      - name: Sync the main OGIP env (scraper deps — Prefect lands scraped sources in the combo)
+        run: uv sync
+        env:
+          UV_PROJECT_ENVIRONMENT: .run/venv
       - name: Sync the nested Dagster project
         working-directory: experimental/orchestration/dagster_ogip
         run: uv sync

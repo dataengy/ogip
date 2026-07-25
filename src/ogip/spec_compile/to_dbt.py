@@ -35,11 +35,16 @@ def _range_test(bounds: dict[str, Any]) -> dict[str, Any]:
     return {"dbt_utils.accepted_range": out}
 
 
-def _column_test(chk: dict[str, Any]) -> str | dict[str, Any] | None:
+def _column_test(chk: dict[str, Any], *, with_packages: bool) -> str | dict[str, Any] | None:
     """One `@bruin` column check -> one dbt test entry (``None`` = not projectable here).
 
     Unknown names are skipped rather than raised: `to_sqlmesh` is the fail-loud gate for the
     check vocabulary (ODTS §5) and runs over the same spec, so a typo is already caught there.
+
+    ``with_packages=False`` (OpenDBT / SQLMesh-over-dbt, whose dbt loader cannot install the hub
+    packages) emits ONLY dbt-core built-in tests — `not_null`, `unique`, `accepted_values`,
+    `relationships`. The bounds tests come from `dbt_utils` and are dropped, else dbt fails with
+    an unresolved-macro error at parse time.
     """
     name = chk.get("name")
     if name in _TEST:
@@ -49,25 +54,30 @@ def _column_test(chk: dict[str, Any]) -> str | dict[str, Any] | None:
     raw_args = chk.get("args")
     args = cast("list[Any]", raw_args) if isinstance(raw_args, list) else []
     if name == "relationships":
-        # referential integrity back to the core entity this row describes
+        # referential integrity back to the core entity this row describes (dbt-core built-in)
         return {"relationships": {"to": f"ref('{value.get('to')}')", "field": value.get("field")}}
+    if name == "accepted_values" and args:
+        return {"accepted_values": {"values": list(args)}}  # dbt-core built-in
+    if not with_packages:
+        return None  # everything below needs dbt_utils — unavailable in the package-free flavors
     if name == "accepted_range":
         return _range_test(value)
     if name == "non_negative":
         return _range_test({"min": 0})
     if name == "between" and len(args) == 2:
         return _range_test({"min": args[0], "max": args[1]})
-    if name == "accepted_values" and args:
-        return {"accepted_values": {"values": list(args)}}
     return None
 
 
-def _model_level_tests(asset: Asset) -> list[dict[str, Any]]:
+def _model_level_tests(asset: Asset, *, with_packages: bool) -> list[dict[str, Any]]:
     """Top-level (cross-column) `checks:` -> model-level dbt tests.
 
     These were dropped entirely before, so a composite-uniqueness or non-empty constraint
-    authored in `spec/sql` never ran under dbt.
+    authored in `spec/sql` never ran under dbt. BOTH targets here need hub packages
+    (`dbt_utils`, `dbt_expectations`), so they are omitted for the package-free flavors.
     """
+    if not with_packages:
+        return []
     tests: list[dict[str, Any]] = []
     for chk in cast("list[dict[str, Any]]", asset.meta.get("checks") or []):
         name = chk.get("name")
@@ -155,7 +165,7 @@ def _model_sql(asset: Asset, assets: list[Asset], repo_root: Path) -> str:
     return f"{config}\n\n{body}\n"
 
 
-def _schema_yml(assets: list[Asset]) -> dict[str, Any]:
+def _schema_yml(assets: list[Asset], *, with_packages: bool) -> dict[str, Any]:
     models: list[dict[str, Any]] = []
     for asset in assets:
         columns_value = asset.meta.get("columns")
@@ -171,7 +181,7 @@ def _schema_yml(assets: list[Asset]) -> dict[str, Any]:
             for c in checks:
                 if not isinstance(c, dict):
                     continue
-                projected = _column_test(cast("dict[str, Any]", c))
+                projected = _column_test(cast("dict[str, Any]", c), with_packages=with_packages)
                 if projected is not None:
                     tests.append(projected)
             entry: dict[str, Any] = {"name": str(col.get("name"))}
@@ -185,7 +195,7 @@ def _schema_yml(assets: list[Asset]) -> dict[str, Any]:
             model["description"] = str(asset.meta["description"])
         if columns:
             model["columns"] = columns
-        model_tests = _model_level_tests(asset)
+        model_tests = _model_level_tests(asset, with_packages=with_packages)
         if model_tests:
             model["data_tests"] = model_tests
         models.append(model)
@@ -224,7 +234,8 @@ def compile_to_dbt(
         target.write_text(_model_sql(asset, assets, repo_root), encoding="utf-8")
 
     (models_dir / "schema.yml").write_text(
-        yaml.safe_dump(_schema_yml(assets), sort_keys=False), encoding="utf-8"
+        yaml.safe_dump(_schema_yml(assets, with_packages=with_packages), sort_keys=False),
+        encoding="utf-8",
     )
 
     # `custom_checks:` -> dbt SINGULAR tests: a bespoke assertion that is not a per-column

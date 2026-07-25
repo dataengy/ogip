@@ -26,6 +26,7 @@ from prefect import flow
 from prefect.assets import materialize
 
 from ogip.logger import log, setup_logging
+from ogip.tasks.ingest import ingest_scraped
 
 DAGSTER_PROJECT = REPO / "experimental" / "orchestration" / "dagster_ogip"
 # The two Dagster asset selections making up the dlt→dbt combo (see dagster_ogip/e2e/run_combo.sh):
@@ -33,6 +34,7 @@ DAGSTER_PROJECT = REPO / "experimental" / "orchestration" / "dagster_ogip"
 _DLT_ASSET = 'key:"raw/rawg__games"'
 _DBT_SUBGRAPH = 'key:"rawg__games"+'
 
+SCRAPED_RAW_KEY = "file://ogip/dagster/raw/scraped"
 RAW_KEY = "file://ogip/dagster/raw/rawg__games"
 WAREHOUSE_KEY = "duckdb://ogip/dagster/warehouse"
 ML_KEY = "file://ogip/dagster/outputs/ml_features.parquet"
@@ -59,8 +61,20 @@ def run_dagster_dlt_dbt() -> list[str]:
     return [_DLT_ASSET, _DBT_SUBGRAPH]
 
 
+@materialize(SCRAPED_RAW_KEY)
+def _ingest_scraped() -> str:
+    """Prefect owns scraping: land the enabled scraped sources' raw Parquet OUTSIDE dlt.
+
+    Runs BEFORE the Dagster dbt build so the cross-source dbt models (critic_reception,
+    console_pricing, traction) have their scraped-source staging to read. Scrapers are not dlt
+    sources, so Dagster's dlt asset only covers RAWG — this is the missing half of ingestion.
+    """
+    ingest_scraped()
+    return SCRAPED_RAW_KEY
+
+
 @materialize(RAW_KEY, WAREHOUSE_KEY)
-def _dagster_dlt_dbt() -> list[str]:
+def _dagster_dlt_dbt(_scraped: str) -> list[str]:
     """Dagster owns dlt+dbt: source → raw Parquet → dbt build → core/fs in the shared warehouse."""
     return run_dagster_dlt_dbt()
 
@@ -81,7 +95,8 @@ def _publish(_ml: dict[str, int]) -> dict[str, int]:
 def flow_dagster() -> dict[str, int]:
     """Dagster (dlt+dbt) wrapped in Prefect (ML + publish + alerting)."""
     setup_logging()
-    dagster_assets = _dagster_dlt_dbt()
+    scraped = _ingest_scraped()
+    dagster_assets = _dagster_dlt_dbt(scraped)
     ml = _ml_features(dagster_assets)
     outputs = _publish(ml)
     return {**outputs, **{f"ml::{k}": v for k, v in ml.items()}}

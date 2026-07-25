@@ -25,8 +25,10 @@ def _write_asset(spec_dir: Path, schema: str, model: str, header: str, sql: str)
     target.write_text(f"/* @bruin\n{header}\n@bruin */\n{sql}\n")
 
 
-def _compile(spec: Path, out: Path) -> dict[str, Any]:
-    compile_to_dbt(spec, out, warehouse=out / "wh.duckdb", repo_root=REPO, with_packages=False)
+def _compile(spec: Path, out: Path, *, with_packages: bool = True) -> dict[str, Any]:
+    compile_to_dbt(
+        spec, out, warehouse=out / "wh.duckdb", repo_root=REPO, with_packages=with_packages
+    )
     raw = yaml.safe_load((out / "models" / "schema.yml").read_text())
     return cast("dict[str, Any]", raw)
 
@@ -89,6 +91,39 @@ def test_column_check_vocabulary_becomes_dbt_tests(tmp_path: Path) -> None:
 
     vals = [_as_dict(t) for t in _tests_for(model, "region") if isinstance(t, dict)]
     assert vals and vals[0]["accepted_values"] == {"values": ["eu", "us"]}
+
+
+def test_package_free_flavor_emits_only_builtin_tests(tmp_path: Path) -> None:
+    """OpenDBT / SQLMesh-over-dbt compile with_packages=False and cannot install dbt_utils.
+
+    So the generated schema must carry ONLY dbt-core built-in tests — no `dbt_utils.*` /
+    `dbt_expectations.*` reference, which would fail dbt at parse time with an unresolved macro.
+    Regression guard: Task 1b once emitted those unconditionally and broke both flavors.
+    """
+    spec = tmp_path / "spec"
+    _write_asset(
+        spec,
+        "fs",
+        "feat",
+        "name: fs.feat\ntype: duckdb.sql\nmaterialization: {type: table}\n"
+        "checks:\n  - {name: not_empty}\n  - name: unique\n    columns: [game_sk, locale]\n"
+        "columns:\n"
+        "  - name: game_sk\n"
+        "    checks:\n"
+        "      - {name: not_null}\n"
+        "      - {name: relationships, value: {to: game, field: game_sk}}\n"
+        "  - name: critic_score\n"
+        "    checks: [{name: accepted_range, value: {min: 0, max: 1}}]",
+        "select 1 as game_sk, 'x' as locale, 0.5 as critic_score",
+    )
+    out = tmp_path / "out"
+    dumped = yaml.safe_dump(_compile(spec, out, with_packages=False))
+    assert "dbt_utils" not in dumped, dumped
+    assert "dbt_expectations" not in dumped, dumped
+    # built-ins survive
+    model = _model(yaml.safe_load((out / "models" / "schema.yml").read_text()), "feat")
+    assert "not_null" in _tests_for(model, "game_sk")
+    assert any(isinstance(t, dict) and "relationships" in t for t in _tests_for(model, "game_sk"))
 
 
 def test_top_level_checks_become_model_level_dbt_tests(tmp_path: Path) -> None:
