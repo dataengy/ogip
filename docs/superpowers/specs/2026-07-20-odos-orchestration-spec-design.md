@@ -145,6 +145,10 @@ assets:
     group_name: marts
 ```
 
+An asset the orchestrator provides outside ODTS and ODOS (e.g. the native CDC landing asset) is
+declared with `external: true` instead of `task:` — it joins the graph for `select:` but no
+adapter generates it (plan-2 decision 1).
+
 Asset keys are ODTS dotted names (`core.game`), never orchestrator-native key tuples. The
 Dagster-side collision between the dbt raw model and the dlt asset (ADR-0015, "Consequences") is
 an adapter concern and does not surface in the spec.
@@ -352,6 +356,9 @@ checks:
 ```yaml
 odos: 0.1
 group: ingestion
+assets:
+  cdc.landing:
+    external: true
 jobs:
   dlt_ingest_job: { select: raw.rawg__games }
   cdc_asset_job:  { select: cdc.landing }
@@ -387,7 +394,7 @@ jobs:
   update_dbt_job:            { task: dbt.parse, tags: { maintenance: dbt } }
   update_dbt_changed_job:
     task: dbt.build
-    args: { select: "state:modified+", state: dbt }
+    args: { select: "state:modified+", state: "." }
     tags: { maintenance: dbt }
   dbt_project_evaluator_job:
     task: dbt.build
@@ -400,6 +407,9 @@ automations:
     on:  poll(sensors.spec_sql_mtime, every=30s)
     run: update_dbt_changed_job
 ```
+
+`state: "."` resolves against the lane's `project_dir` inside `dbt.build` — a lane-specific path
+never appears in the spec (plan-2 decision 4).
 
 ### `integrations.yml`
 

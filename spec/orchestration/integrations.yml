@@ -1,0 +1,12 @@
+odos: 0.1
+group: integrations
+doc: Cross-orchestrator integrations — hand off to the platform's other engines.
+
+jobs:
+  prefect_trigger_job:
+    task: integrations.trigger_prefect
+    tags: {orchestration: prefect}
+    targets: [dagster]
+    doc: "Trigger the root Prefect flow (the default production orchestrator)
+      from Dagster — demonstrates the two orchestrators interoperating over the
+      same spec/warehouse."
