@@ -1,8 +1,8 @@
-name: ogip-opendbt
+name: ogip-dagster
 prefect-version: 3.0.0
 deployments:
-  - name: ingest-transform-publish-opendbt
-    entrypoint: pipelines/opendbt/flow.py:flow
+  - name: ingest-transform-publish-dagster
+    entrypoint: experimental/pipelines/dagster/flow.py:flow
     work_pool:
       name: default
     schedule:

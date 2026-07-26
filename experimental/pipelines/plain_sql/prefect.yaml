@@ -2,7 +2,7 @@ name: ogip-plain-sql
 prefect-version: 3.0.0
 deployments:
   - name: ingest-transform-publish-plain-sql
-    entrypoint: pipelines/plain_sql/flow.py:flow
+    entrypoint: experimental/pipelines/plain_sql/flow.py:flow
     work_pool:
       name: default
     schedule:

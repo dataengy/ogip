@@ -107,7 +107,7 @@ def test_heavy_setup_builds_and_produces_ml(engine: str, _clean: None) -> None:
 )
 def test_dagster_wrapped_in_prefect(_clean: None) -> None:
     """Dagster (dlt+dbt) wrapped in Prefect (ML+publish) — needs the Dagster project env."""
-    from pipelines.dagster.flow import DAGSTER_PROJECT, run_dagster_dlt_dbt
+    from experimental.pipelines.dagster.flow import DAGSTER_PROJECT, run_dagster_dlt_dbt
 
     if not (DAGSTER_PROJECT / ".venv").exists():
         pytest.skip(
