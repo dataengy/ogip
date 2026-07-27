@@ -52,9 +52,19 @@ shared. Otherwise the comparison is dishonest and the HCL triplicates.
 
 ## Status
 
-Phase 0 complete (config SSoT + scaffold). **Phase 1 (abctl runtime) is the hard go/no-go gate.**
+- **Phase 0** — config SSoT + scaffold ✅
+- **Phase 1** — runtime scripts written ✅; the **abctl runtime itself is a NO-GO on this
+  machine** (disk-exhausted mid-install; the provider↔runtime premise is therefore *unverified*).
+  See [`docs/techdebt/airbyte-lane.md`](../../../docs/techdebt/airbyte-lane.md#phase-1-result).
+- **Phase 2** — shared `airbyte-connection` module, schema-verified vs provider 1.2.0, `validate`-green ✅
+- **Phase 3** — Variant A (`terraform/variant-a-yamldecode/`): `validate`-green **offline** and
+  `terraform console`-proven to discover `github_repos`+`reddit_posts` from the specs, exclude
+  twitch (declarative → Phase 5), build github's 6 streams, and parse `godotengine/godot` from the
+  descriptor url. `plan`/`apply` — the *measured* datapoint — are blocked on the runtime.
+- **Phase 6** — CI `airbyte-tf` job (`fmt`+`validate`) ✅
+- **Phases 4, 5, 7** — pending (Variants B/C + drift gate; Twitch declarative; the measured verdict).
 
-**No verdict yet.** The three-variant comparison is written in Phase 7 and must rest on the Phase
-3–4 *measurements* — a predicted winner stated here in advance would be exactly the false-green
-this repo's `deferred_functionality` standard exists to prevent. `airbyte_emit.py render <a|b|c>`
-is currently a **loud stub (exit 2)** until the module lands.
+**No verdict yet, by design.** The three-variant comparison (Phase 7) must rest on the Phase 3–4
+*measurements* — a winner asserted here in advance would be exactly the false-green this repo's
+`deferred_functionality` standard exists to prevent. Variant A's wiring is proven; its measured
+run and Variants B/C await a working runtime.
