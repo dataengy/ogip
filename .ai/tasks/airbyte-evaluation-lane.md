@@ -30,12 +30,15 @@ Comparison: [`docs/comparisons/github_repos-ingestion-dlt-vs-airbyte-vs-custom.m
 - [x] Pre-commit gate `src/scripts/airbyte-blocks-check.sh`
 - [x] Phase 0 — `lane/airbyte` worktree; `services.airbyte_port` + `postgres.airbyte_schema`
       in the config SSoT; `experimental/ingestion/airbyte/` scaffold
-- [ ] Phase 1 — abctl runtime + `airbyte_raw` destination (**hard go/no-go gate**)
-- [ ] Phase 2 — shared `modules/airbyte-connection` (provider pinned `airbytehq/airbyte 1.2.0`)
-- [ ] Phase 3 — Variant A (yamldecode); first measured datapoint
+- [x] Phase 1 scripts (`up`/`down`/`credentials.sh` + Justfile) — **runtime NO-GO on this
+      machine**, see techdebt (abctl disk-exhausted mid-install; premise unverified)
+- [x] Phase 2 — shared `modules/airbyte-connection`, provider 1.2.0, schema-verified, validate-green
+- [~] Phase 3 — Variant A (yamldecode `for_each`): HCL **validate-green offline** and console-proven
+      to discover github_repos+reddit_posts, build github's 6 streams, parse the repo from the
+      descriptor url. `plan`/`apply` (the *measured* datapoint) blocked on the runtime.
 - [ ] Phase 4 — Variants B & C; removes the `render` stub; drift gate
 - [ ] Phase 5 — Twitch declarative connector
-- [ ] Phase 6 — CI `fmt`/`validate`/drift (never `plan`/`apply` — no reachable API)
+- [x] Phase 6 — CI `airbyte-tf` job (`fmt`+`validate`; `plan`/`apply` never — no reachable API)
 - [ ] Phase 7 — finish `/add-airbyte-sync` deploy; README with the **measured** verdict
 
 ## Gates that bite
