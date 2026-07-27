@@ -61,3 +61,15 @@ integrations/*/config.yml
 
 logs/runs
 logs/*.log
+
+# --- Terraform (experimental Airbyte lane, #41) ---
+# Provider downloads, local state, and crash logs are never committed.
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+# Lock file ignored on purpose for this lane: it is generated per-platform (darwin here) and the
+# CI airbyte-tf job runs on linux with `init -backend=false`, which re-resolves — a committed
+# single-platform lock would fail CI. Pin platforms explicitly if this lane ever graduates.
+.terraform.lock.hcl
