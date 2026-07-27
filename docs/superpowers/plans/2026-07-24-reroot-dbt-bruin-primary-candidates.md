@@ -256,3 +256,24 @@ Route freshness/row-count monitors (`spec/dq/policy.yml`) to run against the dbt
 ## Execution Handoff
 
 Plan saved. Two execution options: **(1) Subagent-Driven (recommended)** — fresh subagent per task + two-stage review; **(2) Inline** — executing-plans with checkpoints. Execution starts once **PR #29 is merged** and the worktree is branched off post-#29 `dev`.
+
+---
+
+## Execution log / resume state (2026-07-27)
+
+Branch **`lane/reroot-dbt-bruin-primary`** (pushed). PR #29 merged (`dev@3b1d4b9`); branch is post-#29.
+
+**DONE + pushed:**
+- **Task 1** — compiler both ways. `to_sqlmesh` tolerates dbt-native checks via explicit `_DBT_ONLY_CHECKS={relationships,not_empty}` allowlist (typo still fails loud) + `accepted_range` `value:{min,max}` form (`bfb3e54`). `to_dbt` emits the full vocabulary as real dbt tests; **package-free flavors (opendbt/sqlmesh_dbt, `with_packages=False`) get dbt-core BUILT-INS only** — `dbt_utils`/`dbt_expectations` dropped there (`9d4ee74` + `b985d41`).
+- **Task 2 / #38** — dagster combo dbt path: `ingest.scraped` task lands scraped-source raw (Prefect's half); wired into `flow_dagster` (a real prod bug too) + `run_combo.sh` (via main venv) + `dagster-e2e.yml` (syncs main env). Verified heavy e2e: dbt ✓, opendbt ✓ (`b985d41`).
+- **Task 3** — five engines `git mv`→ `experimental/pipelines/`; `ENGINE_FLOWS` + `main.py`(→dbt) + e2e import + moved `prefect.yaml` entrypoints repointed (`df82dc8`).
+
+**REMAINING = Tasks 4–9** (this doc, above): 4 config default→dbt + Makefile · 5 AGENTS.md hard-rule rewrite + ADR-0020 · 6 dbt+bruin e2e/DQ in the gate, experimental behind the flag · 7 docs sweep (**stale now**: `pipelines/README.md:21`, `spec/ODOS/IMPLEMENTATION.md:167`, ADR-0019 prose) · 9 in-repo scripts.
+
+**Open issues folded in:** #38 fixed · #42 (sqlmesh_dbt heavy-e2e pre-existing broken, raw external-table Catalog Error — proven not mine) · #39 (ruff nested-config silent gate) · #40 (this re-root).
+
+**HAZARD — parallel session churn.** A neighbour is live-editing `spec/ODTS/` in this shared checkout (their in-flight fixture-drift fix trips `test_standard_packages.py::test_odts_fixture_checks_match_spec_sql` — unrelated to the re-root, which touches zero `spec/` files). **Do Tasks 4–6 in an isolated worktree** off `origin/lane/reroot-dbt-bruin-primary` to escape it. Stage only re-root files; never commit the neighbour's `spec/ODTS`, `.gitignore`, `.ai/CONTEXT.man.md`, or `.cache/`.
+
+**Side-work uncommitted (not re-root):** `.ai/AI-glossary.en.md` (+5 audit terms, kept out of re-root commits per glossary no-auto-commit rule). New skill created + deployed: `/audit-feature-implementation-and-integration` (`de/local-dev/`).
+
+**Verify each task:** `make check` (ruff+pyright+pytest) AND — for any DQ/model/engine change — the deselected e2e (`test_all_setups.py::test_base_setup_builds_and_produces_ml -k <engine>`, heavy behind `OGIP_E2E_ALL_ENGINES=1`), because `make check` deselects e2e.
