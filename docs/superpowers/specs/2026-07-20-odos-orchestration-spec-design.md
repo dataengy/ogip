@@ -31,7 +31,8 @@ axis."* ODOS is that axis. It never describes a transformation; it schedules one
 Orchestration in OGIP is currently defined **twice**, in two unrelated dialects:
 
 - `experimental/orchestration/dagster_ogip/jobs/dg-tasks.sh` — a bash dispatch of 9 tasks, wired
-  to Dagster ops/jobs/schedules/sensors in `defs/orchestration/<group>/definitions.py`;
+  to Dagster ops/jobs/schedules/sensors in `defs/orchestration/<group>.py` (layout flattened
+  by PR #34; `warehouse/` is a subpackage split into jobs/schedules/sensors);
 - `pipelines/flows/_common.py` + `pipelines/flows/engines/*.py` — Python step functions wrapped
   into Prefect flows and assets.
 
@@ -81,8 +82,8 @@ spec/orchestration/
   _ext/dagster/       # irreducibles: dg Components (defs.yaml)
 ```
 
-One file per **group**. Groups match the existing `defs/orchestration/<group>/` split, so the
-diff between spec and reality stays readable during migration.
+One file per **group**. Groups match the existing `defs/orchestration/<group>.py` split
+(flattened by PR #34), so the diff between spec and reality stays readable during migration.
 
 ### 4.2 File skeleton
 
@@ -508,7 +509,7 @@ expands `select:` against the ODTS-derived asset graph, and validates every `tas
 against the registry. Adapters render the IR:
 
 ```
-spec/orchestration/*.yml ──▶ ODOS IR ──┬──▶ to_dagster.py ──▶ defs/orchestration/<group>/definitions.py
+spec/orchestration/*.yml ──▶ ODOS IR ──┬──▶ to_dagster.py ──▶ defs/orchestration/<group>.py
                                        └──▶ to_prefect.py ──▶ pipelines/flows/<group>.py
              ▲
     spec/sql (ODTS) ── asset graph
