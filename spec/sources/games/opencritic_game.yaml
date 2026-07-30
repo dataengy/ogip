@@ -1,0 +1,72 @@
+# ── GENERATED FILE — DO NOT EDIT ──────────────────────────────────────────────
+# Projected from the ingestion registry (the SSoT):
+#   ~/.ai/skills/.settings/de/ingestion/sources/games/opencritic_game.yml
+# Edit THAT file, then regenerate:
+#   just -f ~/.ai/skills/_scripts/de/ingestion/Justfile spec-emit /Users/nk.myg/gi/@dataengy/OGIP
+# Hand edits here WILL be overwritten and were measured to be unsyncable by
+# hardlink (git checkout severs the link) — hence this one-way projection.
+# ──────────────────────────────────────────────────────────────────────────────
+# Source: opencritic_game
+# Split from ingestion.yml — edit HERE, this is the SSoT.
+opencritic_game:
+  system: opencritic
+  entity: game
+  # Second quality-dimension source beside metacritic_game (backlog row 10 pairs them).
+  # robots.txt VERIFIED 2026-07-18: `User-agent: *` disallows only /profile — /game/ is
+  # clear, and the site publishes sitemap.xml. Same JSON-LD extraction contract as
+  # Metacritic: schema.org VideoGame published deliberately for machines.
+  url: https://opencritic.com/game/1548/the-legend-of-zelda-breath-of-the-wild
+  auth: none
+  tier: landed
+  publishable: false
+  license: opencritic-tou-unreviewed
+  license_note: >
+    robots.txt permits /game/ — that clears the FETCH gate only. OpenCritic's Terms have
+    not been reviewed for redistribution of critic aggregates; publishable stays false
+    until that review is recorded here. (An official API also exists via RapidAPI, keyed —
+    if aggregates are ever to be published, licensing through that is the honest route.)
+  key_param: null
+  slot: null
+  records_path: null # HTML page; the record is the embedded JSON-LD
+  probe_params: {}
+  rate_limit_note: "unstated; same conservative posture as metacritic — 1 req/2s, honour Retry-After"
+  traps: >
+    (1) The NUMERIC id governs and the slug is DECORATIVE: /game/1548/hades returns 200
+    with Zelda BOTW's data (id 1548) — wrong-id-right-slug serves the WRONG GAME with no
+    error. Discovered live 2026-07-18. Discovery must map ids, never trust slugs.
+    (2) The page carries TWO ld+json blocks (VideoGame + BreadcrumbList) — a parser that
+    grabs the first block blindly can land on the wrong one; iterate and match on @type.
+    (3) `.url` inside the JSON-LD is RELATIVE (/game/...), unlike Metacritic's absolute.
+  scrape:
+    fetch_tier: httpx # static HTML, JSON-LD server-rendered — no JS needed
+    render: false
+    url_template: https://opencritic.com/game/{id}/{slug}
+    discovery: >
+      id+slug pairs must come from the site's own sitemap.xml (robots-published) or an
+      already-landed crosswalk — ids CANNOT be guessed and slugs are not authoritative
+      (see traps). Never enumerate ids blindly against a site with unreviewed ToS.
+    row_selector: 'script[type="application/ld+json"]' # 2 blocks; checker iterates
+    parser: json_ld
+    fields:
+      name: .name
+      released: .datePublished
+      publisher: .publisher[0].name
+      score: .aggregateRating.ratingValue
+      review_count: .aggregateRating.reviewCount
+    landing_table: landing.opencritic__game
+    politeness: { per_domain_conns: 1, min_interval_ms: 2000, respect_retry_after: true }
+    robots: >
+      VERIFIED 2026-07-18 — `User-agent: *` disallows ONLY /profile; /game/ is permitted;
+      Sitemap: https://opencritic.com/sitemap.xml is published. Re-check before new paths.
+  docs: https://opencritic.com/
+  # Creation metadata — who registered this and on what evidence (audit trail;
+  # the verdicts themselves are still re-probed live, never trusted from here).
+  provenance:
+    added: 2026-07-18
+    actor: Claude (Opus 4.8) agent session — OGIP ingestion lane
+    directive: >
+      new scraping-tier sources with machine-checkable contracts (json_ld / css markers)
+    evidence_verified: 2026-07-18
+    registered_in: skills cafd66c
+    refs: [OGIP#18, OGIP#19]
+    batch: 2026-07-18-scrape-verified

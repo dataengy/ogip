@@ -1,21 +1,42 @@
 # OGIP — Roadmap
 
 Phased delivery with a **user approval gate after each phase**. Full detail and acceptance
-criteria live in [.ai/PLAN.md](../.ai/PLAN.md); this is the at-a-glance map.
+criteria live in [.ai/PLAN.md](../.ai/PLAN.md); this is the at-a-glance map. Requirement
+unknowns that steer this map live in [OPEN-QUESTIONS.md](OPEN-QUESTIONS.md).
+
+> **Finalization run in progress (2026-07-30)** — the operative plan is
+> [superpowers/plans/2026-07-30-finalization-land-everything.md](superpowers/plans/2026-07-30-finalization-land-everything.md)
+> (three green run commands → re-root T4–T9 → land all lanes → dev→main). The priorities
+> table below predates it and is kept for context; statuses in the phase map are refreshed
+> at finalization step 21. Frozen features: [techdebt register](techdebt/finalization-tbd.md).
+
+## Current priorities (reprioritized 2026-07-17)
+
+| # | Item | Lane | Detail |
+|---|---|---|---|
+| **P1** | **Resilient scraping slice** — async `ScraperSource` ([ADR-0014](adr/ADR-0014-resilient-scraping-concurrency.md)) + Postgres landing + first scraped source (HLTB) end to end | `ingestion` | [.ai/tasks/scraping-resilient.md](../.ai/tasks/scraping-resilient.md) |
+| **P1** | **Finalize R2 + VPS deploy** — close the staged s3/vps handoffs: storage-seam call sites, spec-compiler lake root, `integrations/prefect/deploy.py`, real R2 bucket, host deploy + smoke | `core-pipeline` | [.ai/tasks/r2-vps-finalize.md](../.ai/tasks/r2-vps-finalize.md) |
+| P2 | **Sources backlog** — candidates mapped to games-market models (pricing · scope · budget · traction · quality) | backlog | [.ai/tasks/sources-backlog.md](../.ai/tasks/sources-backlog.md) |
+| P2 | **Python-task integration demo** — pandas/Polars ML preparation tasks over RAWG/core data, ready for a future SQL-transform-tool adapter | experimental | [.ai/tasks/python-task-integration.md](../.ai/tasks/python-task-integration.md) |
+| mid | `spec/` semantic layer (engine-agnostic, Bruin format) | `spec` | [.ai/tasks/spec-semantic-layer.md](../.ai/tasks/spec-semantic-layer.md) |
+| then | M1–M4 — replicate the M0 slice across alt toolsets (bruin · dbt · sqlmesh-over-dbt · dagster) — *demoted below the P1s* | `core-pipeline` / `dagster` | [.ai/PLAN.md](../.ai/PLAN.md) |
+
+## Phase map
 
 | Phase | Deliverable | Status |
 |---|---|---|
-| 0 | **Scaffold & identity** — git init, pyproject (uv), tooling, config SSoT, secrets, CI, task-sync + TODO | ⬜ planned |
-| 1 | **`spec/` SSoT** — ODCS contracts + Bruin-format portable SQL (incl. `fs/`) + DQ + lineage | ⬜ planned |
-| 2 | **Ingestion (dlt) + Steam/RAWG** — `BaseSource`→dlt; Postgres `landing` for scraped/parsed → raw Parquet | ⬜ planned |
-| 3 | **Transform (SQLMesh default)** — spec compiler + SQLMesh on DuckDB, `staging→core→{star,am}→marts→fs` | ⬜ planned |
-| 4 | **Data quality** — freshness · uniqueness · RI · business rules | ⬜ planned |
-| 5 | **ML-ready outputs + notebooks** — 6 `*.parquet` (marts + FS); DATASETS.md; JupyterLab demos | ⬜ planned |
-| 6 | **Orchestration (Prefect) + Postgres** — end-to-end `make run`; `platform_meta`; ephemeral + server profiles | ⬜ planned |
-| 7 | **Observability** — VictoriaMetrics + Loki + Alloy + Grafana; alerts abstraction | 🟡 stack shipped ([deploy/obs/](../deploy/obs/), [docs](architecture/observability.md)); pipeline instrumentation + `Notifier` pending |
-| 8 | **Remaining sources + cloud storage** — Steam Reviews, IGDB, Reddit, Twitch, HLTB, Metacritic; R2/MinIO/S3 profiles | ⬜ planned |
-| 9 | **Comparisons + runnable profiles + research** — spec compiler → dbt/Bruin; engine/orchestration profiles; feature-store-tools + Evidence analyses | ⬜ planned |
-| 10 | **VPS deploy + README + polish** — manual VPS runbook (DevOps separate); outcome-first README; final audit | ⬜ planned |
+| 0 | **Scaffold & identity** — git init, pyproject (uv), tooling, config SSoT, secrets, CI, task-sync + TODO | ✅ shipped |
+| M0 | **Walking skeleton** — RAWG → dlt raw → SQLMesh (from spec) → ML parquet + notebook, on Prefect; e2e in CI | ✅ shipped (CI 7/7) |
+| 1 | **`spec/` SSoT** — ODCS contracts + Bruin-format portable SQL (incl. `fs/`) + DQ + lineage | 🟡 M0 slice only |
+| 2 | **Ingestion (dlt) + Steam/RAWG** — `BaseSource`→dlt; Postgres `landing` + **scraping ([ADR-0014](adr/ADR-0014-resilient-scraping-concurrency.md))** | 🟡 RAWG shipped; **scraping = P1** |
+| 3 | **Transform (dbt primary + Bruin co-primary, ADR-0020)** — spec compiler → engine projects on DuckDB, `raw→stg→core→fs` | ✅ primaries green E2E; star/am/marts layers pending |
+| 4 | **Data quality** — spec checks → engine tests (ADR-0019) + policy monitors (row-count, freshness) executed by `dq/run.py` | 🟡 executor shipped 2026-07-30; results recording → V2 |
+| 5 | **ML-ready outputs + notebooks** — 6 `*.parquet` (marts + FS); DATASETS.md; JupyterLab demos | 🟡 2 outputs + 1 notebook (M0) |
+| 6 | **Orchestration (Prefect) + Postgres** — end-to-end `make run`; `platform_meta`; ephemeral + server profiles | 🟡 ephemeral flow shipped; server profile + `platform_meta` pending |
+| 7 | **Observability** — VictoriaMetrics + Loki + Alloy + Grafana; alerts abstraction | 🟡 stack + `Notifier` shipped; pipeline instrumentation pending |
+| 8 | **Remaining sources + cloud storage** — Steam Reviews, IGDB, Reddit, Twitch, HLTB, Metacritic; R2/MinIO/S3 profiles | 🟡 storage seam + MinIO shipped; **R2 finalize = P1**; sources → [backlog](../.ai/tasks/sources-backlog.md) |
+| 9 | **Comparisons + runnable profiles + research** — 8 run profiles (3 primary + 5 experimental-flagged); feature-store-tools + Evidence analyses | 🟡 profiles shipped; research tracks open |
+| 10 | **VPS deploy + README + polish** — manual VPS runbook (DevOps separate); outcome-first README; final audit | 🟡 `deploy/vps/` tooling shipped; **real host deploy = P1** |
 
 **Fast slice (D4):** Phases 0–6 on **Steam + RAWG** give a working end-to-end
 `sources → raw → SQL → ML parquet` demo; observability, the rest of the sources, and the

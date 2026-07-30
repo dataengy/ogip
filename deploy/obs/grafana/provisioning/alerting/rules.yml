@@ -1,0 +1,139 @@
+# Alert rules as code (epic #33 · repurposed #26). Two families in one evaluation group:
+# pipeline/stack health and agentic activity (Claude Code native OTel — series/label names
+# were captured LIVE by the Phase-0 spike, .tmp/MANIFEST.agentic-obs.md, 2026-07-19).
+#
+# noDataState is OK everywhere on purpose: both telemetry sources are opt-in/intermittent
+# (agent sessions come and go; the pipeline runs on demand) — "no data" is the normal idle
+# state here, not an incident.
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: ogip-alerts
+    folder: OGIP
+    interval: 1m
+    rules:
+      # ── stack ───────────────────────────────────────────────────────────────
+      - uid: ogip-stack-down
+        title: stack-component-down
+        condition: C
+        for: 3m
+        noDataState: OK
+        execErrState: OK
+        annotations:
+          summary: "An obs-stack component stopped answering its scrape (victoriametrics/alloy/loki/grafana)."
+        data:
+          - refId: A
+            relativeTimeRange: { from: 300, to: 0 }
+            datasourceUid: ogip-victoriametrics
+            model: { expr: "min(up)", instant: true, refId: A }
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: C
+              conditions:
+                - evaluator: { type: lt, params: [1] }
+
+      # ── pipeline ────────────────────────────────────────────────────────────
+      - uid: ogip-flow-failure
+        title: flow-failure-logged
+        condition: C
+        for: 0s
+        noDataState: OK
+        execErrState: OK
+        annotations:
+          summary: "Pipeline wrote ERROR-level log lines in the last 5m (flow failure or component crash)."
+        data:
+          - refId: A
+            relativeTimeRange: { from: 300, to: 0 }
+            datasourceUid: ogip-loki
+            model:
+              expr: 'sum(count_over_time({job="ogip", level="ERROR"}[5m]))'
+              queryType: instant
+              refId: A
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: C
+              conditions:
+                - evaluator: { type: gt, params: [0] }
+
+      # no-pipeline-logs — DELIBERATELY not armed: the flow does not write a log file yet
+      # (handoff #28, lane core-pipeline). Armed today it would fire permanently — alarm
+      # fatigue on day one. Uncomment when the flow logs land:
+      #
+      # - uid: ogip-no-pipeline-logs
+      #   title: no-pipeline-logs-15m
+      #   condition: C
+      #   for: 15m
+      #   noDataState: Alerting   # here "no data" IS the incident
+      #   execErrState: OK
+      #   annotations: { summary: "No pipeline log lines reached Loki for 15m while runs were expected." }
+      #   data:
+      #     - refId: A
+      #       relativeTimeRange: { from: 900, to: 0 }
+      #       datasourceUid: ogip-loki
+      #       model: { expr: 'sum(count_over_time({job="ogip"}[15m]))', queryType: instant, refId: A }
+      #     - refId: C
+      #       datasourceUid: __expr__
+      #       model:
+      #         type: threshold
+      #         expression: A
+      #         refId: C
+      #         conditions:
+      #           - evaluator: { type: lt, params: [1] }
+
+      # ── agentic (Claude Code native OTel) ───────────────────────────────────
+      - uid: ogip-agent-api-errors
+        title: agent-api-error-burst
+        condition: C
+        for: 0s
+        noDataState: OK
+        execErrState: OK
+        annotations:
+          summary: "Agent sessions logged >3 Claude API errors in 10m — check network/auth/limits."
+        data:
+          - refId: A
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: ogip-loki
+            model:
+              expr: 'sum(count_over_time({service_name="claude-code", event_name="api_error"}[10m]))'
+              queryType: instant
+              refId: A
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: C
+              conditions:
+                - evaluator: { type: gt, params: [3] }
+
+      - uid: ogip-agent-cost-burn
+        title: agent-cost-burn
+        condition: C
+        for: 0s
+        noDataState: OK
+        execErrState: OK
+        annotations:
+          summary: "Agent sessions burned >$10 in the last hour (sum over models/sessions)."
+        data:
+          - refId: A
+            relativeTimeRange: { from: 3600, to: 0 }
+            datasourceUid: ogip-victoriametrics
+            model:
+              expr: "sum(increase(claude_code_cost_usage_USD_total[1h]))"
+              instant: true
+              refId: A
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: C
+              conditions:
+                - evaluator: { type: gt, params: [10] }

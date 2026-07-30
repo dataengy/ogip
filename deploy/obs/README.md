@@ -46,4 +46,13 @@ When the base compose lands, merge by swapping the `ogip-obs` network for
   busybox `wget` resolves `localhost` to `::1` first → connection refused.
 - **Dashboards are code**: UI edits are disabled (`allowUiUpdates: false`). Change the JSON,
   re-run `make obs-up`.
+- **Alerting is code too**: `grafana/provisioning/alerting/` carries contact points, the
+  notification policy, and rules; Grafana's **native Telegram contact point** delivers directly
+  (no webhook receiver). Creds arrive as env (`OGIP_TG_BOT_TOKEN`/`OGIP_TG_CHAT_ID` — blank-safe,
+  never in YAML). Gotcha: Grafana re-infers the type of an env-expanded provisioning value, so
+  a numeric `chatid` needs the trailing-space trick (see `contact-points.yml`).
+- **Three Alloy pipelines**: file logs → Loki (`job=ogip`, labels level/source/entity); OTLP
+  metrics → VictoriaMetrics; **OTLP logs → Loki** (`service_name=claude-code`, label
+  `event_name` only — session ids stay in the line; this is the agentic-telemetry path,
+  epic #33, opt-in via `.claude/settings.local.json`).
 - **Images are pinned** — bump deliberately, never by `:latest` drift.

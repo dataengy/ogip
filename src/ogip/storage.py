@@ -33,11 +33,12 @@ from ogip.config import get_settings, load_app_config
 if TYPE_CHECKING:
     from duckdb import DuckDBPyConnection
 
-Backend = Literal["local", "minio", "s3", "r2"]
+Backend = Literal["local", "minio", "s3", "r2", "gcs", "yc"]
 BACKENDS: tuple[Backend, ...] = get_args(Backend)
 
 # MinIO is deployed without DNS-style bucket hosts, so it needs path-style URLs
-# (`endpoint/bucket/key`); AWS S3 and R2 use the default virtual-host style.
+# (`endpoint/bucket/key`); AWS S3, R2, GCS (interoperability/XML API) and Yandex Cloud
+# Object Storage all use the default virtual-host style.
 _PATH_STYLE_BACKENDS: frozenset[Backend] = frozenset({"minio"})
 
 # One DuckDB secret name, replaced on every configure — keeps re-runs idempotent.
@@ -83,12 +84,15 @@ def get_storage_settings() -> StorageSettings:
 
 
 # Backends that address a specific host: without an endpoint there is nothing to talk to.
-# Plain `s3` may omit it — an empty endpoint means "real AWS", resolved by region.
-_ENDPOINT_REQUIRED: frozenset[Backend] = frozenset({"minio", "r2"})
+# Plain `s3` may omit it — an empty endpoint means "real AWS", resolved by region. GCS and
+# Yandex Cloud each expose one fixed S3-compatible host, so both require an endpoint too.
+_ENDPOINT_REQUIRED: frozenset[Backend] = frozenset({"minio", "r2", "gcs", "yc"})
 
 _ENDPOINT_HINT: dict[Backend, str] = {
     "minio": "http://localhost:${MINIO_API_PORT} — see `make storage-up`",
     "r2": "https://<account-id>.r2.cloudflarestorage.com",
+    "gcs": "https://storage.googleapis.com",
+    "yc": "https://storage.yandexcloud.net",
 }
 
 

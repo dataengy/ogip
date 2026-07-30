@@ -22,14 +22,15 @@ Derived from OGAP (`../Hushcrasher/`) but **deliberately simpler** — the north
 
 ## The production path is lean and modern (keep it focused)
 
-`Python → Prefect → Sources → [dlt direct | scrape→Postgres landing→dlt/ingestr] → Raw Parquet (PyArrow, FS/R2) → DuckDB → SQLMesh → analytics → FS → ML outputs.`
-Ingestion default = **dlt** (`BaseSource` family); **ingestr** optional for CDC; scraped/parsed
-data lands in the **Postgres `landing`** schema first. The **only** production transform engine
-is **SQLMesh** (compiled from `spec/`, run on
-DuckDB, sequenced by Prefect). Every other engine (plain-SQL runner, dbt, Bruin) and every
-semantic/BI/feature-store *tool* (MetricFlow, Cube, Evidence, Feast, Airbyte) lives in
-`experimental/` or `docs/comparisons/`, **consumes** `spec/`, and never sits on the default
-`make`/pipeline path.
+`Python → Prefect → Sources → [dlt direct | scrape→raw] → Raw Parquet (PyArrow, FS/R2) → DuckDB → dbt (primary) / Bruin (co-primary) → analytics → FS → ML outputs.`
+Ingestion default = **dlt** (`BaseSource` family); **ingestr** optional for CDC; scraped
+sources land raw Parquet directly (Postgres `landing` is the deferred resilient tier, #18).
+The production transform engines are **dbt (primary)** and **Bruin (co-primary)** —
+both generated from `spec/` and run on DuckDB, sequenced by Prefect
+([ADR-0020](../docs/adr/ADR-0020-dbt-bruin-primary-transform-engines.md)). Every other engine
+(SQLMesh, plain-SQL runner, OpenDBT, SQLMesh-over-dbt) and every semantic/BI/feature-store
+*tool* (MetricFlow, Cube, Evidence, Feast, Airbyte) lives in `experimental/` or
+`docs/comparisons/`, **consumes** `spec/`, and never sits on the default `make`/pipeline path.
 
 ## Hard rules
 
@@ -41,12 +42,16 @@ semantic/BI/feature-store *tool* (MetricFlow, Cube, Evidence, Feast, Airbyte) li
 2. **`spec/` is the SSoT and engine-agnostic.** SQL is authored in **Bruin asset format**
    (SQL body + `@bruin` YAML: `depends`→lineage, `columns[].checks`→DQ, `owner`/`tags`→
    metadata); source contracts in **ODCS**. `spec/` must not require any engine binary to be
-   read. The **spec compiler** renders spec → engine projects; the default runtime engine is
-   **SQLMesh**. Engine specifics live only in the compiler and `spec/sql/_ext/<engine>/`.
+   read. The **spec compiler** renders spec → engine projects; the primary runtime engines
+   are **dbt + Bruin** ([ADR-0020](../docs/adr/ADR-0020-dbt-bruin-primary-transform-engines.md));
+   the rest are comparison renders. Engine specifics live only in the compiler and
+   `spec/sql/_ext/<engine>/`.
 3. **SSoT config**: every non-secret default is declared ONCE, in `config/config.yml`;
    `.env` is rendered by `config/.env-render.py`. Never duplicate a value another surface owns.
 4. **Quality bar**: Ruff clean, Pyright **strict** 0 errors, pytest green (`make check` = CI).
-   Typed Python, Pydantic v2 at boundaries, httpx + tenacity, loguru.
+   Typed Python, Pydantic v2 at boundaries, httpx + tenacity, loguru. **Logging: use the house
+   alias `log`** — `from ogip.logger import log` and `log.info(...)` everywhere (never `logger.`);
+   `logger` stays exported only for third-party compat.
 5. **Secrets** (minimal & lightest): slot names declared once in `config/config.yml`; rendered
    `.env` always gitignored (templates carry blank slots only). Default = **gitignored `.env`**
    locally/VPS + **GitHub Actions secrets** in CI — no vault, no GPG. Bitwarden CLI & git-secret
@@ -55,14 +60,22 @@ semantic/BI/feature-store *tool* (MetricFlow, Cube, Evidence, Feast, Airbyte) li
    alongside the code.
 7. **Portable SQL**: DuckDB/Postgres-first; engine-specific overrides isolated in
    `spec/sql/_ext/<engine>/`.
-8. **Every new directory gets a `README.md`.** Architectural changes get an ADR.
+8. **Orchestrator ≠ transform** ([ADR-0021](../docs/adr/ADR-0021-orchestrator-transform-dq-boundary.md)):
+   never implement in an orchestrator (Dagster, Prefect) what the transform engine can do.
+   **Data quality is expressed once** — as `spec/` `checks:` compiled to dbt/SQLMesh tests — and
+   the orchestrator only *surfaces* results (`dagster-dbt` auto-maps dbt tests → asset checks).
+   No hand-written `asset_check` mirroring a dbt test. Orchestrator-native checks only for what
+   the engine genuinely cannot express (cross-system freshness, run SLAs), with the reason noted.
+9. **Every new directory gets a `README.md`.** Architectural changes get an ADR.
 
 ## Run & orchestration profiles
 
 Selected via `config/config.yml → run_profiles` + `just run-profile <name>`:
-`prefect-sqlmesh` (default, production) · `prefect-sql` · `prefect-bruin` · `prefect-dbt` ·
-`prefect-sqlmesh-over-dbt` · `prefect-dagster-dlt-dbt`. `prefect-bruin` and
-`prefect-dagster-dlt-dbt` are **complete alternative setups**. Storage: `local` (default) ·
+**`prefect-dbt` (default, primary)** · **`prefect-bruin` (co-primary)** ·
+**`prefect-over-dagster`** (Prefect + dbt-under-Dagster; `make run-dagster-dbt`) — the three
+demo-guaranteed setups. Experimental (`experimental: true`, banner, e2e behind
+`OGIP_E2E_ALL_ENGINES=1`): `prefect-sqlmesh` · `prefect-sql` · `prefect-opendbt` ·
+`prefect-sqlmesh-over-dbt` · `prefect-dagster-dlt-dbt`. Storage: `local` (default) ·
 `r2` · `minio` · `s3`. Prefect runtime: `ephemeral` (default) · `server`. Secrets: gitignored
 `.env` (default) + GitHub Actions secrets (CI); `bitwarden`/`git-secret` opt-in. dbt/SQLMesh/Bruin
 projects are **generated from `spec/`** by the compiler, never hand-forked.
@@ -74,9 +87,10 @@ projects are **generated from `spec/`** by the compiler, never hand-forked.
 | `.run/` | ALL runtime: venv (`UV_PROJECT_ENVIRONMENT=.run/venv`), caches, DuckDB warehouse, outputs (gitignored) |
 | `.tmp/` | ALL temp/working scripts **and other temp files** (gitignored) + tracked `README.md` + `Justfile`; one-shots in `.tmp/.once/`; **graduate** durable ones → `integrations/`, skills, or `src/`/common |
 | `../Hushcrasher.attic/` | External graveyard for removed legacy (never delete in place) |
-| `Makefile` | thin: main short commands; delegates heavy bodies to Justfile |
-| `Justfile` | spec ops + heavy logic: run-profile, CI steps, generators |
+| `Makefile` | **pipeline launcher**: one target per pipeline (`run-<engine>`, 1 op = 1 pipeline); a catch-all forwards any other `make <op>` → `just <op>` |
+| `Justfile` | **every** developer/infra/spec op: gates (lint/typecheck/test/check/ci), up/down/obs/storage, run-profile, spec-compile, CI steps, generators |
 | `.ai/` | agentic hub: AGENTS/CLAUDE/README/STATUS/PLAN + `tasks/`; root `AGENTS.md` is a symlink here |
+| **Git LFS** | **large test datasets** (recorded fixtures, sampled dumps, parquet cases) are LFS pointers, never raw blobs — patterns in `.gitattributes` (format-scoped: binary formats on fixture paths; small JSON/text fixtures stay plain git so diffs read). One-time per clone: `make lfs-install`. Enforced un-skippably by `.ci/run.sh lfs-guard` (>512KB raw blob or LFS-attributed raw blob → CI red); local: `just lfs-guard` |
 
 Workflow: **phased delivery with user approval gates** (plan in [PLAN.md](PLAN.md), near-term
 actions in [TODO.md](TODO.md), status in [STATUS.md](STATUS.md), per-phase task files in

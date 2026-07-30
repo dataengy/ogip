@@ -1,0 +1,26 @@
+# Grafana-native Telegram contact point (epic #33; repurposes #26 — no custom webhook receiver).
+#
+# Secrets NEVER live here: $VAR is Grafana provisioning-file env interpolation, and the values
+# arrive via the grafana container's environment (docker-compose.obs.yml passes
+# OGIP_TG_BOT_TOKEN / OGIP_TG_CHAT_ID through from the invoking shell or the rendered .env —
+# blank-safe, see the compose file). With blank creds Grafana keeps the contact point and
+# delivery fails visibly in its notification log — the stack itself stays healthy.
+#
+# Channel (2026-07-19, user decision): the existing shared bot + the @test_cha_2 test group for
+# now; a dedicated chat is a later one-line change of OGIP_TG_CHAT_ID at project re-setup.
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: ogip-telegram
+    receivers:
+      - uid: ogip-telegram-tg
+        type: telegram
+        settings:
+          bottoken: $OGIP_TG_BOT_TOKEN
+          # The trailing space is load-bearing: Grafana re-infers the type of an env-expanded
+          # value, so a bare numeric chat id becomes a JSON number and fails validation
+          # ("cannot unmarshal number into … chatid of type string"). A trailing space keeps
+          # it a string, and Telegram ignores trailing whitespace in chat_id (verified live).
+          chatid: "$OGIP_TG_CHAT_ID "
+        disableResolveMessage: false

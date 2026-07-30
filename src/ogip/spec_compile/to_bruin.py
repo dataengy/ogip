@@ -1,0 +1,70 @@
+"""Render `spec/sql` into a runnable Bruin pipeline — a pass-through, since spec *is* Bruin.
+
+Assets are copied verbatim (the ``@bruin`` header already carries name/type/materialization/
+depends/checks); this generator only adds the shell the Bruin CLI needs: ``pipeline.yml``,
+``.bruin.yml`` (the DuckDB connection → the warehouse), and the ``assets/`` tree. Paths stay
+repo-relative, so ``bruin validate``/``run`` must execute from the repo root.
+"""
+
+from __future__ import annotations
+
+import os
+from pathlib import Path
+from typing import Any
+
+import yaml
+
+from .bruin import asset_paths, parse_asset
+
+_CONNECTION = "ogip-duckdb"
+
+_README = """# `transform/bruin/` — GENERATED from `spec/` (do not hand-edit)
+
+Bruin pipeline for the `prefect-bruin` profile — a pass-through: `spec/sql` is authored in
+Bruin asset format, so assets are copied verbatim and only the project shell is added.
+Regenerate: `just spec-compile bruin`. Run from the repo root: `bruin run transform/bruin`.
+"""
+
+
+def compile_to_bruin(spec_sql_dir: Path, project_dir: Path, *, warehouse: Path) -> list[str]:
+    """Generate a Bruin pipeline under ``project_dir`` from ``spec/sql``; return asset names."""
+    assets_dir = project_dir / "assets"
+    assets_dir.mkdir(parents=True, exist_ok=True)
+    for stale in assets_dir.rglob("*.sql"):  # regenerate cleanly
+        stale.unlink()
+
+    names: list[str] = []
+    for path in asset_paths(spec_sql_dir):
+        asset = parse_asset(path)  # parse to validate + derive the layout; copy stays verbatim
+        target = assets_dir / asset.schema / f"{asset.model}.sql"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(path.read_text(encoding="utf-8"), encoding="utf-8")
+        names.append(asset.name)
+
+    pipeline: dict[str, Any] = {
+        "name": "ogip",
+        "default_connections": {"duckdb": _CONNECTION},
+    }
+    (project_dir / "pipeline.yml").write_text(
+        yaml.safe_dump(pipeline, sort_keys=False), encoding="utf-8"
+    )
+    # Bruin resolves a relative connection path against the .bruin.yml LOCATION, not the CWD —
+    # a repo-relative warehouse path silently became transform/bruin/.run/… and every asset
+    # failed on "cannot open database". Emit it relative to the project dir (portable: the
+    # tracked config must not carry this machine's absolute checkout path).
+    connection_path = os.path.relpath(Path(warehouse).resolve(), project_dir.resolve())
+    environments: dict[str, Any] = {
+        "default_environment": "default",
+        "environments": {
+            "default": {"connections": {"duckdb": [{"name": _CONNECTION, "path": connection_path}]}}
+        },
+    }
+    (project_dir / ".bruin.yml").write_text(
+        yaml.safe_dump(environments, sort_keys=False), encoding="utf-8"
+    )
+    # `.bruin.yml` line: the Bruin CLI appends it on every run (connection files can carry
+    # secrets); ours is generated and secret-free, and the file is TRACKED so the ignore is a
+    # no-op — emitting it just stops the CLI-append/regen-wipe flip-flop in git status.
+    (project_dir / ".gitignore").write_text("logs/\n.bruin.yml\n", encoding="utf-8")
+    (project_dir / "README.md").write_text(_README, encoding="utf-8")
+    return names

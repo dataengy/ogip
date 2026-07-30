@@ -60,6 +60,11 @@ def parse_asset(path: Path) -> Asset:
     )
 
 
+def asset_paths(spec_sql_dir: Path) -> list[Path]:
+    """Every `spec/sql/**/*.sql`, sorted, skipping engine-specific `_ext/` overrides."""
+    return [p for p in sorted(spec_sql_dir.rglob("*.sql")) if "_ext" not in p.parts]
+
+
 def load_assets(spec_sql_dir: Path) -> list[Asset]:
-    """Parse every `spec/sql/**/*.sql` (skipping engine-specific `_ext/` overrides)."""
-    return [parse_asset(p) for p in sorted(spec_sql_dir.rglob("*.sql")) if "_ext" not in p.parts]
+    """Parse every spec asset (see :func:`asset_paths`)."""
+    return [parse_asset(p) for p in asset_paths(spec_sql_dir)]

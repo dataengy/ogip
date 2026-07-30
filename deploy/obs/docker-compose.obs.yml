@@ -102,6 +102,12 @@ services:
       GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
       GF_ANALYTICS_REPORTING_ENABLED: "false"
       GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      # Telegram contact point creds (provisioning/alerting/contact-points.yml reads them via
+      # $VAR interpolation). Blank-safe: no creds → contact point provisions, delivery fails
+      # visibly in Grafana's notification log, nothing crashes. Values come from the invoking
+      # shell or the rendered .env once OGIP_TG_* slots land there (handoff #28).
+      OGIP_TG_BOT_TOKEN: ${OGIP_TG_BOT_TOKEN:-}
+      OGIP_TG_CHAT_ID: ${OGIP_TG_CHAT_ID:-}
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro

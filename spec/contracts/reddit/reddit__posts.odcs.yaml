@@ -1,0 +1,105 @@
+# Open Data Contract Standard (ODCS) v3 — Reddit posts, Layer-0 raw dataset.
+apiVersion: v3.0.0
+kind: DataContract
+id: reddit-posts-raw
+name: reddit__posts
+version: 0.1.0
+status: draft
+domain: games
+tenant: ogip
+description:
+  purpose: >
+    Community-traction signal — post volume and engagement in game-dev and per-game
+    subreddits (Layer 0).
+  usage: >
+    Future source for staging.stg_reddit_posts → community-traction aggregates.
+    INTERNAL ANALYTICS ONLY — see limitations before adding any downstream edge.
+    Contract-first: no connector in this repo yet
+    (spec/sources/games/reddit_posts.yaml, `airbyte:` block — community-tier
+    source-reddit, may route back to dlt).
+  limitations: >
+    LOAD-BEARING LICENSE RESTRICTION — Reddit's Data API Terms (post-2023) restrict
+    commercial use and EXPLICITLY prohibit using API data to train ML models without a
+    separate license. OGIP's product is ML-ready Parquet: reddit-derived columns MUST
+    NOT reach published outputs (outputs/, examples/) or any fs.* feature model.
+    publishable=false here is a legal boundary, not a formality — a lineage edge from
+    this dataset into fs.* is a contract violation, not a modelling choice.
+    `author` is a user identifier (quasi-PII): keep it out of staging projections
+    unless a use case forces it, and never publish it.
+
+servers:
+  - server: local-fs
+    type: local
+    format: parquet
+    path: .run/data/raw/reddit__posts/
+
+schema:
+  - name: reddit__posts
+    logicalType: object
+    physicalType: parquet
+    properties:
+      - name: id
+        logicalType: string
+        required: true
+        unique: true
+        description: Post id (base36, natural key).
+      - name: subreddit
+        logicalType: string
+        required: true
+      - name: title
+        logicalType: string
+        required: true
+      - name: author
+        logicalType: string
+        description: Username — quasi-PII, see limitations. Nullable ("[deleted]").
+      - name: created_utc
+        logicalType: number
+        description: Unix epoch seconds — the incremental cursor.
+      - name: score
+        logicalType: integer
+        description: Net upvotes; vote-fuzzed by Reddit, treat as approximate.
+      - name: upvote_ratio
+        logicalType: number
+      - name: num_comments
+        logicalType: integer
+      - name: permalink
+        logicalType: string
+      - name: over_18
+        logicalType: boolean
+      - name: link_flair_text
+        logicalType: string
+        description: Flair, nullable — subreddit-specific taxonomy.
+      - name: _ingested_at
+        logicalType: string
+        description: Layer-0 ingestion timestamp (ISO-8601 UTC).
+      - name: etl_batch_id
+        logicalType: string
+        description: Layer-0 batch id.
+
+quality:
+  - rule: unique
+    property: id
+    severity: error
+  - rule: not_null
+    property: subreddit
+    severity: error
+
+slaProperties:
+  - property: freshness
+    value: 1
+    unit: d
+    element: reddit__posts._ingested_at
+
+customProperties:
+  - property: publishable
+    value: false
+  - property: mlTrainingProhibited
+    value: true
+  - property: sourceDescriptor
+    value: spec/sources/games/reddit_posts.yaml
+  - property: connectorStatus
+    value: contract-first — no connector in-repo; Airbyte source-reddit (community) under review vs dlt
+
+team:
+  - username: data-eng@ogip
+    role: owner

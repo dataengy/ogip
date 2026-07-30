@@ -86,13 +86,89 @@ be healthy while its port mapping is broken).
 One sharp edge worth keeping: VM's healthcheck probes `127.0.0.1`, not `localhost` —
 VictoriaMetrics binds IPv4 only, and busybox `wget` tries `::1` first and gets refused.
 
+## Alerting
+
+The stack above answers *what is happening*. Alerting answers *someone needs to know now* —
+[`src/ogip/alerting/`](../../src/ogip/alerting/), the `Notifier` abstraction from
+[PLAN](../../.ai/PLAN.md) A10. Business code says what happened; it never learns where that goes.
+
+```python
+from ogip.alerting import make_notifier
+
+notifier = make_notifier()          # None when no transport is configured
+if notifier:
+    notifier.notify("ingest failed: rawg 503")
+```
+
+| Layer | Answers | Implementations |
+|---|---|---|
+| `Messenger` (protocol) | **how** to deliver on one backend | Telegram (Bot API) · Mattermost (REST token, webhook fallback) · Slack (Web API, webhook) |
+| `Notifier` | **whether/what**: dry-run, fallback, result-not-exception | one, concrete |
+
+Routing: `OGIP_ALERT_BACKEND` (default `telegram`), `OGIP_ALERT_FALLBACK_BACKEND` (empty = none),
+`OGIP_ALERT_DRY_RUN`. Credentials: `OGIP_TG_*` · `OGIP_MM_*` · `OGIP_SLACK_*`. Everything is
+`OGIP_`-prefixed for the same reason `PREFECT_API_URL` had to be — a bare `SLACK_TOKEN` in `.env`
+would collide with whatever else reads that file.
+
+Four decisions worth knowing, because each encodes a way this goes wrong:
+
+- **`notify()` never raises.** An alert that throws turns "the pipeline degraded" into "the
+  pipeline crashed while complaining". It returns a `NotifyResult`; falsy means undelivered.
+- **A fallback delivery is still a degradation.** It reports `sent=True` but with the
+  *fallback's* backend name and a reason naming the primary that failed — the alert survives
+  and the breakage stays visible. Silence would hide a dead primary indefinitely.
+- **No retries.** A failing primary drops straight to the fallback instead of parking an
+  already-unhappy pipeline behind backoff.
+- **Slack answers `HTTP 200` when it fails**, putting the verdict in `{"ok": false}`. Handling
+  only the status code would swallow every such alert, so `ok` is checked and raised on.
+
+Alerting is optional: with no credentials `make_notifier()` returns `None` and the pipeline runs
+green and quiet — the same zero-credential demo path the sources take. `OGIP_ALERT_DRY_RUN=true`
+previews alerts with no credentials at all.
+
+## Agentic telemetry (epic #33)
+
+The stack also watches **the agents building OGIP** — standard tools end to end, zero custom
+collectors: Claude Code's **native OTel export** → the same Alloy OTLP receiver (`:4318`) →
+VictoriaMetrics (metrics) + Loki (events) → the **OGIP — Agentic Activity** dashboard
+(`ogip-agentic`) and two agentic alert rules (`agent-api-error-burst`, `agent-cost-burn`).
+
+**Opt-in**, per machine: the env block lives in `.claude/settings.local.json` (untracked).
+Every panel/alert degrades to empty/quiet when no telemetry-enabled session ran — absence is
+idle, not breakage (`obs-verify` prints `agentic telemetry: absent|metrics|metrics+events` as
+a note, never a failure). Promotion to the committed `.claude/settings.json` is proposed on
+[#9](https://github.com/dataengy/ogip/issues/9) — the exporter is **silent when the stack is
+down** (verified), so committed enablement costs sessions nothing.
+
+Verified series/labels (spike 2026-07-19, `.tmp/MANIFEST.agentic-obs.md`):
+`claude_code_token_usage_tokens_total{model,type=input|output|cacheRead|cacheCreation,session_id}` ·
+`claude_code_cost_usage_USD_total{model}` · `claude_code_session_count_total` ·
+`claude_code_active_time_seconds_total`; Loki events `{service_name="claude-code"}` with
+`event_name` = api_request | api_error | assistant_response | tool_decision | tool_result |
+hook_execution_* (attrs: `tool_name`, `success`, `duration_ms` — the tool/subagent/skill
+panels are plain LogQL `| json` over these).
+
+Two sharp edges, both load-bearing:
+
+- **`OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=cumulative` is mandatory.** Claude Code
+  exports delta temporality by default and Alloy's prometheus exporter **drops delta silently**
+  — no error anywhere, metrics just never reach VM.
+- **Metrics/events carry user identifiers** (email, org id) by default. Acceptable only because
+  the stack binds to localhost; never expose :3300/:8428, and never hard-code those values in
+  committed files (`public-hygiene.sh` gates).
+
+History/offline view: `just agentic-usage` (ccusage via npx — standard OSS reader over
+`~/.claude/projects/*.jsonl`); per-project slicing happens in Grafana, ccusage gives
+day/session token+cost tables.
+
 ## Not wired yet
 
 | Gap | Owner | Change |
 |---|---|---|
-| Flow writes no log file | lane `core-pipeline` | `pipelines/flows/main.py` calls bare `setup_logging()`; pass `log_file=settings.log_file`, `json_logs=settings.log_json` (both already exist in `src/ogip/config.py`) |
+| Flow writes no log file | lane `core-pipeline` | `pipelines/flows/` calls bare `setup_logging()`; pass `log_file=settings.log_file`, `json_logs=settings.log_json` (both already exist in `src/ogip/config.py`). Also arms the commented-out `no-pipeline-logs` alert rule (`provisioning/alerting/rules.yml`) |
 | No pipeline metrics | lane `core-pipeline` | export OTLP to `localhost:4318`, prefix `ogip_` — the dashboard panel is already waiting |
-| `Notifier` protocol (alerts) | Phase 7 remainder | alert abstraction over the stack ([PLAN](../../.ai/PLAN.md) A10) |
+| Alerting config is env-only | lane `core-pipeline` | routing lives in `OGIP_ALERT_*` env vars, not the SSoT — add an `alerting:` section to `config/config.yml`, map it in `config/.env-render.py` (plus the secret slots `OGIP_TG_BOT_TOKEN`/`OGIP_TG_CHAT_ID`, which the Grafana contact point also reads), then swap the literal defaults in `alerting/settings.py` for `_yaml("alerting", …)` |
+| ~~Nothing raises an alert yet~~ | ~~both~~ | **closed 2026-07-19**: flow failures alert via `on_failure` hooks on every engine flow (`pipelines/flows/_common.py` → `Notifier`), and Grafana delivers rule alerts straight to Telegram via its **native contact point** (`provisioning/alerting/` — no custom webhook receiver; #26 repurposed) |
 | Traces | deferred | no Tempo — logs + metrics first |
 
 Until the first gap closes, `.run/logs/` holds only what `just obs-smoke-log` writes, and the

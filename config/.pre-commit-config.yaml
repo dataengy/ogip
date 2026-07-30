@@ -1,7 +1,7 @@
 # Pre-commit hooks — run via `prek` (fast, drop-in pre-commit replacement).
 # Install: `uvx prek --config config/.pre-commit-config.yaml install`  (done by `make bootstrap`).
 # Lints EVERYTHING (Python, SQL, Bash, YAML) + smoke tests on commit; data tests on push.
-default_install_hook_types: [pre-commit, pre-push]
+default_install_hook_types: [pre-commit, pre-push, commit-msg]
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.11.0
@@ -52,6 +52,19 @@ repos:
         entry: uv run pytest -m smoke -q
         language: system
         pass_filenames: false
+      - id: sources-registry-drift
+        name: sources registry drift (skips when ~/.ai absent)
+        entry: bash src/scripts/sources-registry-check.sh
+        language: system
+        pass_filenames: false
+        files: ^spec/sources/ # fire only when projections are touched; script self-skips off-machine
+        stages: [pre-commit]
+      - id: airbyte-blocks-valid
+        name: airbyte blocks valid (skips when ~/.ai absent)
+        entry: bash src/scripts/airbyte-blocks-check.sh
+        language: system
+        pass_filenames: false
+        files: ^(spec/sources/|experimental/ingestion/airbyte/) # airbyte: blocks or the lane
         stages: [pre-commit]
       - id: dq-data-tests
         name: data quality (spec/dq)
@@ -59,3 +72,8 @@ repos:
         language: system
         pass_filenames: false
         stages: [pre-push]
+      - id: commit-msg-task-binding
+        name: commit is bound to a task (#issue)
+        entry: bash src/scripts/check-commit-msg.sh
+        language: system
+        stages: [commit-msg]

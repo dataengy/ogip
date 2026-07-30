@@ -19,3 +19,89 @@ once script:
 # Reminder to graduate a durable script out of .tmp/ (see README.md graduation rule).
 graduate script:
     @echo "Graduate .tmp/{{script}} → integrations/ | skills | src/ (then delete it from .tmp/)."
+
+# --- Agentic-observability spike (#33; README.md § One-shot bundles; contents gitignored) ---
+
+# Phase-0 OTel spike: one throwaway telemetry-enabled haiku session, then all checks.
+agentic-otel-spike:
+    @test -f "{{justfile_directory()}}/agentic-otel-spike.sh" \
+      || { echo "spike absent — see MANIFEST.agentic-obs.md"; exit 1; }
+    bash "{{justfile_directory()}}/agentic-otel-spike.sh"
+
+# Read-only re-check: did agent telemetry land in VM / Alloy / Loki? Idempotent.
+agentic-otel-check:
+    @test -f "{{justfile_directory()}}/agentic-otel-check.sh" \
+      || { echo "check absent — see MANIFEST.agentic-obs.md"; exit 1; }
+    bash "{{justfile_directory()}}/agentic-otel-check.sh"
+
+# --- One-shot bundles (documented in README.md § One-shot bundles; contents gitignored) ---
+
+# (2026-07-19 sources batch: RETIRED — both one-shots ran to completion; durable outputs
+# are committed in the skills repo + spec/sources/. The scripts + MANIFESTs stay in
+# .once/ as the gitignored record. Replay, if ever needed: run them directly with python3.)
+
+# Mirror the Hushcrasher newsletter into .ai/newsletter.hushcrasher.com/ (domain research).
+# Network + writes; idempotent. SUMMARY.md is hand-authored and never overwritten.
+fetch-hushcrasher-newsletter:
+    @test -f "{{justfile_directory()}}/.once/fetch-hushcrasher-newsletter.sh" \
+      || { echo "bundle absent — see .once/MANIFEST.hushcrasher-newsletter.md"; exit 1; }
+    bash "{{justfile_directory()}}/.once/fetch-hushcrasher-newsletter.sh"
+
+# Verify the newsletter mirror is complete and genuinely git-ignored (read-only, no network).
+verify-hushcrasher-newsletter:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd "{{justfile_directory()}}/.."
+    d=.ai/newsletter.hushcrasher.com
+    test -d "$d" || { echo "absent: $d — run fetch-hushcrasher-newsletter"; exit 1; }
+    n=$(find "$d" -maxdepth 1 -name '*.md' ! -name 'SUMMARY.md' ! -name 'INDEX.md' | wc -l | tr -d ' ')
+    test "$n" -ge 5 || { echo "only $n article(s) — expected >= 5"; exit 1; }
+    while read -r f; do
+      test "$(wc -c < "$f")" -gt 2000 || { echo "suspiciously small: $f"; exit 1; }
+    done < <(find "$d" -maxdepth 1 -name '*.md' ! -name 'INDEX.md')
+    git check-ignore -q "$d/INDEX.md" || { echo "NOT ignored: $d is committable"; exit 1; }
+    echo "ok: $n articles + SUMMARY.md, all non-empty, mirror is git-ignored"
+
+# Verify the VPS-provisioning + skills bundle is intact (read-only; no box, no token, no writes).
+# Path via justfile_directory(): `just` runs recipes from the Justfile's own dir, so a bare
+# `.tmp/.once/…` would double-prefix. The script cd's to the repo root itself.
+verify-vps-provisioning:
+    @test -f "{{justfile_directory()}}/.once/setup-vps-provisioning.sh" \
+      || { echo "bundle absent — see README.md § One-shot bundles"; exit 1; }
+    bash "{{justfile_directory()}}/.once/setup-vps-provisioning.sh"
+
+# Verify the "all dbt test types" bundle (read-only: asserts the TRACKED artifacts, runs no dbt).
+# Unlike the VPS bundle, its setup script MUTATES (regenerates the project, rebuilds the
+# warehouse) — so verification asserts the durable outputs here instead of re-running it.
+verify-dbt-all-tests:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd "$(git rev-parse --show-toplevel)"
+    fail=0
+    check() { # check <label> <file> <grep-pattern>
+      if grep -q "$3" "$2" 2>/dev/null; then echo "  ok   $1"; else echo "  MISS $1"; fail=1; fi
+    }
+    C=src/ogip/spec_compile/to_dbt.py
+    S=spec/sql/fs/market_features.sql
+    echo "compiler — test-type support ($C):"
+    check "generic w/ args: accepted_values" "$C" 'accepted_values'
+    check "generic w/ args: relationships"   "$C" 'relationships'
+    check "package: dbt_utils.accepted_range" "$C" 'dbt_utils.accepted_range'
+    check "package: dbt_expectations"         "$C" 'dbt_expectations'
+    check "model-level tests (_model_test)"   "$C" '_model_test'
+    check "singular tests (custom_checks)"    "$C" 'custom_checks'
+    check "unit tests (unit_tests)"           "$C" 'unit_tests'
+    check "singular test discovery (test-paths)" "$C" 'test-paths'
+    echo "spec — the types are actually exercised ($S):"
+    check "asset-level checks"  "$S" '^checks:'
+    check "custom_checks"       "$S" '^custom_checks:'
+    check "unit_tests"          "$S" '^unit_tests:'
+    check "relationships check" "$S" 'relationships'
+    echo "boundary (ADR-0017):"
+    check "ADR present" docs/adr/ADR-0017-orchestrator-transform-dq-boundary.md 'Orchestrator'
+    check "AGENTS hard rule" .ai/AGENTS.md 'Orchestrator ≠ transform'
+    echo "guard:"
+    bash src/scripts/check-no-dagster-dq.sh >/dev/null 2>&1 \
+      && echo "  ok   no hand-written Dagster DQ" \
+      || { echo "  FAIL hand-written Dagster asset_check present"; fail=1; }
+    test "$fail" -eq 0 && echo "BUNDLE OK" || { echo "BUNDLE INCOMPLETE"; exit 1; }

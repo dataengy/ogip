@@ -1,0 +1,12 @@
+---
+odos: 0.1
+owner: data-eng@ogip
+registry: ogip.tasks
+
+partitions:
+  daily_market: daily(start=2026-07-01)
+
+defaults:
+  retry: {max_attempts: 2, type: constant, interval: PT30S}
+  concurrency: {limit: 1, behavior: queue}
+  on_failure: alerting.notify_run_failure

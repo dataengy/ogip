@@ -166,6 +166,12 @@ gives the load step a clean, typed source. Build order (D4 fast slice first): **
 (APIs, dlt-direct), then Steam Reviews, IGDB, Reddit, Twitch (APIs), HLTB, Metacritic
 (scrapers → landing).
 
+Scraper concurrency, politeness, resilience, and delivery guarantees are fixed in
+[ADR-0014](../docs/adr/ADR-0014-resilient-scraping-concurrency.md): async-first fetching
+with bounded per-domain concurrency, at-least-once fetch + idempotent landing upsert
+(= effectively-once), DLQ + watermarks for replay/resume, and an opt-in process pool for
+CPU-bound parsing only.
+
 **ingestr & CDC (optional).** `ingestr` is the optional loader for **Change Data Capture**
 (<https://getbruin.com/docs/ingestr/getting-started/cdc.html>) — the pre-agreed path when the
 Postgres landing zone (or a future OLTP source) needs incremental CDC instead of batch loads.
@@ -326,6 +332,16 @@ the *target breadth*; the *delivery order* is milestone-driven:
   `prefect-dbt`, `prefect-sqlmesh-over-dbt`, `prefect-dagster-dlt-dbt` — same source→output slice,
   different engine/orchestrator, all consuming the same `spec/`.
 - **Then broaden** — more sources, `star`/`am`/`fs` depth, DQ, observability (Phases 4–10).
+
+**Reprioritization — 2026-07-17.** With M0 shipped, the near-term order changes (SWOT
+against the target use-case brief): **P1a — resilient scraping slice** (`ScraperSource`
+per [ADR-0014](../docs/adr/ADR-0014-resilient-scraping-concurrency.md) + Postgres landing
++ HLTB end to end → `tasks/scraping-resilient.md`, lane `ingestion`) and **P1b — finalize
+R2 + VPS deploy** (`tasks/r2-vps-finalize.md`, all remaining items in lane
+`core-pipeline`) come **before** the M1–M4 toolset replication. New sources are groomed as
+a P2 backlog mapped to market-model needs (`tasks/sources-backlog.md`). Requirement
+unknowns feeding these calls are tracked in
+[docs/OPEN-QUESTIONS.md](../docs/OPEN-QUESTIONS.md).
 
 **Run-after-each-implementation ritual (D14).** After every milestone/code change: bring up all
 needed services in **Docker** (`make up` — Postgres + Prefect + MinIO as needed) and **run the

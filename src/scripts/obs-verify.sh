@@ -55,4 +55,20 @@ probe grafana "http://localhost:${GRAFANA_PORT}/api/health" "ok" || failed=1
 
 ((failed == 0)) || die "stack is not healthy — inspect: docker compose -f deploy/obs/docker-compose.obs.yml logs"
 
+# Agentic telemetry (epic #33) is OPT-IN (Claude Code OTel env, .claude/settings.local.json),
+# so absence is a note, not a failure — a fresh checkout with no telemetry-enabled session yet
+# is healthy. Presence proves the whole chain: agent → OTLP :4318 → Alloy → VM/Loki.
+agentic="absent"
+if curl -fsS --max-time 3 "http://localhost:${VM_PORT}/api/v1/label/__name__/values" 2>/dev/null |
+  grep -q 'claude_code_'; then
+  agentic="metrics"
+  if curl -fsSG --max-time 3 "http://localhost:${LOKI_PORT}/loki/api/v1/query_range" \
+    --data-urlencode 'query={service_name="claude-code"}' \
+    --data-urlencode "start=$(($(date +%s) - 86400))000000000" \
+    --data-urlencode 'limit=1' 2>/dev/null | grep -q 'claude-code'; then
+    agentic="metrics+events"
+  fi
+fi
+log "agentic telemetry: ${agentic} (opt-in — see docs/architecture/observability.md § Agentic telemetry)"
+
 log "healthy → Grafana http://localhost:${GRAFANA_PORT} (dashboard: OGIP — Pipeline & Stack)"

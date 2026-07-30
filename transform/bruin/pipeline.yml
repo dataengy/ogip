@@ -1,0 +1,3 @@
+name: ogip
+default_connections:
+  duckdb: ogip-duckdb

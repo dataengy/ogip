@@ -32,3 +32,7 @@ def test_prefect_pipeline_produces_ml_outputs() -> None:
         f"select popularity_score from read_parquet('{features}') where popularity_score is null"
     ).fetchall()
     assert rows == []  # feature never null (non_negative check contract)
+
+    # The ML feature step is wired INTO the flow (via @materialize), not just callable standalone.
+    assert any(k.startswith("ml::") for k in counts), "ML step did not run in the flow"
+    assert (outdir / "ml_features.parquet").exists()

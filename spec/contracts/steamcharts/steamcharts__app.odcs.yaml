@@ -1,0 +1,90 @@
+# Open Data Contract Standard (ODCS) v3 — SteamCharts app pages, Layer-0 raw dataset.
+apiVersion: v3.0.0
+kind: DataContract
+id: steamcharts-app-raw
+name: steamcharts__app
+version: 0.1.0
+status: draft
+domain: games
+tenant: ogip
+description:
+  purpose: >
+    Immutable 1:1 AS-IS capture of the concurrent-player counts rendered on SteamCharts app
+    pages (Layer 0) — the traction dimension (current / 24-hour-peak / all-time-peak players)
+    per Steam app. The registry's only CSS-selector scrape (no JSON-LD).
+  usage: Source for staging.stg_steamcharts_apps; joins to core.game / steam on appid.
+  limitations: >
+    Demo mode (default) parses a bundled fixture page with zero network; live mode requires
+    OGIP_STEAMCHARTS_LIVE=1 and the appid set under `sources.steamcharts.appids`. Player counts
+    land AS-IS as the site formats them (thousands separators, e.g. "912,345") — the numeric
+    cast lives in staging, per Layer-0. Values are extracted by ordered CSS position
+    (div.app-stat > span.num), so a site rebuild that moves them yields NO row rather than a
+    wrong one. NOT publishable: no robots.txt (404) and no reviewed ToS — the data derives from
+    Valve's player-count endpoint and needs an attribution/ToS review before republication;
+    keep these columns out of published Parquet until that review is recorded in
+    spec/sources/games/steamcharts_app.yaml.
+
+servers:
+  - server: local-fs
+    type: local
+    format: parquet
+    path: .run/data/raw/steamcharts__app/
+
+schema:
+  - name: steamcharts__app
+    logicalType: object
+    physicalType: parquet
+    properties:
+      - name: appid
+        logicalType: string
+        required: true
+        unique: true
+        description: Steam app id from the URL (natural key), shared with the steam__* datasets.
+      - name: name
+        logicalType: string
+        description: App title from h1#app-heading, nullable.
+      - name: current_players
+        logicalType: string
+        description: Players in-game "now" as the site formats it (AS-IS text; cast in staging).
+      - name: peak_24h
+        logicalType: string
+        description: 24-hour peak concurrent players (AS-IS text; cast in staging).
+      - name: peak_all
+        logicalType: string
+        description: All-time peak concurrent players (AS-IS text; cast in staging).
+      - name: content_hash
+        logicalType: string
+        description: SHA-256 of the extracted (appid, counts) tuple — the landing-upsert identity.
+      - name: source_url
+        logicalType: string
+        description: The page the record was extracted from (provenance).
+      - name: _ingested_at
+        logicalType: string
+        description: Layer-0 ingestion timestamp (ISO-8601 UTC).
+      - name: etl_batch_id
+        logicalType: string
+        description: Layer-0 batch id.
+
+quality:
+  - rule: unique
+    property: appid
+    severity: error
+  - rule: not_null
+    property: appid
+    severity: error
+
+slaProperties:
+  - property: freshness
+    value: 1
+    unit: d
+    element: steamcharts__app._ingested_at
+
+customProperties:
+  - property: publishable
+    value: false
+  - property: sourceDescriptor
+    value: spec/sources/games/steamcharts_app.yaml
+
+team:
+  - username: data-eng@ogip
+    role: owner

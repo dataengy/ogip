@@ -164,6 +164,24 @@ class IgdbSettings(BaseSettings):
         return bool(self.client_id and self.client_secret)
 
 
+class ScrapingSettings(BaseSettings):
+    """Politeness + resilience knobs for scraped sources (ADR-0014).
+
+    Read by ``ingestion/common/http.py`` — every scraper shares one budget; a scraper
+    with private knobs is how two polite sources become one rude client.
+    """
+
+    model_config = _config("OGIP_SCRAPING_")
+
+    max_connections: int = Field(default_factory=lambda: int(_yaml("scraping", "max_connections")))
+    per_domain: int = Field(default_factory=lambda: int(_yaml("scraping", "per_domain")))
+    min_interval_ms: int = Field(default_factory=lambda: int(_yaml("scraping", "min_interval_ms")))
+    timeout_secs: int = Field(default_factory=lambda: int(_yaml("scraping", "timeout_secs")))
+    retry_attempts: int = Field(default_factory=lambda: int(_yaml("scraping", "retry_attempts")))
+    user_agent: str = Field(default_factory=lambda: str(_yaml("scraping", "user_agent")))
+    parse_workers: int = Field(default_factory=lambda: int(_yaml("scraping", "parse_workers")))
+
+
 class Settings:
     """Aggregate of all setting groups, built once via :func:`get_settings`."""
 
@@ -174,6 +192,7 @@ class Settings:
         self.steam = SteamSettings()
         self.rawg = RawgSettings()
         self.igdb = IgdbSettings()
+        self.scraping = ScrapingSettings()
 
     @property
     def demo_mode(self) -> bool:
