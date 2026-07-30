@@ -1,6 +1,6 @@
 # Task — Finalization: land everything, three green run commands, dev→main
 
-**Status:** 🚧 in progress (started 2026-07-30) · **Priority:** **P1** ·
+**Status:** ✅ done (2026-07-30, same day) · **Priority:** **P1** ·
 **Issue:** [#43](https://github.com/dataengy/ogip/issues/43)
 
 Umbrella over the finalization run; the plan of record is
@@ -25,12 +25,12 @@ Mode: AUTO (owner directive) — no per-phase approval gates; checkpoint reports
 - [x] **B** — three green run commands (`run-dbt` · `run-bruin` · `run-dagster-dbt`, all
       exit 0, outputs 5/5/5) + DQ loud-stub; 3 latent path bugs fixed (dbt/bruin/dagster)
 - [x] **C** — re-root T4–T9 done, PR #46 merged (T8 skipped by design; ADR-0020; #40 closed)
-- [ ] **D** — in flight: ✓ retired branches marked stale (kept — owner directive; worktree dirs of retired lanes removed) · ✓ DQ executor (PR #47, day-one
+- [x] **D** — ✓ retired branches marked stale (kept — owner directive; worktree dirs of retired lanes removed) · ✓ DQ executor (PR #47, day-one
       catch: empty console_pricing → demo coherent) · ✓ TBD sweep + issue triage (#39/#40/#44
       closed, 6 frozen issues carry techdebt pointers) · ✓ docs refresh · ✓ dagster
       PR #34 merged (custom checks: Bruin scalar semantics, dbt unwraps) · ✓ odos PR #49
-      merged (clean; adapters stay on #37) · remaining: dev→main (#10)
-- [~] **E** — deck BUILT & validated (31 slides, deck-factory repo, pptx+html in ~/Downloads);
+      merged (clean; adapters stay on #37) · ✓ dev→main PR #10 MERGED — main released
+- [x] **E** — deck BUILT & validated (31 slides, deck-factory repo, pptx+html in ~/Downloads);
       outreach drafts written to `.ai/outreach-drafts.local.md` (excluded) — merge with the TG
       thread's base drafts manually
 
