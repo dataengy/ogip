@@ -6,12 +6,13 @@ _Last updated: 2026-07-30_
 
 **Finalization run (2026-07-30, AUTO mode)** — plan of record:
 [docs/superpowers/plans/2026-07-30-finalization-land-everything.md](../docs/superpowers/plans/2026-07-30-finalization-land-everything.md),
-umbrella [tasks/finalization.md](tasks/finalization.md). State: re-root (#40) T1–T3 done /
-T4–T9 in flight on `lane/reroot-dbt-bruin-primary`; goal = three green run commands
-(`run-dbt` · `run-bruin` · `run-dagster-dbt`), lanes landed (dagster #34, odos #37) or
-loudly frozen ([techdebt register](../docs/techdebt/finalization-tbd.md)), then dev→main
-(#10). Ground already cleared: odos safety-pushed, 3 stale locks broken, corrupted
-`pipelines/dbt/prefect.yaml` restored, local `dev` == origin/dev.
+umbrella [tasks/finalization.md](tasks/finalization.md). State: **re-root DONE** (#40, PR #46
+merged — dbt primary + bruin co-primary, ADR-0020); **three demo commands green** on sample
+data (`make run-dbt` · `run-bruin` · `run-dagster-dbt`, the last proven on a wiped
+warehouse); **DQ monitors execute for real** (row_count+freshness on DuckDB, error → exit 1,
+wired into `make check` + the CI e2e step); 7 retired branches+worktrees deleted; frozen
+features tracked in the [techdebt register](../docs/techdebt/finalization-tbd.md). In
+flight: dagster #34 catch-up (agent), odos #37, dev→main (#10).
 
 **M0 — walking skeleton: ✅ SHIPPED.** RAWG → raw Parquet (**dlt**) → **SQLMesh** (raw→stg→core→fs,
 compiled from Bruin spec) → ML-ready `games.parquet` + `market_features.parquet` → demo notebook,
