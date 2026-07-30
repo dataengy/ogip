@@ -51,7 +51,9 @@ uv run dg launch --assets 'key:"raw/rawg__games"'
 # would otherwise have no raw Parquet to read (issue #38).
 MAIN_VENV="${OGIP_MAIN_VENV:-$REPO/.run/venv}"
 log "land scraped sources (fixture, main venv) — Prefect's half of ingestion"
-PYTHONPATH="$REPO/src:$REPO" "$MAIN_VENV/bin/python" -m ogip.tasks ingest.scraped
+# From $REPO: settings.platform.data_dir is repo-relative, so a run from this directory lands
+# the parquet under dagster_ogip/.run/… while dbt reads $REPO/.run/… ("No files found").
+(cd "$REPO" && PYTHONPATH="$REPO/src:$REPO" "$MAIN_VENV/bin/python" -m ogip.tasks ingest.scraped)
 
 # 3. TRANSFORM + DQ: `dbt build` runs models AND the generated tests, in one Dagster run.
 log "dg launch — dbt build (transform + dq) → FS layer"
