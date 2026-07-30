@@ -43,7 +43,12 @@ models:
     data_tests:
     - not_null
     - unique
+    - relationships:
+        to: ref('game')
+        field: game_sk
   - name: popularity_score
+    data_tests:
+    - not_null
   - name: critic_score
   - name: metacritic_score
   - name: opencritic_score
@@ -179,3 +184,28 @@ models:
   - name: current_players
   - name: peak_24h
   - name: peak_all
+unit_tests:
+- name: popularity_score_is_zero_when_rating_is_zero
+  given:
+  - input: ref('game')
+    rows:
+    - game_sk: a
+      game_id: 1
+      title: t
+      release_year: 2020
+      rating: 0.0
+      ratings_count: 500
+      metacritic: 80
+      playtime_hours: 1
+      added_count: 1
+  - input: ref('critic_reception')
+    rows: []
+  - input: ref('console_pricing')
+    rows: []
+  - input: ref('traction')
+    rows: []
+  expect:
+    rows:
+    - game_sk: a
+      popularity_score: 0.0
+  model: market_features

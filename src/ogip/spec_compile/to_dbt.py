@@ -54,8 +54,11 @@ def _column_test(chk: dict[str, Any], *, with_packages: bool) -> str | dict[str,
     raw_args = chk.get("args")
     args = cast("list[Any]", raw_args) if isinstance(raw_args, list) else []
     if name == "relationships":
-        # referential integrity back to the core entity this row describes (dbt-core built-in)
-        return {"relationships": {"to": f"ref('{value.get('to')}')", "field": value.get("field")}}
+        # referential integrity back to the core entity this row describes (dbt-core built-in).
+        # Spelled flat in spec ({name, to, field}), not `value: {…}`: Bruin's columnCheck parser
+        # fatally rejects a map in `value:`, while unknown flat fields only warn (the same
+        # tolerance the `between`/`args` spelling relies on).
+        return {"relationships": {"to": f"ref('{chk.get('to')}')", "field": chk.get("field")}}
     if name == "accepted_values" and args:
         return {"accepted_values": {"values": list(args)}}  # dbt-core built-in
     if not with_packages:
@@ -253,7 +256,16 @@ def compile_to_dbt(
     if singular:
         tests_dir.mkdir(parents=True, exist_ok=True)
         for name, query in singular:
-            (tests_dir / f"{name}.sql").write_text(query.rstrip() + "\n", encoding="utf-8")
+            # The spec authors custom checks in Bruin's native semantics (ONE scalar =
+            # violation count, compared to `value: 0`). dbt singular tests fail on returned
+            # ROWS, so wrap the scalar: emit the count only when it is non-zero. Also
+            # ref-rewrite: a literal `fs.market_features` gives dbt NO dependency edge, so
+            # the test could run before its model materializes (clean-slate CI failure).
+            inner = _rewrite_refs(query, assets).rstrip().rstrip(";")
+            wrapped = (
+                f"select violations\nfrom ({inner}) as _check(violations)\nwhere violations != 0\n"
+            )
+            (tests_dir / f"{name}.sql").write_text(wrapped, encoding="utf-8")
     # Use each model's configured `schema` verbatim (no `<target>_` prefix) so the layer
     # schemas match the SQLMesh target and the platform contract (fs.market_features etc.).
     macros_dir = project_dir / "macros"

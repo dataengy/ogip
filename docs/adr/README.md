@@ -29,5 +29,6 @@ These ADRs formalize the locked decisions in [`.ai/PLAN.md`](../../.ai/PLAN.md) 
 | [0018](ADR-0018-odts-normative-profile.md) | ODTS 0.1 normative transformation profile | conformance fixtures + vocabulary tests | Accepted |
 | [0019](ADR-0019-odts-dq-projection-and-seven-prefect-subprojects.md) | ODTS DQ projection into SQLMesh audits + seven Prefect sub-projects | `columns[].checks` → audits; per-engine flows | Accepted |
 | [0020](ADR-0020-dbt-bruin-primary-transform-engines.md) | dbt (primary) + Bruin (co-primary) engines; SQLMesh → comparison | refines ADR-0004/D5; re-root #40 | Accepted |
+| [0021](ADR-0021-orchestrator-transform-dq-boundary.md) | Orchestrator/transform responsibility boundary (no DQ duplication in Dagster) | DQ lives in spec→dbt; orchestrator only surfaces; renumbered from 0017 | Accepted |
 
 New ADRs are numbered sequentially (`ADR-NNNN-kebab-title.md`) and added to this table.

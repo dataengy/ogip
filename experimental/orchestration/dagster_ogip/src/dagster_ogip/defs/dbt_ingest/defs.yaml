@@ -7,5 +7,7 @@
 type: dagster_dbt.DbtProjectComponent
 
 attributes:
+  # The "/dbt" name is the SSoT in jobs/dbt-env.sh (DBT_PROJECT_DIR). Component YAML cannot source
+  # shell, so this literal is its one intentional twin — keep the two in sync if the layout changes.
   project: "{{ project_root }}/dbt"
   select: "tag:daily"

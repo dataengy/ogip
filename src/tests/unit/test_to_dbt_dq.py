@@ -64,7 +64,9 @@ def test_column_check_vocabulary_becomes_dbt_tests(tmp_path: Path) -> None:
         "    checks:\n"
         "      - {name: not_null}\n"
         "      - {name: unique}\n"
-        "      - {name: relationships, value: {to: game, field: game_sk}}\n"
+        # flat to/field, not `value: {…}` — Bruin's columnCheck parser fatally rejects a
+        # map in `value:`, so the spec vocabulary spells relationships flat (see to_dbt).
+        "      - {name: relationships, to: game, field: game_sk}\n"
         "  - name: critic_score\n"
         "    checks: [{name: accepted_range, value: {min: 0, max: 1}}]\n"
         "  - name: revenue\n"
@@ -111,7 +113,7 @@ def test_package_free_flavor_emits_only_builtin_tests(tmp_path: Path) -> None:
         "  - name: game_sk\n"
         "    checks:\n"
         "      - {name: not_null}\n"
-        "      - {name: relationships, value: {to: game, field: game_sk}}\n"
+        "      - {name: relationships, to: game, field: game_sk}\n"
         "  - name: critic_score\n"
         "    checks: [{name: accepted_range, value: {min: 0, max: 1}}]",
         "select 1 as game_sk, 'x' as locale, 0.5 as critic_score",
@@ -166,15 +168,22 @@ def test_custom_checks_become_singular_test_files(tmp_path: Path) -> None:
         "name: fs.feat\ntype: duckdb.sql\nmaterialization: {type: table}\n"
         "custom_checks:\n"
         "  - name: popularity_requires_ratings\n"
+        "    value: 0\n"
         "    query: |\n"
-        "      select game_sk from fs.feat where score > 0\n",
+        "      select count(*) from fs.feat where score > 0\n",
         "select 1 as game_sk, 1 as score",
     )
     out = tmp_path / "out"
     _compile(spec, out)
     singular = out / "tests" / "popularity_requires_ratings.sql"
     assert singular.is_file(), "custom_checks must become a dbt singular test"
-    assert "select game_sk from fs.feat" in singular.read_text()
+    # The model reference must be ref-rewritten: a literal `fs.feat` gives dbt no dependency
+    # edge, so the test can run before the model exists (clean-slate CI failure).
+    rendered = singular.read_text()
+    assert "{{ ref('feat') }}" in rendered
+    assert "fs.feat" not in rendered
+    # scalar (Bruin semantics) unwrapped for dbt: rows only when the violation count != 0
+    assert "as _check(violations)" in rendered and "where violations != 0" in rendered
 
 
 def test_unit_tests_are_emitted_into_schema_yml(tmp_path: Path) -> None:

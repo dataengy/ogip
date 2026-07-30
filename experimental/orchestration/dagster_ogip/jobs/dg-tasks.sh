@@ -20,6 +20,8 @@ set -euo pipefail
 PROJECT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO="$(cd "$PROJECT" && git rev-parse --show-toplevel)"
 cd "$REPO"
+# shellcheck source=jobs/dbt-env.sh
+source "$PROJECT/jobs/dbt-env.sh" # SSoT: DBT_PROJECT_DIR (dir NAME under this subproject)
 
 task="${1:?usage: dg-tasks.sh <build-dwh|build-dwh-full|dbt-evaluate|dbt-deps|update-dbt|update-dbt-changed|parsing|prefect|cdc>}"
 
@@ -50,7 +52,7 @@ cdc_flag() {
   esac
 }
 
-DBT_PROJECT="experimental/orchestration/dagster_ogip/dbt"
+DBT_PROJECT="${PROJECT#"$REPO"/}/$DBT_PROJECT_DIR" # repo-relative (cwd is $REPO)
 
 case "$task" in
   build-dwh)          ogip_task dbt.build --project_dir="$DBT_PROJECT" ;;
