@@ -1,7 +1,9 @@
 # Task — VPS deploy tooling (`deploy/vps/`)
 
 **Status:** 🚧 in progress — scripts written, linted and dry-run verified; a real host deploy is
-blocked on prerequisites owned by other lanes (see _Blocked on_).
+V2 scope (finalization 2026-07-30): `integrations/prefect/{deploy,trigger}.py` exist as loud
+TBD stubs (exit 2, docs/techdebt/finalization-tbd.md row 6), unblocking condition unchanged
+(pinned run model acted on + a real host) — see [#17](https://github.com/dataengy/ogip/issues/17).
 
 Lane: `vps` (parallel-session lock object). Scope: `deploy/vps/`, the `vps-*` Justfile recipes,
 and `config/config.yml → deploy.vps.*`. Decision record:

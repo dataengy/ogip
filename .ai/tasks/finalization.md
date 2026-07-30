@@ -24,10 +24,14 @@ Mode: AUTO (owner directive) — no per-phase approval gates; checkpoint reports
       #28/#30/#31 closed; F6 fixed; neighbour work salvaged+finished → PR #45 merged)
 - [x] **B** — three green run commands (`run-dbt` · `run-bruin` · `run-dagster-dbt`, all
       exit 0, outputs 5/5/5) + DQ loud-stub; 3 latent path bugs fixed (dbt/bruin/dagster)
-- [ ] **C** — re-root T4–T9 + reroot→dev PR (Refs #40) — T4–T7/T9 edited, gate + PR pending
-- [ ] **D** — land #34/#37 · delete 7 branches+worktrees · DQ-minimum · TBD sweep ·
-      docs refresh · dev→main (#10)
-- [ ] **E** — showcase deck + outreach drafts (off-repo)
+- [x] **C** — re-root T4–T9 done, PR #46 merged (T8 skipped by design; ADR-0020; #40 closed)
+- [ ] **D** — in flight: ✓ 7 branches+worktrees deleted · ✓ DQ executor (PR #47, day-one
+      catch: empty console_pricing → demo coherent) · ✓ TBD sweep + issue triage (#39/#40/#44
+      closed, 6 frozen issues carry techdebt pointers) · ✓ docs refresh · remaining: dagster
+      #34 (agent), odos #37, dev→main (#10)
+- [~] **E** — deck BUILT & validated (31 slides, deck-factory repo, pptx+html in ~/Downloads);
+      outreach drafts written to `.ai/outreach-drafts.local.md` (excluded) — merge with the TG
+      thread's base drafts manually
 
 ## Acceptance
 
