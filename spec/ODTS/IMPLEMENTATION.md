@@ -10,7 +10,7 @@ document for orchestration is [ODOS IMPLEMENTATION](../ODOS/IMPLEMENTATION.md).
 
 | ODTS layer | State |
 |---|---|
-| Authoring documents | six models in `spec/sql/`, currently on the legacy `@bruin` header; `@odts` migration is [#35](https://github.com/dataengy/ogip/issues/35) |
+| Authoring documents | sixteen models in `spec/sql/`, currently on the legacy `@bruin` header; `@odts` migration is [#35](https://github.com/dataengy/ogip/issues/35) |
 | Frontend (`@odts` → legacy YAML) | planned — [#35](https://github.com/dataengy/ogip/issues/35) |
 | Macro registry (`@keys.hash`, `@dates.year`) | planned — [#36](https://github.com/dataengy/ogip/issues/36); surrogate keys are hand-written `md5(...)` today |
 | IR + adapters (six targets) | **live** — `parse_asset()` → `Asset` → `to_sqlmesh` · `to_dbt` · `to_bruin` · `to_sqlmesh_dbt`; plain SQL consumes `spec/sql` directly |
@@ -57,11 +57,11 @@ spec immediately before running it, so a stale checkout cannot drift from the SS
 
 | Target | Adapter | Lives in | Run profile | Role |
 |---|---|---|---|---|
-| SQLMesh | `to_sqlmesh.py` | `transform/sqlmesh/` | `prefect-sqlmesh` | **production default** |
-| dbt | `to_dbt.py` | `transform/dbt/` | `prefect-dbt`, `prefect-dagster-dlt-dbt` | comparison; also the project Dagster's `DbtProjectComponent` loads |
+| dbt | `to_dbt.py` | `transform/dbt/` | `prefect-dbt`, `prefect-dagster-dlt-dbt` | **primary** ([ADR-0020](../../docs/adr/ADR-0020-dbt-bruin-primary-transform-engines.md)); also the project Dagster's `DbtProjectComponent` loads |
+| Bruin | `to_bruin.py` | `transform/bruin/` | `prefect-bruin` | **co-primary** — assets copied verbatim (the legacy header *is* Bruin's format) |
+| SQLMesh | `to_sqlmesh.py` | `transform/sqlmesh/` | `prefect-sqlmesh` | comparison (production default until ADR-0020) |
 | OpenDBT | `to_dbt.py` | `transform/opendbt/` | `prefect-opendbt` | comparison (dbt-core extended) |
 | SQLMesh-over-dbt | `to_sqlmesh_dbt.py` | `transform/sqlmesh_dbt/` | `prefect-sqlmesh-over-dbt` | comparison |
-| Bruin | `to_bruin.py` | `transform/bruin/` | `prefect-bruin` | comparison — assets copied verbatim (the legacy header *is* Bruin's format) |
 | plain SQL | none — consumes `spec/sql` directly | `transform/runner.py` | `prefect-sql` | comparison — topo-sorts `depends`, `create or replace` on DuckDB |
 
 Generated projects are committed (reviewable diffs when the spec changes) and carry
