@@ -1,10 +1,11 @@
 # ODTS 0.1 conformance examples
 
-The six live `spec/sql` models re-authored with `@odts 0.1` headers — the same layout
-(`<layer>/<name>.sql`), the same SQL bodies **byte for byte**, only the header differs.
+Six of the sixteen live `spec/sql` models re-authored with `@odts 0.1` headers — the same
+layout (`<layer>/<name>.sql`), the same SQL bodies **byte for byte**, only the header differs.
 `just standards-validate` asserts all of that: closed directive vocabulary, model-name/path
-agreement, and body identity with the corresponding `spec/sql` file, so these fixtures cannot
-silently drift from the SSoT they describe.
+agreement, body identity with the corresponding `spec/sql` file, and equivalence between a
+fixture's inline check attributes and that model's `@bruin` checks — so these fixtures cannot
+silently drift from the SSoT they describe, in either the SQL or the contract.
 
 They are examples of the standard, not the SSoT: the live `spec/sql` files keep their legacy
 `@bruin` headers until the `@odts` frontend lands

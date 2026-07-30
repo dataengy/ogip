@@ -7,6 +7,7 @@ tags      fs, feature-store, daily
 columns:
   game_sk                varchar   !null unique
   popularity_score       double    non_negative
+  critic_score           double    between(0,1)
   metacritic_score       integer   between(0,100)
   opencritic_score       integer   between(0,100)
   avg_critic_score       double    between(0,100)

@@ -7,6 +7,7 @@ tags      core, entity, daily
 columns:
   game_sk   varchar   pk !null unique
   title     varchar   !null
+  metacritic  integer  between(0,100)
 */
 select
     md5(cast(game_id as varchar)) as game_sk
