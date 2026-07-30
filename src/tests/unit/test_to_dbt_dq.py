@@ -64,7 +64,9 @@ def test_column_check_vocabulary_becomes_dbt_tests(tmp_path: Path) -> None:
         "    checks:\n"
         "      - {name: not_null}\n"
         "      - {name: unique}\n"
-        "      - {name: relationships, value: {to: game, field: game_sk}}\n"
+        # flat to/field, not `value: {…}` — Bruin's columnCheck parser fatally rejects a
+        # map in `value:`, so the spec vocabulary spells relationships flat (see to_dbt).
+        "      - {name: relationships, to: game, field: game_sk}\n"
         "  - name: critic_score\n"
         "    checks: [{name: accepted_range, value: {min: 0, max: 1}}]\n"
         "  - name: revenue\n"
@@ -111,7 +113,7 @@ def test_package_free_flavor_emits_only_builtin_tests(tmp_path: Path) -> None:
         "  - name: game_sk\n"
         "    checks:\n"
         "      - {name: not_null}\n"
-        "      - {name: relationships, value: {to: game, field: game_sk}}\n"
+        "      - {name: relationships, to: game, field: game_sk}\n"
         "  - name: critic_score\n"
         "    checks: [{name: accepted_range, value: {min: 0, max: 1}}]",
         "select 1 as game_sk, 'x' as locale, 0.5 as critic_score",
