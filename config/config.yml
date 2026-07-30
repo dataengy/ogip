@@ -6,7 +6,7 @@ platform:
   data_dir: .run/data # runtime zones: warehouse/, raw/, outputs/ (gitignored)
   log_dir: .run/logs # canonical log home — never the repo root (gitignored)
   log_level: INFO
-  log_json: false
+  log_json: true # JSON logs → Loki parsed labels (obs)
 
 storage: # ADR-0003 / D2 — Parquet lake
   backend: local # local (default, FS) | minio | s3 | r2
@@ -21,6 +21,7 @@ postgres: # ADR-0008 — landing zone + platform_meta + Prefect backend
   database: ogip
   landing_schema: landing # scraped/parsed intermediate (D11)
   meta_schema: platform_meta # run stats, watermarks, DQ results
+  airbyte_schema: airbyte_raw # experimental Airbyte evaluation lane (#41) ONLY — not the prod path
 
 services: # compose port mappings (rendered into .env)
   postgres_port: 5432
@@ -31,12 +32,13 @@ services: # compose port mappings (rendered into .env)
   loki_port: 3100
   grafana_port: 3300
   evidence_port: 3400 # optional Evidence visualizer (experimental/bi, D8)
+  airbyte_port: 8000 # experimental Airbyte evaluation lane (#41); abctl's local ingress
 
 endpoints:
   prefect_api_url: http://localhost:4200/api
 
 transformation:
-  engine: sqlmesh # default transform engine (ADR-0004, D5); compiled from spec/
+  engine: dbt # primary engine (ADR-0020; bruin co-primary); every project compiled from spec/
 
 ingestion:
   engine: dlt # default (ADR-0006, D11)
@@ -46,62 +48,99 @@ secrets:
   backend: env # ADR-0011 / D10 — env (default) | github (CI) | bitwarden | git-secret
 
 prefect:
-  runtime: ephemeral # ephemeral (default) | server (+ Postgres compose) — D3
+  # ephemeral PINNED as the demo/deploy run model (finalization decision 2026-07-30 — the
+  # compose stack runs a server with no worker, so `server` is not a complete mode yet;
+  # server+worker is V2 scope, docs/techdebt/finalization-tbd.md row 8).
+  runtime: ephemeral # ephemeral (pinned default) | server (+ Postgres compose) — D3
 
 # Run profiles: `just run-profile <name>` — orchestrator × engine setups (A12).
+# Primary trio (ADR-0020): prefect-dbt (default) · prefect-bruin · prefect-over-dagster.
+# `experimental: true` = comparison setup: EXPERIMENTAL banner at launch, e2e only under
+# OGIP_E2E_ALL_ENGINES=1 (docs/techdebt/finalization-tbd.md row 2).
 run_profiles:
-  prefect-sqlmesh: # DEFAULT / production
+  prefect-dbt: # DEFAULT / primary (ADR-0020)
     default: true
     services: [postgres, prefect]
     orchestrator: prefect
     ingestion: dlt
-    transform: sqlmesh
-  prefect-sql:
-    services: [postgres, prefect]
-    orchestrator: prefect
-    ingestion: dlt
-    transform: plain_sql
-  prefect-bruin: # complete alternative setup
+    transform: dbt
+  prefect-bruin: # co-primary — runs the spec natively (zero-translation path)
     services: [postgres, prefect]
     orchestrator: prefect
     ingestion: dlt
     transform: bruin
-  prefect-dbt:
-    services: [postgres, prefect]
-    orchestrator: prefect
-    ingestion: dlt
-    transform: dbt
-  prefect-opendbt: # dbt-core extended (opendbt) over the SAME generated dbt project
-    services: [postgres, prefect]
-    orchestrator: prefect
-    ingestion: dlt
-    transform: opendbt
-  prefect-sqlmesh-over-dbt:
-    services: [postgres, prefect]
-    orchestrator: prefect
-    ingestion: dlt
-    transform: sqlmesh_dbt
-  prefect-dagster-dlt-dbt: # complete alternative setup
-    services: [postgres, prefect]
-    orchestrator: dagster
-    ingestion: dlt
-    transform: dbt
   prefect-over-dagster: # Prefect wraps Dagster (dlt+dbt only); Prefect owns ML/scraping/obs/alerting
     services: [postgres, prefect]
     orchestrator: prefect
     ingestion: dlt
     transform: dagster
+  prefect-sqlmesh: # comparison (was default until ADR-0020)
+    experimental: true
+    services: [postgres, prefect]
+    orchestrator: prefect
+    ingestion: dlt
+    transform: sqlmesh
+  prefect-sql:
+    experimental: true
+    services: [postgres, prefect]
+    orchestrator: prefect
+    ingestion: dlt
+    transform: plain_sql
+  prefect-opendbt: # dbt-core extended (opendbt) over the SAME generated dbt project
+    experimental: true
+    services: [postgres, prefect]
+    orchestrator: prefect
+    ingestion: dlt
+    transform: opendbt
+  prefect-sqlmesh-over-dbt:
+    experimental: true
+    services: [postgres, prefect]
+    orchestrator: prefect
+    ingestion: dlt
+    transform: sqlmesh_dbt
+  prefect-dagster-dlt-dbt: # standalone Dagster complete setup (own project + workflow)
+    experimental: true
+    services: [postgres, prefect]
+    orchestrator: dagster
+    ingestion: dlt
+    transform: dbt
 
 sources:
   rawg: # M0 walking-skeleton source (clean documented REST)
     enabled: true
     entities: [games]
+  metacritic: # first scraped source (#18; HLTB is legally blocked — see spec/sources/)
+    enabled: true # demo-safe: fixture-driven without network; live mode reads `slugs`
+    entities: [game]
+    slugs: [hades] # live-mode page set; discovery-from-raw is the next increment
+  opencritic: # second critic aggregator (#18); publishable:false until ToS review — spec/sources/
+    enabled: true # demo-safe by default; live mode (OGIP_OPENCRITIC_LIVE=1) reads `pages`
+    entities: [game]
+    pages: ["1548/the-legend-of-zelda-breath-of-the-wild"] # id/slug; the id governs, slug is decorative
+  psn: # console regional pricing (#18); publishable:false until Sony ToS review — spec/sources/
+    enabled: true # demo-safe by default; live mode (OGIP_PSN_LIVE=1) reads `concepts`
+    entities: [concept]
+    concepts: ["en-us/concept/232093"] # {locale}/concept/{id}; one row per regional storefront
+  steamcharts: # concurrent-player traction (#18); css scrape; publishable:false — spec/sources/
+    enabled: true # demo-safe by default; live mode (OGIP_STEAMCHARTS_LIVE=1) reads `appids`
+    entities: [app]
+    appids: [730] # discovery-from-raw (steamspy/steam crosswalk) is the next increment
   steam:
     enabled: true
     entities: [games, reviews]
   igdb:
     enabled: false
     entities: [games]
+
+# Scraping resilience knobs (ADR-0014) — consumed by ingestion/common/http.py.
+scraping:
+  max_connections: 8 # global concurrent-fetch cap
+  per_domain: 1 # concurrent connections per domain (polite default)
+  min_interval_ms: 2000 # per-domain minimum spacing between requests
+  timeout_secs: 30
+  retry_attempts: 4
+  user_agent: "ogip-scraper/0.1 (+https://github.com/dataengy/ogip)"
+  parse_workers: 0 # 0 = parse inline; >0 = ProcessPoolExecutor (next increment)
 
 raw: # Layer 0 — 1:1 AS-IS (only optional _ingested_at / etl_batch_id added)
   format: parquet

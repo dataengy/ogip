@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!-- SYNTHETIC fixture (see samples/README.md): hand-authored, real-SHAPED page skeleton.
+     JSON-LD structure mirrors the live store.playstation.com/{locale}/concept/{id} page as
+     probe-verified on 2026-07-19 (values are those observed then). The connector extracts
+     the STABLE schema.org Product JSON-LD subset (registry trap 2), never the brittle
+     __NEXT_DATA__ blob. Identity is (concept_id, locale) from the fetched URL — the same
+     game has one row per regional storefront (trap 3). -->
+<html lang="en">
+<head>
+  <title>Legendary Eleven - PlayStation Store</title>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "PS4 Games"},
+      {"@type": "ListItem", "position": 2, "name": "Legendary Eleven"}
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "Legendary Eleven",
+    "sku": "UP1716-CUSA12032_00-LEGENDARYELEVEN0",
+    "category": "Full Game",
+    "offers": {
+      "@type": "Offer",
+      "price": "12.99",
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock"
+    }
+  }
+  </script>
+</head>
+<body>
+  <main><h1>Legendary Eleven</h1><p>Synthetic page body — the record lives in the JSON-LD above.</p></main>
+</body>
+</html>

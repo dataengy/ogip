@@ -1,4 +1,4 @@
-# `.ai/FIXME.md` — known conflicts and debt, high priority
+      # `.ai/FIXME.md` — known conflicts and debt, high priority
 
 Problems that are **real but not yet fixed** — contradictions between documents, convention
 gaps, and debt that a passing agent should not silently step over. Distinct from
@@ -7,6 +7,14 @@ an entry lives here until it is either fixed inline or graduates into a task fil
 
 **Rules.** Every entry names the *failure*, not just the file. An entry that becomes wrong is
 deleted, not left as archaeology. Do not "fix" anything marked **DO NOT TOUCH**.
+
+**Scheduled closures (finalization run 2026-07-30,
+[plan](../docs/superpowers/plans/2026-07-30-finalization-land-everything.md)):** F8 closed
+2026-07-30 (no `ODPS` mention survives in `spec/ODOS/` or the design doc — row deleted per the
+register's own rule) · F2 gets the cheap sweep and F4 the stub-READMEs at step 21 · F6 was fixed
+2026-07-30 (tasks-sync realigned #19's body to its file). **F1 stays open** — it is about the
+*authoring format* (`@bruin` → `@odts`, moves with [#35](https://github.com/dataengy/ogip/issues/35));
+step 13 / ADR-0020 rewrote only hard rule 2's *engine* clause. F3/F5 stay owner-decisions — untouched.
 
 | # | Problem | Severity | Wrong when | Owner lane |
 |---|---|---|---|---|
@@ -17,7 +25,10 @@ deleted, not left as archaeology. Do not "fix" anything marked **DO NOT TOUCH**.
 | [F5](#f5--semantic-layer-format-is-undecided-against-odts) | Semantic-layer format undecided against `@odts` | P3 | when [#20](https://github.com/dataengy/ogip/issues/20) starts | `spec` |
 | [F6](#f6--issue-19-body-has-drifted-from-its-task-file) | Issue #19 body drifted from its task file | P3 | **now** | not `spec` |
 
----
+_F7 (ODTS vs the Open Transformation Specification) was evaluated and closed — verdict in
+[docs/comparisons/ots-vs-odts.md](../docs/comparisons/ots-vs-odts.md); the alignment work it
+produced lives on [#35](https://github.com/dataengy/ogip/issues/35) and
+[#36](https://github.com/dataengy/ogip/issues/36)._
 
 ## F1 — hard rule 2 contradicts ADR-0016
 

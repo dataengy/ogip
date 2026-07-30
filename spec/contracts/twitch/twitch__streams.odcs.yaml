@@ -1,0 +1,101 @@
+# Open Data Contract Standard (ODCS) v3 — Twitch live streams, Layer-0 raw dataset.
+apiVersion: v3.0.0
+kind: DataContract
+id: twitch-streams-raw
+name: twitch__streams
+version: 0.1.0
+status: draft
+domain: games
+tenant: ogip
+description:
+  purpose: >
+    Attention/traction time series — live viewership per game, sampled from Helix
+    /streams (Layer 0). A row is one stream OBSERVED AT one sample instant; the dataset
+    is the accumulation of samples, never a current-state table.
+  usage: >
+    Future source for staging.stg_twitch_streams → per-game attention aggregates keyed
+    by (game_id, sample time). Contract-first: no connector in this repo yet — the
+    ingestion lane owns a low-code declarative Helix connector
+    (spec/sources/games/twitch_streams.yaml, `airbyte:` block; no upstream Twitch
+    connector exists — verified against the live registry 2026-07-20).
+  limitations: >
+    NOT publishable: Twitch Developer Services Agreement redistribution terms are
+    unreviewed. SNAPSHOT SEMANTICS ARE LOAD-BEARING — /streams is a live snapshot, so
+    the sampling cadence IS the dataset design: `_ingested_at` is the sample timestamp,
+    the natural key is (id, _ingested_at), and `id` alone is unique only within one
+    sample. Rows exist only for streams live at sample time — absence of a game in a
+    sample is a real zero-viewership observation, not missing data.
+
+servers:
+  - server: local-fs
+    type: local
+    format: parquet
+    path: .run/data/raw/twitch__streams/
+
+schema:
+  - name: twitch__streams
+    logicalType: object
+    physicalType: parquet
+    properties:
+      - name: id
+        logicalType: string
+        required: true
+        description: Stream id — unique within one sample only; key is (id, _ingested_at).
+      - name: user_id
+        logicalType: string
+        description: Broadcaster id.
+      - name: user_login
+        logicalType: string
+      - name: game_id
+        logicalType: string
+        description: Twitch category id — the join key toward the game dimension.
+      - name: game_name
+        logicalType: string
+      - name: type
+        logicalType: string
+        description: '"live" or "" (error state per Helix docs).'
+      - name: title
+        logicalType: string
+      - name: viewer_count
+        logicalType: integer
+        required: true
+        description: Concurrent viewers at sample time — the traction measure.
+      - name: started_at
+        logicalType: string
+        description: Stream start, ISO-8601 UTC.
+      - name: language
+        logicalType: string
+      - name: is_mature
+        logicalType: boolean
+      - name: _ingested_at
+        logicalType: string
+        description: THE SAMPLE TIMESTAMP (ISO-8601 UTC) — half of the natural key.
+      - name: etl_batch_id
+        logicalType: string
+        description: Layer-0 batch id — one batch per sample sweep.
+
+quality:
+  - rule: not_null
+    property: id
+    severity: error
+  - rule: not_null
+    property: viewer_count
+    severity: error
+
+slaProperties:
+  - property: freshness
+    value: 1
+    unit: h
+    element: twitch__streams._ingested_at
+
+customProperties:
+  - property: publishable
+    value: false
+  - property: sourceDescriptor
+    value: spec/sources/games/twitch_streams.yaml
+  - property: connectorStatus
+    value: contract-first — no connector in-repo; in-house declarative Helix manifest planned
+
+team:
+  - username: data-eng@ogip
+    role: owner

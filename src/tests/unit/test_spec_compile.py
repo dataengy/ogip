@@ -8,6 +8,7 @@ and the plain-SQL runner executes the spec directly in `depends` order.
 from __future__ import annotations
 
 import importlib.util
+import os
 from pathlib import Path
 from types import ModuleType
 
@@ -99,7 +100,9 @@ def test_to_bruin_is_verbatim_passthrough_plus_shell(tmp_path: Path) -> None:
 
     env = yaml.safe_load((project / ".bruin.yml").read_text(encoding="utf-8"))
     connection = env["environments"]["default"]["connections"]["duckdb"][0]
-    assert connection["path"] == str(warehouse)
+    # Bruin resolves a relative connection path against the .bruin.yml location, so the
+    # generator emits it project-relative (portable — never this machine's absolute path).
+    assert connection["path"] == os.path.relpath(warehouse.resolve(), project.resolve())
     pipeline = yaml.safe_load((project / "pipeline.yml").read_text(encoding="utf-8"))
     assert pipeline["default_connections"]["duckdb"] == connection["name"]
 
@@ -189,8 +192,8 @@ def test_run_profiles_resolve_from_config_ssot() -> None:
     profiles = run_profile.load_profiles()
 
     default_name, default = run_profile.resolve_profile(profiles, None)
-    assert default_name == "prefect-sqlmesh"
-    assert default["transform"] == "sqlmesh"
+    assert default_name == "prefect-dbt"  # primary (ADR-0020)
+    assert default["transform"] == "dbt"
 
     _, plain = run_profile.resolve_profile(profiles, "prefect-sql")
     assert plain["transform"] == "plain_sql"

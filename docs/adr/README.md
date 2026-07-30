@@ -25,6 +25,10 @@ These ADRs formalize the locked decisions in [`.ai/PLAN.md`](../../.ai/PLAN.md) 
 | [0014](ADR-0014-resilient-scraping-concurrency.md) | Resilient scraping: async-first, effectively-once landing | A6/D11 scraper pattern | Proposed |
 | [0015](ADR-0015-dagster-alt-orchestration-dg-components.md) | Dagster alt-orchestration via `dg` Components (dbt + dlt + ingestr CDC) | ADR-0007 alt setup, D1/D11 | Accepted |
 | [0016](ADR-0016-odts-authoring-format-spec-sql.md) | `@odts` authoring format for `spec/sql` | compact header · macros · SQL discipline; refines D0/D5 | Accepted |
-| [0017](ADR-0017-orchestrator-transform-dq-boundary.md) | Orchestrator/transform responsibility boundary (no DQ duplication in Dagster) | DQ lives in spec→dbt/SQLMesh; orchestrator only surfaces | Accepted |
+| [0017](ADR-0017-odos-normative-profile.md) | ODOS 0.1 normative orchestration profile | orchestration standard (jobs/schedules/monitors), YADPS umbrella | Accepted |
+| [0018](ADR-0018-odts-normative-profile.md) | ODTS 0.1 normative transformation profile | conformance fixtures + vocabulary tests | Accepted |
+| [0019](ADR-0019-odts-dq-projection-and-seven-prefect-subprojects.md) | ODTS DQ projection into SQLMesh audits + seven Prefect sub-projects | `columns[].checks` → audits; per-engine flows | Accepted |
+| [0020](ADR-0020-dbt-bruin-primary-transform-engines.md) | dbt (primary) + Bruin (co-primary) engines; SQLMesh → comparison | refines ADR-0004/D5; re-root #40 | Accepted |
+| [0021](ADR-0021-orchestrator-transform-dq-boundary.md) | Orchestrator/transform responsibility boundary (no DQ duplication in Dagster) | DQ lives in spec→dbt; orchestrator only surfaces; renumbered from 0017 | Accepted |
 
 New ADRs are numbered sequentially (`ADR-NNNN-kebab-title.md`) and added to this table.

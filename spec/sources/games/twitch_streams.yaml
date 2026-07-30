@@ -35,15 +35,21 @@ twitch_streams:
     Streams data is a LIVE snapshot: traction time series requires scheduled sampling
     (the cadence IS the dataset design), not one-off pulls.
   airbyte:
-    connector: source-twitch
+    # VERIFIED 2026-07-20 against the live OSS registry (591 sources): `source-twitch`
+    # DOES NOT EXIST at any support level — the previous `connector: source-twitch` was
+    # a fiction. The Airbyte lane builds a LOW-CODE DECLARATIVE connector for Helix
+    # instead (their decision; manifest lives in their lane, not here).
+    connector: custom-declarative-twitch-helix # built + maintained IN-HOUSE, not pulled
     streams: [streams, games]
     sync_mode: full_refresh # live snapshots; incremental is meaningless for /streams
     cursor: null
     why: >
-      Pairs with reddit_posts in one Airbyte deployment: same OAuth2 app-token pattern,
-      scheduled snapshot pulls, zero custom code — the marginal cost of the second Airbyte
-      source is a YAML config, while the dlt equivalent is another token-refresh client to
-      own. OGAP precedent: Twitch was an Airbyte source there too. Experimental lane only.
+      HONEST CASE, corrected 2026-07-20: this is NOT a maintained-connector win — no
+      Twitch connector exists in the registry, so we maintain the declarative manifest
+      ourselves. The remaining case is lane uniformity (one Airbyte deployment drives
+      reddit + twitch on one schedule) and declarative-YAML-vs-owned-Python: a low-code
+      manifest is less code to own than a dlt token-refresh client, but it is OUR code
+      either way. If the lane uniformity argument falls, this routes back to dlt.
   docs: https://dev.twitch.tv/docs/api/reference/#get-streams
   # Creation metadata — who registered this and on what evidence (audit trail;
   # the verdicts themselves are still re-probed live, never trusted from here).

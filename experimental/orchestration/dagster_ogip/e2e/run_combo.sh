@@ -24,7 +24,9 @@ mkdir -p "$REPO/.run/data/warehouse" # DuckDB opens, but does not create, the pa
 
 # 1. compile spec/ (Bruin, the SSoT) → the dbt project. Never hand-authored (ADR-0005).
 log "compile spec → dbt project"
-PYTHONPATH="$REPO/src" .venv/bin/python - "$REPO" "$DBT_PROJECT_DIR" <<'PY'
+# Root env, not the Dagster venv: ogip.spec_compile pulls ogip.logger -> loguru, which the
+# nested project deliberately does not carry.
+UV_PROJECT_ENVIRONMENT="$REPO/.run/venv" uv run --project "$REPO" python - "$REPO" "$DBT_PROJECT_DIR" <<'PY'
 import sys
 from pathlib import Path
 
@@ -44,9 +46,23 @@ PY
 log "dg launch — dlt ingestion (source → raw Parquet)"
 uv run dg launch --assets 'key:"raw/rawg__games"'
 
+# 2b. Scraped sources land OUTSIDE dlt (no bespoke-parser dlt source exists) — in the real
+# combo profile Prefect owns this step. Run it from the MAIN OGIP venv, which carries the
+# scraper deps the nested Dagster venv deliberately does not. Without it the dbt build in step 3
+# fails: critic_reception / console_pricing / traction reference scraped-source staging that
+# would otherwise have no raw Parquet to read (issue #38).
+MAIN_VENV="${OGIP_MAIN_VENV:-$REPO/.run/venv}"
+log "land scraped sources (fixture, main venv) — Prefect's half of ingestion"
+# From $REPO: settings.platform.data_dir is repo-relative, so a run from this directory lands
+# the parquet under dagster_ogip/.run/… while dbt reads $REPO/.run/… ("No files found").
+(cd "$REPO" && PYTHONPATH="$REPO/src:$REPO" "$MAIN_VENV/bin/python" -m ogip.tasks ingest.scraped)
+
 # 3. TRANSFORM + DQ: `dbt build` runs models AND the generated tests, in one Dagster run.
 log "dg launch — dbt build (transform + dq) → FS layer"
-uv run dg launch --assets 'key:"rawg__games"+'
+# kind:"dbt" = every dbt model. The old `key:"rawg__games"+` missed the scraped-source staging
+# (not downstream of rawg), so cross-source core models died on a clean warehouse with
+# "Catalog Error: Table with name stg_* does not exist" — the standing combo-e2e failure.
+uv run dg launch --assets 'kind:"dbt"'
 
 # 4. ASSERT the FINAL layer materialized with real rows and satisfies the feature contract.
 log "assert fs.market_features"

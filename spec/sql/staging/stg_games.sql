@@ -14,6 +14,15 @@ columns:
   - name: name
     type: varchar
     checks: [{name: not_null}]
+  - name: ratings_count
+    type: integer
+    checks: [{name: non_negative}]
+  - name: playtime_hours
+    type: integer
+    checks: [{name: non_negative}]
+  - name: added_count
+    type: integer
+    checks: [{name: non_negative}]
 @bruin */
 select
     id as game_id

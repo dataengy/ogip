@@ -12,9 +12,14 @@ The implementation-agnostic specification layer — *Open Data Contracts + porta
 | `dq/policy.yml` | cross-cutting DQ rules/severity | YAML |
 | `datasets/` | dataset registry (metadata, ownership) | YAML |
 | `lineage/` | derived dependency graph | generated |
+| `ODTS/` | ODTS 0.1 normative profile, governing brief, and conformance examples | Markdown + SQL |
+| `ODOS/` | ODOS 0.1 normative profile, schema, and conformance examples | Markdown + JSON Schema + YAML |
 
 The **spec compiler** (`src/ogip/spec_compile/`) renders these to engine-native projects —
 **SQLMesh** (default), dbt, Bruin. _Populated in Phase 1; M0 seeds the first RAWG models._
 
 Authoring rules for the SQL models — format, macros, SQL discipline, and the gate every
 syntax proposal passes — live in [`sql/AGENTS.md`](sql/AGENTS.md).
+
+The uppercase `ODTS/` and `ODOS/` directories describe the standards themselves. Lowercase
+`sql/` and the planned `orchestration/` directory contain OGIP documents conforming to them.

@@ -26,8 +26,10 @@ def test_config_yml_has_core_sections() -> None:
     required = ("platform", "storage", "postgres", "transformation", "ingestion", "run_profiles")
     for section in required:
         assert section in cfg, f"config.yml missing '{section}'"
-    assert cfg["transformation"]["engine"] == "sqlmesh"
+    assert cfg["transformation"]["engine"] == "dbt"  # primary (ADR-0020)
     assert cfg["ingestion"]["engine"] == "dlt"
+    default_profiles = [n for n, p in cfg["run_profiles"].items() if p.get("default")]
+    assert default_profiles == ["prefect-dbt"], "exactly one default profile: prefect-dbt"
 
 
 def _env_render_module() -> Any:

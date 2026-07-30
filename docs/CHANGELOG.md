@@ -6,6 +6,14 @@ All notable changes to OGIP are documented here. Format follows
 
 ## [Unreleased]
 
+### Changed — Finalization run started (2026-07-30)
+- Plan of record: `docs/superpowers/plans/2026-07-30-finalization-land-everything.md`
+  (umbrella `.ai/tasks/finalization.md`): three green run commands (`run-dbt` · `run-bruin` ·
+  `run-dagster-dbt`) → re-root T4–T9 (#40) → land dagster #34 + odos #37 → dev→main (#10).
+- Ground cleared: `lane/odos-compiler` safety-pushed; 3 stale session locks broken; corrupted
+  `pipelines/dbt/prefect.yaml` restored (name/prefect-version keys); local `dev` reconciled.
+- Frozen-feature register added: `docs/techdebt/finalization-tbd.md` (8 entries, loud-stub rule).
+
 ### Added — Dagster alt-orchestration (dbt + dlt + ingestr CDC)
 - `experimental/orchestration/dagster_ogip/` — self-contained `dg` CLI + Components project
   ([ADR-0015](adr/ADR-0015-dagster-alt-orchestration-dg-components.md)): `DbtProjectComponent`

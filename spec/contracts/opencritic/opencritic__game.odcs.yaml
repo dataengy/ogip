@@ -1,0 +1,98 @@
+# Open Data Contract Standard (ODCS) v3 — OpenCritic game pages, Layer-0 raw dataset.
+apiVersion: v3.0.0
+kind: DataContract
+id: opencritic-game-raw
+name: opencritic__game
+version: 0.1.0
+status: draft
+domain: games
+tenant: ogip
+description:
+  purpose: >
+    Immutable 1:1 AS-IS capture of the schema.org VideoGame JSON-LD embedded in OpenCritic
+    game pages (Layer 0) — the quality dimension (Top Critic Average) per game, a second
+    critic aggregator beside Metacritic.
+  usage: Source for staging.stg_opencritic_games; joins to core.game on name (id is OpenCritic-local).
+  limitations: >
+    Demo mode (default) parses a bundled fixture page with zero network; live mode requires
+    OGIP_OPENCRITIC_LIVE=1 and the page set under `sources.opencritic.pages`. The natural key
+    is game_id (the numeric id in the URL) — the slug is DECORATIVE and the embedded JSON-LD
+    url is RELATIVE, so neither is trustworthy identity; /game/1548/wrong-slug still serves id
+    1548. NOT publishable: robots.txt permits fetching /game/ but OpenCritic's Terms are
+    unreviewed for redistribution of critic aggregates — keep these columns out of published
+    Parquet until that review is recorded in spec/sources/games/opencritic_game.yaml. An
+    official keyed API exists via RapidAPI; publishing aggregates should go through that.
+
+servers:
+  - server: local-fs
+    type: local
+    format: parquet
+    path: .run/data/raw/opencritic__game/
+
+schema:
+  - name: opencritic__game
+    logicalType: object
+    physicalType: parquet
+    properties:
+      - name: game_id
+        logicalType: string
+        required: true
+        unique: true
+        description: OpenCritic numeric id from the URL (natural key). Authoritative; slug is not.
+      - name: slug
+        logicalType: string
+        description: Decorative URL slug — NOT identity (a wrong slug on a right id still serves the game).
+      - name: content_hash
+        logicalType: string
+        description: SHA-256 of the raw JSON-LD block — the landing-upsert identity.
+      - name: source_url
+        logicalType: string
+        description: The page the record was extracted from (provenance).
+      - name: name
+        logicalType: string
+        required: true
+      - name: released
+        logicalType: string
+        description: JSON-LD datePublished, ISO-8601 date as text (cast in staging).
+      - name: genre
+        logicalType: string
+        description: JSON-LD genre; single string today — a multi-genre page would evolve to a list.
+      - name: publisher
+        logicalType: string
+        description: First publisher name from the JSON-LD publisher list, nullable.
+      - name: score
+        logicalType: integer
+        description: aggregateRating.ratingValue — OpenCritic Top Critic Average (0–100), nullable.
+      - name: review_count
+        logicalType: integer
+        description: aggregateRating.reviewCount — critic review count, nullable.
+      - name: _ingested_at
+        logicalType: string
+        description: Layer-0 ingestion timestamp (ISO-8601 UTC).
+      - name: etl_batch_id
+        logicalType: string
+        description: Layer-0 batch id.
+
+quality:
+  - rule: unique
+    property: game_id
+    severity: error
+  - rule: not_null
+    property: name
+    severity: error
+
+slaProperties:
+  - property: freshness
+    value: 7
+    unit: d
+    element: opencritic__game._ingested_at
+
+customProperties:
+  - property: publishable
+    value: false
+  - property: sourceDescriptor
+    value: spec/sources/games/opencritic_game.yaml
+
+team:
+  - username: data-eng@ogip
+    role: owner

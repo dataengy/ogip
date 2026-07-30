@@ -23,6 +23,24 @@ One read-only command answers "check env, parallel sessions & locks, go or wait"
 read from disk (`.ai/.locks/`), never from a table that drifts. `--wait` replaces re-running
 the snapshot by hand when your lane is held: it returns the moment the lock is gone or stale.
 
+## 0.5 Read your path's history before you read its code
+
+A lock tells you who is writing *now*. It says nothing about what a neighbour finished and
+committed an hour ago. Before writing a line, ask what already exists:
+
+```bash
+git log --oneline -5 -- <target paths>   # already built? by whom, how recently?
+git ls-files <target dir>                # what is tracked here that you have not opened
+```
+
+This is not optional diligence. A session in this repo explored `ingestion/`, read the code,
+designed a `ScraperSource` — and only discovered on the way to implementing it that the whole
+slice had been committed 60 minutes earlier by a parallel session. Reading code answers "what
+does this do"; only the log answers "has someone already done this".
+
+The commit subject is usually enough. When it is not, `git show --stat <sha>` costs one call
+and is cheaper than rediscovering the design someone already defended.
+
 ## 1. Claim before writing — `lane.sh`
 
 ```bash

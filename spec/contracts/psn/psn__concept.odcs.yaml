@@ -1,0 +1,100 @@
+# Open Data Contract Standard (ODCS) v3 — PlayStation Store concept pages, Layer-0 raw dataset.
+apiVersion: v3.0.0
+kind: DataContract
+id: psn-concept-raw
+name: psn__concept
+version: 0.1.0
+status: draft
+domain: games
+tenant: ogip
+description:
+  purpose: >
+    Immutable 1:1 AS-IS capture of the schema.org Product JSON-LD embedded in
+    store.playstation.com concept pages (Layer 0) — console regional pricing per game,
+    extending the pricing dimension beyond Steam to PlayStation.
+  usage: Source for staging.stg_psn_concepts; joins to core.game on name (concept_id is PSN-local).
+  limitations: >
+    Demo mode (default) parses a bundled fixture page with zero network; live mode requires
+    OGIP_PSN_LIVE=1 and the concept set under `sources.psn.concepts`. The natural key is the
+    COMPOSITE (concept_id, locale): the same game has one row per regional storefront, so a
+    price sweep is one page fetch per locale. Only the STABLE schema.org Product JSON-LD is
+    captured — the richer Next.js __NEXT_DATA__ blob is deliberately ignored as brittle. NOT
+    publishable: robots.txt permits fetching /{locale}/concept/ but Sony's ToS are unreviewed
+    for redistribution of derived price datasets — keep these columns out of published Parquet
+    until that review is recorded in spec/sources/games/psn_store_concept.yaml.
+
+servers:
+  - server: local-fs
+    type: local
+    format: parquet
+    path: .run/data/raw/psn__concept/
+
+schema:
+  - name: psn__concept
+    logicalType: object
+    physicalType: parquet
+    properties:
+      - name: row_key
+        logicalType: string
+        required: true
+        unique: true
+        description: Composite natural key "concept_id:locale" — the landing-upsert identity.
+      - name: concept_id
+        logicalType: string
+        required: true
+        description: PSN numeric concept id from the URL. Not unique alone (one row per locale).
+      - name: locale
+        logicalType: string
+        required: true
+        description: Storefront locale from the URL (e.g. en-us) — the regional price axis.
+      - name: content_hash
+        logicalType: string
+        description: SHA-256 of the raw JSON-LD block — price snapshots differ over time.
+      - name: source_url
+        logicalType: string
+        description: The page the record was extracted from (provenance).
+      - name: name
+        logicalType: string
+        required: true
+      - name: sku
+        logicalType: string
+        description: PSN product SKU from the JSON-LD, nullable.
+      - name: category
+        logicalType: string
+        description: JSON-LD category (e.g. "Full Game"), nullable.
+      - name: price
+        logicalType: string
+        description: offers.price as text (schema.org emits a string); cast in staging.
+      - name: currency
+        logicalType: string
+        description: offers.priceCurrency (ISO 4217), nullable.
+      - name: _ingested_at
+        logicalType: string
+        description: Layer-0 ingestion timestamp (ISO-8601 UTC).
+      - name: etl_batch_id
+        logicalType: string
+        description: Layer-0 batch id.
+
+quality:
+  - rule: unique
+    property: row_key
+    severity: error
+  - rule: not_null
+    property: name
+    severity: error
+
+slaProperties:
+  - property: freshness
+    value: 1
+    unit: d
+    element: psn__concept._ingested_at
+
+customProperties:
+  - property: publishable
+    value: false
+  - property: sourceDescriptor
+    value: spec/sources/games/psn_store_concept.yaml
+
+team:
+  - username: data-eng@ogip
+    role: owner

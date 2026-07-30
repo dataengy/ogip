@@ -1,12 +1,19 @@
-"""Unit tests for the flow-failure alerting hook (no Prefect run, no network)."""
+"""Unit tests for the flow-failure alerting hook (no Prefect run, no network).
+
+Imports from `pipelines._shared.alerting` — the module `notify_flow_failure` is actually
+*defined* in since Part 3.1 (#37) — not from the `pipelines.alerting_hooks` back-compat shim.
+`monkeypatch.setattr` rebinds a name in a module's own namespace; the hook's unqualified
+`make_notifier()` call resolves against its *defining* module's globals regardless of which
+module re-exports the function object, so patching the shim would silently no-op.
+"""
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 
 import pytest
-from pipelines import alerting_hooks
-from pipelines.alerting_hooks import notify_flow_failure
+from pipelines._shared import alerting
+from pipelines._shared.alerting import notify_flow_failure
 
 
 # Duck-typed stand-ins for Prefect's Flow / FlowRun / State — the hook only reads .name/.message.
@@ -50,7 +57,7 @@ class _Result:
 
 def test_failure_alert_carries_flow_run_and_reason(monkeypatch: pytest.MonkeyPatch) -> None:
     recorder = _Notifier()
-    monkeypatch.setattr(alerting_hooks, "make_notifier", lambda: recorder)
+    monkeypatch.setattr(alerting, "make_notifier", lambda: recorder)
 
     notify_flow_failure(_Flow(), _FlowRun(), _State())
 
@@ -62,7 +69,7 @@ def test_failure_alert_carries_flow_run_and_reason(monkeypatch: pytest.MonkeyPat
 
 
 def test_no_credentials_sends_nothing_and_does_not_raise(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(alerting_hooks, "make_notifier", lambda: None)
+    monkeypatch.setattr(alerting, "make_notifier", lambda: None)
     # Must be a no-op, not an error: a credential-free pipeline fails as it always did.
     notify_flow_failure(_Flow(), _FlowRun(), _State())
 
@@ -73,14 +80,14 @@ def test_hook_never_raises_even_if_notifier_construction_explodes(
     def _boom() -> object:
         raise RuntimeError("env parse blew up")
 
-    monkeypatch.setattr(alerting_hooks, "make_notifier", _boom)
+    monkeypatch.setattr(alerting, "make_notifier", _boom)
     # A failure hook that raised would mask the real flow failure — it must swallow this.
     notify_flow_failure(_Flow(), _FlowRun(), _State())
 
 
 def test_undelivered_alert_is_logged_not_raised(monkeypatch: pytest.MonkeyPatch) -> None:
     recorder = _Notifier(ok=False)
-    monkeypatch.setattr(alerting_hooks, "make_notifier", lambda: recorder)
+    monkeypatch.setattr(alerting, "make_notifier", lambda: recorder)
 
     notify_flow_failure(_Flow(), _FlowRun(), _State())  # falsy result → warn, no raise
 
@@ -91,7 +98,7 @@ def test_reason_falls_back_to_state_name_when_message_is_empty(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     recorder = _Notifier()
-    monkeypatch.setattr(alerting_hooks, "make_notifier", lambda: recorder)
+    monkeypatch.setattr(alerting, "make_notifier", lambda: recorder)
 
     notify_flow_failure(_Flow(), _FlowRun(), _State(message=None))
 

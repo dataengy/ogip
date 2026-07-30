@@ -1,0 +1,79 @@
+# Cross-cutting DQ *monitors* (row-count floors, freshness) — declared here, NOT in ODTS
+# checks (spec/sql `columns[].checks`; ODTS §6 explicitly excludes monitors) and NOT in
+# ODOS hooks (its monitoring.yml schema is const-locked to `run_failed`). This is their one
+# designated home (see .ai/PLAN.md A8, dq/README.md).
+#
+# `dq/run.py` LOADS and REPORTS these monitors (count, print a summary, exit 0). It does NOT
+# execute them yet — the executor (query the warehouse, evaluate thresholds, record results to
+# `platform_meta.dq_results`) arrives in Phase 4. Severity model (ADR-0008): `error` blocks the
+# flow, `warn` records + alerts.
+#
+# Monitor types:
+#   row_count  — {model, min_rows, severity}: table must have at least `min_rows` rows.
+#   freshness  — {model, column, max_age_hours, severity}: `column` (a timestamp) must be no
+#                older than `max_age_hours`.
+#
+# Every `model` here must be a real `spec/sql` asset name (schema.model, cross-checked against
+# `ogip.spec_compile.load_assets` by src/tests/unit/test_dq_policy.py).
+version: 1
+monitors:
+  # -- fs: the ML-ready feature table must never publish empty --
+  - name: fs_market_features_nonempty
+    model: fs.market_features
+    type: row_count
+    min_rows: 1
+    severity: error
+
+  # -- core: entity + fact tables must never publish empty --
+  - name: core_game_nonempty
+    model: core.game
+    type: row_count
+    min_rows: 1
+    severity: error
+  - name: core_critic_reception_nonempty
+    model: core.critic_reception
+    type: row_count
+    min_rows: 1
+    severity: error
+  - name: core_traction_nonempty
+    model: core.traction
+    type: row_count
+    min_rows: 1
+    severity: error
+  - name: core_console_pricing_nonempty
+    model: core.console_pricing
+    type: row_count
+    min_rows: 1
+    severity: error
+
+  # -- raw: every ingested source must land recent data (warn — upstream cadence varies) --
+  - name: rawg_raw_freshness
+    model: raw.rawg__games
+    type: freshness
+    column: _ingested_at
+    max_age_hours: 48
+    severity: warn
+  - name: metacritic_raw_freshness
+    model: raw.metacritic__game
+    type: freshness
+    column: _ingested_at
+    max_age_hours: 48
+    severity: warn
+  - name: opencritic_raw_freshness
+    model: raw.opencritic__game
+    type: freshness
+    column: _ingested_at
+    max_age_hours: 48
+    severity: warn
+  - name: psn_raw_freshness
+    model: raw.psn__concept
+    type: freshness
+    column: _ingested_at
+    max_age_hours: 48
+    severity: warn
+  - name: steamcharts_raw_freshness
+    model: raw.steamcharts__app
+    type: freshness
+    column: _ingested_at
+    max_age_hours: 48
+    severity: warn

@@ -15,6 +15,16 @@ behind `/add-terms-to-glossary`); Russian-slang twins live in
 | [ccusage](#ccusage) | general | npx ccusage — OSS-отчёты токенов/стоимости из ~/.claude/projects/*.jsonl |
 | [label cardinality guard](#label-cardinality-guard) | general | в лейблы попадают только низкокардинальные поля; id-шники живут в строке |
 | [lane locks / lane-status.sh / release-all-mine](#lane-locks--lane-statussh--release-all-mine) | project | координация параллельных агент-сессий OGIP: пер-полосные advisory-локи + снапшот + sweep на выходе |
+| [:= vs = в проекции (PropertyEQ vs EQ)](#=-vs-=-в-проекции-propertyeq-vs-eq) | general | `a = b` в проекции — предикат равенства, boolean-колонка: валидно, исполняемо, молча не то; `a := b` падает громко |
+| [macro conformance test](#macro-conformance-test) | general | один макрос × все адаптеры × одна фикстура, assert байт-в-байт — защита от тихого расхождения реализаций |
+| [ODPS / ODTS / ODOS (семейство стандартов)](#odps--odts--odos-семейство-стандартов) | project | зонт называется YADPS, а не ODPS — имя занято Bitol и LF; конвенция: конфликтующее имя берёт YA вместо Open |
+| [@odts](#@odts) | project | формат авторинга spec/sql в OGIP: компактный header → рендер в @bruin YAML → адаптеры без изменений |
+| [.ai/FIXME.md (conflict register)](#aifixmemd-conflict-register) | project | реестр известных противоречий между документами; протухшее hard rule опаснее протухшего README |
+| [call-sites](#call-sites) | general | every place a symbol is imported/invoked; zero = dead code |
+| [wire / wired-in](#wire--wired-in) | general | connect a component into the runtime path so it actually runs |
+| [deferral-admission](#deferral-admission) | general | in-code statement that a feature is not finished (placeholder/stub/TODO) |
+| [walking-slice](#walking-slice) | general | thin end-to-end vertical exercising every layer before the full version |
+| [SLICE-ONLY](#slice-only) | project | audit verdict: walking-slice done + integrated, named parts deferred |
 
 ## OTel / OTLP (Claude Code native telemetry)
 
@@ -51,3 +61,63 @@ behind `/add-terms-to-glossary`); Russian-slang twins live in
 `[project]` OGIP's parallel-session discipline: advisory per-lane object locks (.ai/.locks/obj--<lane>), lane-status.sh (one-shot locks/git/settle snapshot with --wait), and the release-all-mine verb the SessionEnd hook runs so a dying session frees every lane it held.
 > **RU:** Дисциплина полос OGIP: claim перед записью, снапшот перед claim'ом, автоматический sweep всех своих локов на SessionEnd.
 > **Пример:** bash src/scripts/lane-status.sh → VERDICT: GO/COORDINATE; хук зовёт agent-session-lock.sh release-all-mine.
+
+## := vs = в проекции (PropertyEQ vs EQ)
+
+`[general]` In sqlglot, `select a = b` parses as `EQ` — an equality predicate yielding a boolean column — while `select a := b` parses as `PropertyEQ`. Only the second is unambiguous, and DuckDB rejects it outright instead of running it.
+> **RU:** `a = b` в проекции — валидный, исполняемый и молча неверный SQL: на выходе boolean-колонка вместо алиаса. `a := b` даёт отдельный узел AST и падает громко, поэтому безопасен как авторский сахар.
+> **Пример:** OGIP ADR-0016: LValue разрешён только через `:=`, `=` запрещён наглухо — проверено на sqlglot 30.8 / DuckDB 1.5.4.
+
+## macro conformance test
+
+`[general]` When one macro compiles to several engine-native implementations, a test that runs every adapter over one fixture and asserts byte-identical output.
+> **RU:** Когда один макрос компилируется в несколько нативных реализаций — тест, гоняющий все адаптеры по одной фикстуре с assert байт-в-байт. Без него `dbt_utils.generate_surrogate_key` и `md5(cast(x as varchar))` дают разные хеши, и модель keyится по-разному в зависимости от run-профиля.
+> **Пример:** OGIP #36: условие приземления макроса, а не пожелание — расхождение делает CI красным, а не инцидентом данных ниже по потоку.
+
+## ODPS / ODTS / ODOS (семейство стандартов)
+
+`[project]` The project's standards taxonomy: **YADPS** (Yet Another Data Platform Standard) as the umbrella, with **ODTS** (Open Data Transformation Standard) and **ODOS** (Open Data Orchestration Standard) as parts. The umbrella is *not* called ODPS: that acronym is held by Bitol's Open Data Product Standard and the Linux Foundation's Open Data Product Specification, and Bitol also maintains ODCS which `spec/contracts/` already uses. **Convention — a colliding name takes `YA` (Yet Another) in place of `Open`.** ODTS and ODOS were checked and are unclaimed, so they keep `Open`; the family is deliberately asymmetric.
+> **RU:** Таксономия стандартов проекта: **YADPS** (Yet Another Data Platform Standard) — зонт, **ODTS** (трансформации) и **ODOS** (оркестрация) — части. Зонт называется НЕ ODPS: это имя занято Open Data Product Standard от Bitol и Open Data Product Specification от Linux Foundation, а Bitol же ведёт ODCS, который уже используется в `spec/contracts/`. **Конвенция: конфликтующее имя берёт `YA` вместо `Open`.** ODTS и ODOS проверены и свободны — поэтому сохраняют `Open`; асимметрия семейства намеренная, маркер несёт только то имя, что наступило на занятое.
+> **Пример:** Разделение ODTS/ODOS подтверждает архитектурный выбор OGIP: оркестраторы (Prefect, Dagster) — не таргеты компиляции ODTS, у них своя ось и свой стандарт.
+
+## @odts
+
+`[project]` OGIP's authoring format for `spec/sql` and its implementation of ODTS — a compact line-oriented header compiled front-of-pipeline into the legacy `@bruin` YAML, so the compiler is extended at the front and every adapter stays untouched.
+> **RU:** Формат авторинга `spec/sql` в OGIP и его реализация ODTS. Компактный header компилируется фронтендом в `@bruin` YAML, поэтому компилятор расширяется спереди, а адаптеры не трогаются вообще. OGIP реализует стандарт, а не авторствует его: рамка оценки — шесть реальных таргетов проекта.
+> **Пример:** ADR-0016; задачи #35 (компактный header) и #36 (макро-слой).
+
+## .ai/FIXME.md (conflict register)
+
+`[project]` OGIP's register of known contradictions between documents and convention gaps — sits between `TODO.md` (near-term actions) and `tasks/` (scoped work with an issue). It exists because the project asserts facts in prose rather than deriving them: the `spec/sql` authoring format alone is stated in ten documents.
+> **RU:** Реестр известных противоречий между документами и пробелов в конвенциях — между `TODO.md` и `tasks/`. Нужен потому, что факты в проекте заявляются прозой, а не выводятся: один только формат авторинга `spec/sql` записан в десяти документах. Ключевое правило: протухшее hard rule в `AGENTS.md` опаснее протухшего README — hard rules **исполняют**, а не просто читают.
+> **Пример:** F1: hard rule 2 всё ещё говорит «Bruin asset format» и станет ложью в момент приземления #35.
+
+## call-sites
+
+`[general]` Every place a symbol (class/function) is imported or invoked across the codebase. In an implementation audit, the presence of call-sites is what separates an INTEGRATED feature from dead code: a class can exist yet have zero call-sites (implemented-but-not-wired).
+> **RU:** Все места, где символ (класс/функция) импортируется или вызывается по коду. В аудите реализации именно наличие call-sites отличает ИНТЕГРИРОВАННУЮ фичу от мёртвого кода: класс может существовать, но иметь ноль call-sites (реализован, но не подключён).
+> **Пример:** /audit-feature-implementation-and-integration нашёл MetacriticGame в src/ogip/tasks/ingest.py:42 + тестах → интегрирован, не мёртвый код.
+
+## wire / wired-in
+
+`[general]` To connect a component into the runtime path so it actually runs — registered in the task registry, called by a pipeline/flow, reachable from make/CI. 'Wired in' = integrated; 'not wired' = present but inert.
+> **RU:** Подключить компонент в рантайм-путь, чтобы он реально исполнялся — зарегистрирован в реестре задач, вызывается пайплайном/флоу, достижим из make/CI. «Wired in» = интегрирован; «not wired» = присутствует, но мёртв.
+> **Пример:** Скрапер wired-in через @odos_task('ingest.metacritic') и вызов из ingest_scraped/ingest_all в pipelines/.
+
+## deferral-admission
+
+`[general]` An explicit in-code statement (docstring/comment) that a feature is not finished: 'deferred', 'placeholder', 'stub', 'next increment', 'for now', TODO/FIXME. The highest-value evidence when judging complete-vs-partial — the author telling you it is a slice.
+> **RU:** Явное признание в коде (докстринг/комментарий), что фича не готова: «deferred», «placeholder», «stub», «next increment», «for now», TODO/FIXME. Самое ценное доказательство при оценке «готово vs частично» — автор сам говорит, что это срез.
+> **Пример:** src/ogip/tasks/ingest.py: ingest.parse_to_landing — placeholder для async ScraperSource (ADR-0014); поймано /audit-feature-implementation-and-integration.
+
+## walking-slice
+
+`[general]` A thin but end-to-end vertical implementation that exercises every layer (source→raw→staging→core→fs→output) with minimal breadth, proving the path works before the resilient/full version is built.
+> **RU:** Тонкая, но сквозная вертикальная реализация, задевающая каждый слой (source→raw→staging→core→fs→output) с минимальной шириной — доказывает, что путь работает, до того как построена resilient/полная версия.
+> **Пример:** Metacritic-скрапер приземляет fetch→raw Parquet как walking-slice; async-конкуррентность + Postgres landing — следующий инкремент (#18).
+
+## SLICE-ONLY
+
+`[project]` An audit verdict from /audit-feature-implementation-and-integration: the feature's walking-slice is complete and integrated end-to-end, but named parts are deferred (with a tracking issue). Contrast with DONE — presence of a class is never enough for DONE.
+> **RU:** Вердикт аудита из /audit-feature-implementation-and-integration: walking-slice фичи готов и интегрирован end-to-end, но названные части отложены (с трекинг-issue). Контраст с DONE — наличия класса недостаточно для DONE.
+> **Пример:** Скрапер = SLICE-ONLY: walking-slice готов+интегрирован; resilient ADR-0014 (async + Postgres landing upsert) отложен, трекается .ai/tasks/scraping-resilient.md + #18.

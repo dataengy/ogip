@@ -69,6 +69,12 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     name, profile = resolve_profile(profiles, args.profile)
+    if profile.get("experimental"):
+        print(
+            f"[EXPERIMENTAL] profile {name!r} is a comparison setup off the production path "
+            "(ADR-0020) — not exercised by the default gates "
+            "(docs/techdebt/finalization-tbd.md row 2)"
+        )
     if profile.get("orchestrator") == "dagster":
         print(f"profile {name!r} {_DAGSTER_HINT}")
         return 2
@@ -76,7 +82,7 @@ def main(argv: list[str] | None = None) -> int:
     sys.path.insert(0, str(REPO))  # `pipelines`/`transform` are repo-root packages
     import importlib
 
-    from pipelines.flows.engines import ENGINE_FLOWS
+    from pipelines._shared.engines import ENGINE_FLOWS
 
     transform = str(profile.get("transform", "sqlmesh"))
     module_path = ENGINE_FLOWS.get(transform)

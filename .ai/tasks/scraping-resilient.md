@@ -1,6 +1,17 @@
 # Task — Resilient scraping: `ScraperSource` + landing + first scraped source (~~HLTB~~ → Metacritic)
 
-**Status:** 📋 planned · **Priority:** **P1**
+**Status:** 🟡 **SLICE-ONLY** (walking-slice shipped; resilient layer deferred) · **Priority:** **P1**
+
+> **Audit 2026-07-27** (`/audit-feature-implementation-and-integration`): the **walking-slice is
+> DONE and integrated end-to-end** — `ScraperSource` (sync) + four sources (Metacritic,
+> OpenCritic, PSN, SteamCharts) `fetch → raw Parquet`, wired via `@odos_task ingest.<src>` /
+> `ingest.scraped` into every run profile, with ODCS contracts, raw+staging models, and green
+> unit tests. **Deferred = the resilient layer** in Deliverables below: async concurrency,
+> politeness throttle/backoff, circuit breaker + DLQ, effectively-once Postgres `landing` upsert,
+> watermarks, CPU parse pool, fetch observability. Admission in code:
+> `src/ogip/tasks/ingest.py: ingest.parse_to_landing` is a placeholder "wire the async
+> ScraperSource here". The Deliverables list below is HLTB-worded but the target swapped to
+> Metacritic (see the ⛔ note); the resilience items are engine-agnostic and stand unchanged.
 
 > **⛔ 2026-07-18 — HLTB is legally blocked; first scraped source is now Metacritic.**
 > HowLongToBeat (Ziff Davis) robots.txt prohibits automated retrieval outright and names
@@ -31,6 +42,18 @@ Half of the planned sources are scraped/parsed, and resilient scraping is the si
 biggest gap between the declared architecture (PLAN A6) and shipped code — M0 covers only
 a clean API. This slice makes the `scrape → Postgres landing → dlt → raw Parquet` half of
 the pipeline real, with the full resilience pattern every later scraped source reuses.
+
+> **Slice 1 shipped (2026-07-20)** — walking skeleton of the scrape path, Metacritic-first:
+> `ingestion/common/http.py` (PoliteFetcher: global+per-domain caps, min-interval spacing,
+> exp backoff honouring Retry-After, identifying UA, timeouts, degraded-not-dead failures) ·
+> `ingestion/base/scraper_source.py` (urls()/parse() contract; politeness from config SSoT) ·
+> `ingestion/sources/metacritic.py` (JSON-LD extraction per the spec/sources contract;
+> demo = bundled fixture, live gated behind OGIP_METACRITIC_LIVE=1 — scraping a real site
+> is never a silent side effect of `make run`) · `scraping:` config block · 9 unit tests ·
+> `make run` green e2e with `metacritic__game` Parquet landed (Hades/93/61 verified).
+> **Still open ↓**: Postgres `landing` hop + idempotent upsert (records already carry
+> natural key + content_hash), circuit breaker, DLQ, watermark, parse pool, per-source
+> counters, ODCS contract + `stg_metacritic__game`, recorded-response integration test.
 
 ## Deliverables
 

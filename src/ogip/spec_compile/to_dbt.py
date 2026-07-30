@@ -7,7 +7,6 @@ dbt `{{ ref('stg_games') }}`, and Bruin column checks become dbt tests in `schem
 
 from __future__ import annotations
 
-import logging
 from pathlib import Path
 from typing import Any, cast
 
@@ -16,75 +15,99 @@ import yaml
 from .bruin import Asset, load_assets
 from .dialect import rewrite_refs
 
-# stdlib logging (named `log` per the house convention), NOT loguru/ogip.logger: this compiler is
-# imported by the nested Dagster subproject's venv (experimental/orchestration/dagster_ogip), which
-# does not depend on loguru — so it cannot import ogip.logger.
-log = logging.getLogger(__name__)
-
 _MATERIALIZATION = {"table": "table", "view": "view"}
+# Bruin check name -> dbt generic test name (the argument-free ones)
+_TEST = {"not_null": "not_null", "unique": "unique"}
 
 
-def _check_value(check: dict[str, Any]) -> Any:
-    """Bruin spells a check's argument `value:`; some checks carry a mapping, some a list."""
-    return check.get("value")
+def _numeric(value: Any) -> bool:
+    """`bool` is an `int` subclass in Python — a bound must be a real number."""
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
-def _column_test(check: dict[str, Any]) -> str | dict[str, Any] | None:
-    """Bruin column check -> dbt column test.
+def _range_test(bounds: dict[str, Any]) -> dict[str, Any]:
+    """`dbt_utils.accepted_range`, emitting only the bounds actually authored."""
+    out: dict[str, Any] = {}
+    if _numeric(bounds.get("min")):
+        out["min_value"] = bounds["min"]
+    if _numeric(bounds.get("max")):
+        out["max_value"] = bounds["max"]
+    return {"dbt_utils.accepted_range": out}
 
-    A bare str is a dbt builtin generic test; a dict is a parameterised test (builtin or from a
-    package — dbt_utils/dbt_expectations are always installed, see `_DBT_PACKAGES`). Unknown
-    names return None and are dropped WITH A WARNING by the caller rather than silently — a
-    silent drop once hid `non_negative` from the generated project entirely.
+
+def _column_test(chk: dict[str, Any], *, with_packages: bool) -> str | dict[str, Any] | None:
+    """One `@bruin` column check -> one dbt test entry (``None`` = not projectable here).
+
+    Unknown names are skipped rather than raised: `to_sqlmesh` is the fail-loud gate for the
+    check vocabulary (ODTS §5) and runs over the same spec, so a typo is already caught there.
+
+    ``with_packages=False`` (OpenDBT / SQLMesh-over-dbt, whose dbt loader cannot install the hub
+    packages) emits ONLY dbt-core built-in tests — `not_null`, `unique`, `accepted_values`,
+    `relationships`. The bounds tests come from `dbt_utils` and are dropped, else dbt fails with
+    an unresolved-macro error at parse time.
     """
-    name = str(check.get("name"))
-    value = _check_value(check)
-    if name in ("not_null", "unique"):
-        return name
-    if name == "accepted_values":
-        values = list(cast("list[Any]", value)) if isinstance(value, list) else []
-        return {"accepted_values": {"values": values}}
+    name = chk.get("name")
+    if name in _TEST:
+        return _TEST[str(name)]
+    raw_value = chk.get("value")
+    value = cast("dict[str, Any]", raw_value) if isinstance(raw_value, dict) else {}
+    raw_args = chk.get("args")
+    args = cast("list[Any]", raw_args) if isinstance(raw_args, list) else []
     if name == "relationships":
-        # value: {to: <model name>, field: <column>} — `to` is rendered as a dbt ref().
-        rel = cast("dict[str, Any]", value) if isinstance(value, dict) else {}
-        return {
-            "relationships": {
-                "to": f"ref('{rel.get('to')}')",
-                "field": str(rel.get("field", "id")),
-            }
-        }
-    if name == "non_negative":
-        # >= 0; dbt_utils.accepted_range with only min_value is the idiomatic spelling.
-        return {"dbt_utils.accepted_range": {"min_value": 0}}
+        # referential integrity back to the core entity this row describes (dbt-core built-in).
+        # Spelled flat in spec ({name, to, field}), not `value: {…}`: Bruin's columnCheck parser
+        # fatally rejects a map in `value:`, while unknown flat fields only warn (the same
+        # tolerance the `between`/`args` spelling relies on).
+        return {"relationships": {"to": f"ref('{chk.get('to')}')", "field": chk.get("field")}}
+    if name == "accepted_values" and args:
+        return {"accepted_values": {"values": list(args)}}  # dbt-core built-in
+    if not with_packages:
+        return None  # everything below needs dbt_utils — unavailable in the package-free flavors
     if name == "accepted_range":
-        # value: {min: <n>, max: <n>} — either bound may be omitted.
-        rng = cast("dict[str, Any]", value) if isinstance(value, dict) else {}
-        args: dict[str, Any] = {}
-        if rng.get("min") is not None:
-            args["min_value"] = rng["min"]
-        if rng.get("max") is not None:
-            args["max_value"] = rng["max"]
-        return {"dbt_utils.accepted_range": args}
-    if name == "matches_regex":
-        return {"dbt_expectations.expect_column_values_to_match_regex": {"regex": str(value)}}
+        return _range_test(value)
+    if name == "non_negative":
+        return _range_test({"min": 0})
+    if name == "between" and len(args) == 2:
+        return _range_test({"min": args[0], "max": args[1]})
     return None
 
 
-def _model_test(check: dict[str, Any]) -> dict[str, Any] | None:
-    """Bruin ASSET-level check -> dbt model-level test (things no single column can express)."""
-    name = str(check.get("name"))
-    value = _check_value(check)
-    if name == "not_empty":
-        return {"dbt_expectations.expect_table_row_count_to_be_between": {"min_value": 1}}
-    if name == "row_count_between":
-        rng = cast("dict[str, Any]", value) if isinstance(value, dict) else {}
-        args: dict[str, Any] = {}
-        if rng.get("min") is not None:
-            args["min_value"] = rng["min"]
-        if rng.get("max") is not None:
-            args["max_value"] = rng["max"]
-        return {"dbt_expectations.expect_table_row_count_to_be_between": args}
-    return None
+def _model_level_tests(asset: Asset, *, with_packages: bool) -> list[dict[str, Any]]:
+    """Top-level (cross-column) `checks:` -> model-level dbt tests.
+
+    These were dropped entirely before, so a composite-uniqueness or non-empty constraint
+    authored in `spec/sql` never ran under dbt. BOTH targets here need hub packages
+    (`dbt_utils`, `dbt_expectations`), so they are omitted for the package-free flavors.
+    """
+    if not with_packages:
+        return []
+    tests: list[dict[str, Any]] = []
+    for chk in cast("list[dict[str, Any]]", asset.meta.get("checks") or []):
+        name = chk.get("name")
+        if name == "unique" and isinstance(chk.get("columns"), list):
+            cols = [str(c) for c in cast("list[Any]", chk["columns"])]
+            tests.append(
+                {"dbt_utils.unique_combination_of_columns": {"combination_of_columns": cols}}
+            )
+        elif name == "not_empty":
+            # no single column can assert "the table produced rows at all"
+            tests.append(
+                {"dbt_expectations.expect_table_row_count_to_be_between": {"min_value": 1}}
+            )
+    return tests
+
+
+def _unit_tests(assets: list[Asset]) -> list[dict[str, Any]]:
+    """`unit_tests:` -> dbt (>=1.8) unit tests, bound to the model that authored them."""
+    out: list[dict[str, Any]] = []
+    for asset in assets:
+        for raw in cast("list[Any]", asset.meta.get("unit_tests") or []):
+            if not isinstance(raw, dict):
+                continue
+            entry = dict(cast("dict[str, Any]", raw))
+            entry["model"] = asset.model
+            out.append(entry)
+    return out
 
 
 # Well-known dbt-hub packages, emitted into the generated project's packages.yml (installed by
@@ -145,7 +168,7 @@ def _model_sql(asset: Asset, assets: list[Asset], repo_root: Path) -> str:
     return f"{config}\n\n{body}\n"
 
 
-def _schema_yml(assets: list[Asset]) -> dict[str, Any]:
+def _schema_yml(assets: list[Asset], *, with_packages: bool) -> dict[str, Any]:
     models: list[dict[str, Any]] = []
     for asset in assets:
         columns_value = asset.meta.get("columns")
@@ -161,17 +184,9 @@ def _schema_yml(assets: list[Asset]) -> dict[str, Any]:
             for c in checks:
                 if not isinstance(c, dict):
                     continue
-                check = cast("dict[str, Any]", c)
-                test = _column_test(check)
-                if test is None:
-                    log.warning(
-                        "spec check %r on %s.%s has no dbt mapping — dropped",
-                        check.get("name"),
-                        asset.model,
-                        col.get("name"),
-                    )
-                    continue
-                tests.append(test)
+                projected = _column_test(cast("dict[str, Any]", c), with_packages=with_packages)
+                if projected is not None:
+                    tests.append(projected)
             entry: dict[str, Any] = {"name": str(col.get("name"))}
             if col.get("description"):
                 entry["description"] = str(col["description"])
@@ -181,43 +196,14 @@ def _schema_yml(assets: list[Asset]) -> dict[str, Any]:
         model: dict[str, Any] = {"name": asset.model}
         if asset.meta.get("description"):
             model["description"] = str(asset.meta["description"])
-        # ASSET-level checks -> model-level data_tests (row counts etc.; no one column owns them)
-        asset_checks_value = asset.meta.get("checks")
-        asset_checks = (
-            cast("list[Any]", asset_checks_value) if isinstance(asset_checks_value, list) else []
-        )
-        model_tests: list[dict[str, Any]] = []
-        for c in asset_checks:
-            if not isinstance(c, dict):
-                continue
-            check = cast("dict[str, Any]", c)
-            mtest = _model_test(check)
-            if mtest is None:
-                log.warning(
-                    "spec asset-level check %r on %s has no dbt mapping — dropped",
-                    check.get("name"),
-                    asset.model,
-                )
-                continue
-            model_tests.append(mtest)
-        if model_tests:
-            model["data_tests"] = model_tests
         if columns:
             model["columns"] = columns
+        model_tests = _model_level_tests(asset, with_packages=with_packages)
+        if model_tests:
+            model["data_tests"] = model_tests
         models.append(model)
-
     schema: dict[str, Any] = {"version": 2, "models": models}
-    # dbt UNIT tests (dbt >= 1.8): logic tests over mocked inputs, no warehouse data needed.
-    # Spec carries them verbatim under `unit_tests:` — they are model-logic fixtures, not DQ.
-    unit_tests: list[dict[str, Any]] = []
-    for asset in assets:
-        ut_value = asset.meta.get("unit_tests")
-        for ut in cast("list[Any]", ut_value) if isinstance(ut_value, list) else []:
-            if not isinstance(ut, dict):
-                continue
-            entry_ut = dict(cast("dict[str, Any]", ut))
-            entry_ut["model"] = asset.model
-            unit_tests.append(entry_ut)
+    unit_tests = _unit_tests(assets)
     if unit_tests:
         schema["unit_tests"] = unit_tests
     return schema
@@ -251,33 +237,26 @@ def compile_to_dbt(
         target.write_text(_model_sql(asset, assets, repo_root), encoding="utf-8")
 
     (models_dir / "schema.yml").write_text(
-        yaml.safe_dump(_schema_yml(assets), sort_keys=False), encoding="utf-8"
+        yaml.safe_dump(_schema_yml(assets, with_packages=with_packages), sort_keys=False),
+        encoding="utf-8",
     )
 
-    # SINGULAR tests — one .sql per Bruin `custom_checks` entry. A dbt singular test is just a
-    # query that must return ZERO rows; spec owns the query, so bespoke assertions stay in the
-    # SSoT instead of being hand-written into the generated project (or into the orchestrator).
+    # `custom_checks:` -> dbt SINGULAR tests: a bespoke assertion that is not a per-column
+    # rule. dbt fails the test when the query returns any row, which is exactly the authored
+    # contract ("must return ZERO rows").
     tests_dir = project_dir / "tests"
-    tests_dir.mkdir(parents=True, exist_ok=True)
-    for stale in tests_dir.glob("*.sql"):
+    for stale in tests_dir.glob("*.sql"):  # regenerate cleanly, like models/
         stale.unlink()
-    for asset in assets:
-        custom_value = asset.meta.get("custom_checks")
-        for cc in cast("list[Any]", custom_value) if isinstance(custom_value, list) else []:
-            if not isinstance(cc, dict):
-                continue
-            custom = cast("dict[str, Any]", cc)
-            query = custom.get("query")
-            if not query:
-                log.warning(
-                    "custom_check %r on %s has no `query` — skipped",
-                    custom.get("name"),
-                    asset.model,
-                )
-                continue
-            fname = f"{asset.model}__{str(custom.get('name', 'custom')).strip()}.sql"
-            body = _absolutize_runtime_paths(_rewrite_refs(str(query), assets), repo_root)
-            (tests_dir / fname).write_text(f"-- GENERATED from spec/ custom_checks\n{body}\n")
+    singular: list[tuple[str, str]] = [
+        (str(cast("dict[str, Any]", c)["name"]), str(cast("dict[str, Any]", c).get("query") or ""))
+        for asset in assets
+        for c in cast("list[Any]", asset.meta.get("custom_checks") or [])
+        if isinstance(c, dict) and cast("dict[str, Any]", c).get("name")
+    ]
+    if singular:
+        tests_dir.mkdir(parents=True, exist_ok=True)
+        for name, query in singular:
+            (tests_dir / f"{name}.sql").write_text(query.rstrip() + "\n", encoding="utf-8")
     # Use each model's configured `schema` verbatim (no `<target>_` prefix) so the layer
     # schemas match the SQLMesh target and the platform contract (fs.market_features etc.).
     macros_dir = project_dir / "macros"
@@ -296,8 +275,6 @@ def compile_to_dbt(
                 "version": "0.1.0",
                 "profile": "ogip",
                 "model-paths": ["models"],
-                # singular tests live in tests/ (generated from spec `custom_checks`)
-                "test-paths": ["tests"],
                 "models": {"ogip": {"+materialized": "table"}},
             },
             sort_keys=False,
@@ -327,8 +304,9 @@ def compile_to_dbt(
         yaml.safe_dump({"packages": packages}, sort_keys=False), encoding="utf-8"
     )
     # dbt writes run artifacts + its user cookie into the project dir — never commit those.
+    # `.cache/` is SQLMesh-over-dbt's (this .gitignore is shared by every dbt-family project).
     (project_dir / ".gitignore").write_text(
-        "target/\ndbt_packages/\nlogs/\n.user.yml\n", encoding="utf-8"
+        "target/\ndbt_packages/\nlogs/\n.user.yml\n.cache/\n", encoding="utf-8"
     )
     (project_dir / "README.md").write_text(
         "# GENERATED dbt project — from `spec/` (ADR-0005), do not hand-edit\n\n"

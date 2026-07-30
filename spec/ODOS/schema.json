@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ODOS 0.1",
+  "description": "Closed-vocabulary schema for the OGIP Open Data Orchestration Standard profile.",
+  "oneOf": [
+    { "$ref": "#/$defs/group_document" },
+    { "$ref": "#/$defs/defaults_document" }
+  ],
+  "$defs": {
+    "version": { "type": "number", "const": 0.1 },
+    "identifier": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_-]*$" },
+    "dotted_name": {
+      "type": "string",
+      "pattern": "^[A-Za-z_][A-Za-z0-9_-]*(\\.[A-Za-z_][A-Za-z0-9_-]*)+$"
+    },
+    "targets": {
+      "type": "array",
+      "items": { "enum": ["dagster", "prefect"] },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "tags": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "args": {
+      "type": "object",
+      "additionalProperties": {
+        "type": ["string", "number", "integer", "boolean", "null"]
+      }
+    },
+    "retry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_attempts", "type", "interval"],
+      "properties": {
+        "max_attempts": { "type": "integer", "minimum": 1 },
+        "type": { "enum": ["constant", "exponential"] },
+        "interval": { "type": "string", "pattern": "^P(?!$).+" }
+      }
+    },
+    "concurrency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["limit", "behavior"],
+      "properties": {
+        "limit": { "type": "integer", "minimum": 1 },
+        "behavior": { "enum": ["queue", "cancel", "fail"] }
+      }
+    },
+    "selection": {
+      "oneOf": [
+        { "$ref": "#/$defs/selection_expression" },
+        {
+          "type": "array",
+          "items": { "$ref": "#/$defs/selection_expression" },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      ]
+    },
+    "selection_expression": {
+      "type": "string",
+      "pattern": "^(tag:[A-Za-z_][A-Za-z0-9_-]*|\\+?[A-Za-z_][A-Za-z0-9_-]*(\\.[A-Za-z_][A-Za-z0-9_-]*)+\\+?)$"
+    },
+    "job": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "doc": { "type": "string" },
+        "tags": { "$ref": "#/$defs/tags" },
+        "targets": { "$ref": "#/$defs/targets" },
+        "select": { "$ref": "#/$defs/selection" },
+        "task": { "$ref": "#/$defs/dotted_name" },
+        "args": { "$ref": "#/$defs/args" },
+        "partitioned": { "type": "boolean" },
+        "retry": { "$ref": "#/$defs/retry" },
+        "concurrency": { "$ref": "#/$defs/concurrency" },
+        "on_failure": { "$ref": "#/$defs/dotted_name" }
+      },
+      "oneOf": [
+        {
+          "required": ["select"],
+          "not": {
+            "anyOf": [
+              { "required": ["task"] },
+              { "required": ["args"] }
+            ]
+          }
+        },
+        {
+          "required": ["task"],
+          "not": {
+            "anyOf": [
+              { "required": ["select"] },
+              { "required": ["partitioned"] }
+            ]
+          }
+        }
+      ]
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task"],
+      "properties": {
+        "doc": { "type": "string" },
+        "tags": { "$ref": "#/$defs/tags" },
+        "targets": { "$ref": "#/$defs/targets" },
+        "task": { "$ref": "#/$defs/dotted_name" },
+        "args": { "$ref": "#/$defs/args" },
+        "partitions": { "$ref": "#/$defs/identifier" },
+        "kinds": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/identifier" },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "group_name": { "$ref": "#/$defs/identifier" }
+      }
+    },
+    "automation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["on"],
+      "properties": {
+        "doc": { "type": "string" },
+        "tags": { "$ref": "#/$defs/tags" },
+        "targets": { "$ref": "#/$defs/targets" },
+        "on": {
+          "type": "string",
+          "pattern": "^(cron\\(\"[^\"]+\"\\)|asset_materialized\\([^)]+\\)|poll\\([A-Za-z_][A-Za-z0-9_.-]*, every=P?[A-Za-z0-9]+\\)|partition_ready\\([A-Za-z_][A-Za-z0-9_-]*\\))$"
+        },
+        "run": { "$ref": "#/$defs/identifier" }
+      },
+      "oneOf": [
+        {
+          "properties": { "on": { "pattern": "^partition_ready\\(" } },
+          "not": { "required": ["run"] }
+        },
+        {
+          "properties": { "on": { "pattern": "^(cron|asset_materialized|poll)\\(" } },
+          "required": ["run"]
+        }
+      ]
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["asset", "task"],
+      "properties": {
+        "doc": { "type": "string" },
+        "tags": { "$ref": "#/$defs/tags" },
+        "targets": { "$ref": "#/$defs/targets" },
+        "asset": { "$ref": "#/$defs/dotted_name" },
+        "task": { "$ref": "#/$defs/dotted_name" },
+        "blocking": { "type": "boolean" }
+      }
+    },
+    "hook": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["on", "task", "targets"],
+      "properties": {
+        "doc": { "type": "string" },
+        "tags": { "$ref": "#/$defs/tags" },
+        "targets": { "$ref": "#/$defs/targets" },
+        "on": { "type": "string", "const": "run_failed(scope=location)" },
+        "task": { "$ref": "#/$defs/dotted_name" }
+      }
+    },
+    "group_document": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["odos", "group"],
+      "properties": {
+        "odos": { "$ref": "#/$defs/version" },
+        "group": { "$ref": "#/$defs/identifier" },
+        "doc": { "type": "string" },
+        "assets": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/dotted_name" },
+          "additionalProperties": { "$ref": "#/$defs/asset" }
+        },
+        "jobs": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/identifier" },
+          "additionalProperties": { "$ref": "#/$defs/job" }
+        },
+        "automations": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/identifier" },
+          "additionalProperties": { "$ref": "#/$defs/automation" }
+        },
+        "checks": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/identifier" },
+          "additionalProperties": { "$ref": "#/$defs/check" }
+        },
+        "hooks": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/identifier" },
+          "additionalProperties": { "$ref": "#/$defs/hook" }
+        }
+      }
+    },
+    "defaults_document": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["odos", "owner", "registry"],
+      "properties": {
+        "odos": { "$ref": "#/$defs/version" },
+        "owner": { "type": "string", "minLength": 1 },
+        "registry": { "$ref": "#/$defs/dotted_name" },
+        "partitions": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/identifier" },
+          "additionalProperties": { "type": "string", "pattern": "^daily\\(start=[^)]+\\)$" }
+        },
+        "defaults": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "retry": { "$ref": "#/$defs/retry" },
+            "concurrency": { "$ref": "#/$defs/concurrency" },
+            "on_failure": { "$ref": "#/$defs/dotted_name" }
+          }
+        }
+      }
+    }
+  }
+}

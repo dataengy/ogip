@@ -59,6 +59,13 @@ repos:
         pass_filenames: false
         files: ^spec/sources/ # fire only when projections are touched; script self-skips off-machine
         stages: [pre-commit]
+      - id: airbyte-blocks-valid
+        name: airbyte blocks valid (skips when ~/.ai absent)
+        entry: bash src/scripts/airbyte-blocks-check.sh
+        language: system
+        pass_filenames: false
+        files: ^(spec/sources/|experimental/ingestion/airbyte/) # airbyte: blocks or the lane
+        stages: [pre-commit]
       - id: dq-data-tests
         name: data quality (spec/dq)
         entry: uv run python dq/run.py --fast

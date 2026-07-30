@@ -32,10 +32,11 @@
       Query body is APICalypse (a custom DSL), POSTed as the raw body — NOT JSON, NOT query
       params. A GET with query params returns 400. This is why the one-GET probe cannot
       verify it and honestly reports KEY-MISSING instead.
-    dlt:
-      resource: igdb__games
-      primary_key: id
-      write_disposition: merge
+    # Engine: complex_api (route rule custom-dsl) — APICalypse is a custom DSL POSTed
+    # as the raw body, which declarative dlt rest_api CANNOT express. Hand-roll a typed
+    # ApiSource client; dlt still does the LOAD (resource igdb__games, primary_key id,
+    # write_disposition merge). A dlt: block here previously claimed otherwise — caught
+    # as ⚠️ DRIFT by `just … route-all` on its first run (2026-07-19).
     docs: https://api-docs.igdb.com/
     # Creation metadata — who registered this and on what evidence (audit trail;
     # the verdicts themselves are still re-probed live, never trusted from here).
