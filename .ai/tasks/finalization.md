@@ -20,9 +20,11 @@ Mode: AUTO (owner directive) — no per-phase approval gates; checkpoint reports
 
 - [x] **A** — ground clearing: odos safety-push · 3 stale locks broken · corrupted
       `pipelines/dbt/prefect.yaml` restored · local `dev` reconciled (== origin/dev)
-- [ ] **A0** — planning/tasking docs upsert + tasks-sync + issue triage (this commit)
-- [ ] **B** — three green run commands + DQ loud-stub
-- [ ] **C** — re-root T4–T9 + reroot→dev PR (Refs #40)
+- [x] **A0** — planning/tasking docs upsert + tasks-sync + issue triage (#43/#44 created;
+      #28/#30/#31 closed; F6 fixed; neighbour work salvaged+finished → PR #45 merged)
+- [x] **B** — three green run commands (`run-dbt` · `run-bruin` · `run-dagster-dbt`, all
+      exit 0, outputs 5/5/5) + DQ loud-stub; 3 latent path bugs fixed (dbt/bruin/dagster)
+- [ ] **C** — re-root T4–T9 + reroot→dev PR (Refs #40) — T4–T7/T9 edited, gate + PR pending
 - [ ] **D** — land #34/#37 · delete 7 branches+worktrees · DQ-minimum · TBD sweep ·
       docs refresh · dev→main (#10)
 - [ ] **E** — showcase deck + outreach drafts (off-repo)

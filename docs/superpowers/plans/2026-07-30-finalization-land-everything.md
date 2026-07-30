@@ -110,5 +110,26 @@ off-repo.
   restored (`name: ogip-dbt`, `prefect-version: 3.0.0` — corruption diff snapshotted to
   scratchpad); `.ai/CONTEXT.man.md` excluded locally; local `dev` rebased — all 3 local
   commits were already contained in origin/dev, `dev == origin/dev`, nothing pushed.
-- 2026-07-30 · **A0 in progress**: this plan + umbrella task + techdebt register +
-  STATUS/ROADMAP/FIXME/CHANGELOG annotations; tasks-sync + issue triage next.
+- 2026-07-30 · **A0 done**: this plan + umbrella #43 + run-dagster-dbt #44 + techdebt register;
+  tasks-sync realigned #18/#19 bodies (F6 fixed); closed #28/#30/#31; STATUS/ROADMAP/FIXME/
+  CHANGELOG annotated. Neighbour work salvaged AND finished on `lane/neighbour-salvage` →
+  PR #45 merged to dev (fixture-contract test + all 6 fixtures at parity + ru-gitignore).
+- 2026-07-30 · **B done — three commands green** on sample data, each exit 0 with outputs
+  `{games:5, market_features:5, ml_train:5}`: `make run-dbt` (dbt build PASS=157 ERROR=0) ·
+  `make run-bruin` · `make run-dagster-dbt` (new alias → prefect-over-dagster). Defects found
+  and fixed on the way: **(1)** runtime dbt regen leaked this machine's absolute path into the
+  5 tracked raw models (never committed; generator now renders portable `./.run/…`);
+  **(2)** bruin's connection path resolves against `.bruin.yml`, not CWD — emitted
+  project-relative now (was: every asset failed "cannot open database");
+  **(3)** the Prefect+Dagster seam never regenerated the dagster dbt render — stale
+  profiles.yml with a relative path died inside Dagster's staged copy; the flow now mirrors
+  run_combo.sh (absolute paths into the UNTRACKED render). DQ loud-stub shipped (step 10).
+- 2026-07-30 · **C in flight**: T4 (config default→prefect-dbt + experimental flags + banner,
+  `make run`→run-dbt) · T5 (ADR-0020 + AGENTS.md engine clauses; F1 deliberately left open —
+  it moves with #35) · T6 (BASE_ENGINES=[dbt,bruin]; test_wiring→dbt; prefect.yaml
+  name/version asserts; **CI e2e job now installs the Bruin CLI**) · T7 (pipelines/README,
+  ODOS/ODTS IMPLEMENTATION, ADR index 0017–0020 backfilled; F8 verified gone → row deleted) ·
+  T8 skipped by design · T9 (`preflight-clean-ground.sh` + `gh-merge-as.sh` + `just preflight`
+  / `just gh-merge-as`; live self-test ran). Next: full gate → PR reroot→dev (step 15).
+- Discovered for step 22: PR #10's failing check is **combo-e2e** (dagster-e2e workflow) —
+  investigate before the dev→main merge.
