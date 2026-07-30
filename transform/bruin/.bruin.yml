@@ -4,4 +4,4 @@ environments:
     connections:
       duckdb:
       - name: ogip-duckdb
-        path: .run/data/warehouse/ogip.duckdb
+        path: ../../.run/data/warehouse/ogip.duckdb

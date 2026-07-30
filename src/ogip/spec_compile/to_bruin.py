@@ -8,6 +8,7 @@ repo-relative, so ``bruin validate``/``run`` must execute from the repo root.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any
 
@@ -47,10 +48,17 @@ def compile_to_bruin(spec_sql_dir: Path, project_dir: Path, *, warehouse: Path) 
     (project_dir / "pipeline.yml").write_text(
         yaml.safe_dump(pipeline, sort_keys=False), encoding="utf-8"
     )
+    # Bruin resolves a relative connection path against the .bruin.yml LOCATION, not the CWD —
+    # a repo-relative warehouse path silently became transform/bruin/.run/… and every asset
+    # failed on "cannot open database". Emit it relative to the project dir (portable: the
+    # tracked config must not carry this machine's absolute checkout path).
+    connection_path = os.path.relpath(Path(warehouse).resolve(), project_dir.resolve())
     environments: dict[str, Any] = {
         "default_environment": "default",
         "environments": {
-            "default": {"connections": {"duckdb": [{"name": _CONNECTION, "path": str(warehouse)}]}}
+            "default": {
+                "connections": {"duckdb": [{"name": _CONNECTION, "path": connection_path}]}
+            }
         },
     }
     (project_dir / ".bruin.yml").write_text(
