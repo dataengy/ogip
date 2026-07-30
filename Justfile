@@ -25,8 +25,10 @@ render-env:
 # ─── Quality gates ────────────────────────────────────────────────────────────
 # Ruff lint + format check + SQL lint
 lint:
-    uv run ruff check .
-    uv run ruff format --check .
+    # explicit nested path: `ruff check .` skips experimental/orchestration/dagster_ogip
+    # locally (nested-project boundary) while CI's clean runner reaches it — #39
+    uv run ruff check . experimental/orchestration/dagster_ogip/src
+    uv run ruff format --check . experimental/orchestration/dagster_ogip/src
     @just sql-lint
 
 # Auto-fix lint + format
@@ -56,7 +58,7 @@ test-e2e:
     uv run pytest -m e2e
 
 # All quality gates (CI parity)
-check: lint typecheck test
+check: lint typecheck test dq-check
 
 # Run the shared CI steps exactly as GitHub Actions runs them
 ci:
