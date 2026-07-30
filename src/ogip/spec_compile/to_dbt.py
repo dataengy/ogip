@@ -256,7 +256,12 @@ def compile_to_dbt(
     if singular:
         tests_dir.mkdir(parents=True, exist_ok=True)
         for name, query in singular:
-            (tests_dir / f"{name}.sql").write_text(query.rstrip() + "\n", encoding="utf-8")
+            # ref-rewrite like the models: a literal `fs.market_features` gives dbt NO
+            # dependency edge, so the test can run before its model materializes — green on
+            # a warm warehouse, "Catalog Error: table does not exist" on a clean one (CI).
+            (tests_dir / f"{name}.sql").write_text(
+                _rewrite_refs(query, assets).rstrip() + "\n", encoding="utf-8"
+            )
     # Use each model's configured `schema` verbatim (no `<target>_` prefix) so the layer
     # schemas match the SQLMesh target and the platform contract (fs.market_features etc.).
     macros_dir = project_dir / "macros"

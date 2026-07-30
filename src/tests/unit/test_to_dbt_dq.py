@@ -176,7 +176,11 @@ def test_custom_checks_become_singular_test_files(tmp_path: Path) -> None:
     _compile(spec, out)
     singular = out / "tests" / "popularity_requires_ratings.sql"
     assert singular.is_file(), "custom_checks must become a dbt singular test"
-    assert "select game_sk from fs.feat" in singular.read_text()
+    # The model reference must be ref-rewritten: a literal `fs.feat` gives dbt no dependency
+    # edge, so the test can run before the model exists (clean-slate CI failure).
+    rendered = singular.read_text()
+    assert "{{ ref('feat') }}" in rendered
+    assert "fs.feat" not in rendered
 
 
 def test_unit_tests_are_emitted_into_schema_yml(tmp_path: Path) -> None:
