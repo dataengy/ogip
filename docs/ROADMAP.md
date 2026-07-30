@@ -4,6 +4,12 @@ Phased delivery with a **user approval gate after each phase**. Full detail and 
 criteria live in [.ai/PLAN.md](../.ai/PLAN.md); this is the at-a-glance map. Requirement
 unknowns that steer this map live in [OPEN-QUESTIONS.md](OPEN-QUESTIONS.md).
 
+> **Finalization run in progress (2026-07-30)** — the operative plan is
+> [superpowers/plans/2026-07-30-finalization-land-everything.md](superpowers/plans/2026-07-30-finalization-land-everything.md)
+> (three green run commands → re-root T4–T9 → land all lanes → dev→main). The priorities
+> table below predates it and is kept for context; statuses in the phase map are refreshed
+> at finalization step 21. Frozen features: [techdebt register](techdebt/finalization-tbd.md).
+
 ## Current priorities (reprioritized 2026-07-17)
 
 | # | Item | Lane | Detail |
