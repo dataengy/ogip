@@ -95,7 +95,9 @@ def test_task_names_is_sorted():
 def test_the_whole_project_vocabulary_is_registered():
     """The closed vocabulary an ODOS spec may address. Adding a name is a deliberate act."""
     assert set(task_names()) == {
+        "alerting.notify_run_failure",
         "cdc.catchup",
+        "checks.market_features_nonempty",
         "dbt.build",
         "dbt.deps",
         "dbt.parse",
@@ -108,6 +110,8 @@ def test_the_whole_project_vocabulary_is_registered():
         "ingest.parse_to_landing",
         "ingest.rawg",
         "integrations.trigger_prefect",
+        "sensors.landing_rowcount",
+        "sensors.spec_sql_mtime",
         "snapshot.write",
     }
 

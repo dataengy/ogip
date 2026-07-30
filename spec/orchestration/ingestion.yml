@@ -1,0 +1,39 @@
+odos: 0.1
+group: ingestion
+doc: "Getting source data into the platform (dlt batch, ingestr CDC, scraper
+  parsing)."
+
+assets:
+  cdc.landing:
+    external: true
+    doc: "The ingestr CDC landing asset — native Dagster asset in
+      defs/cdc_ingest/."
+
+jobs:
+  dlt_ingest_job:
+    select: raw.rawg__games
+    doc: "Run the dlt RAWG load (clean REST API → raw Parquet). The default
+      ingestion path."
+  cdc_asset_job:
+    select: cdc.landing
+    doc: "Materialize the ingestr CDC asset (Postgres landing → lake) as part of
+      the graph."
+  cdc_job:
+    task: cdc.catchup
+    args: {dry_run: true}
+    tags: {ingestion: cdc}
+    doc: "ingestr CDC catch-up — capture INSERT/UPDATE/DELETE on the Postgres
+      `landing` schema via logical replication and merge into the lake. Runs
+      `--dry-run` off a live DB."
+  parsing_job:
+    task: ingest.parse_to_landing
+    tags: {ingestion: scraping}
+    doc: "Run the scraper/parser → Postgres landing. Placeholder until the
+      ingestion lane chooses an async ScraperSource tool (ADR-0014); wired here
+      when it lands."
+
+automations:
+  quarter_hourly_cdc:
+    on: cron("*/15 * * * *")
+    run: cdc_job
+    doc: "Frequent (every 15 min) CDC catch-up from the landing zone."

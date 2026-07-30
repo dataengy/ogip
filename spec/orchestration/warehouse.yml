@@ -1,0 +1,70 @@
+odos: 0.1
+group: warehouse
+doc: Building the DWH from raw to the FS layer.
+
+jobs:
+  raw_ingest_job:
+    select: raw.rawg__games
+    doc: "Layer 0 — land RAWG source data as raw Parquet via dlt
+      (`<system>__<table>`)."
+  staging_job:
+    select: staging.stg_games
+    doc: "Staging — type/rename/UTC the raw table into stg_games (no business
+      logic)."
+  core_job:
+    select: core.game
+    doc: "Core — the integrated `game` entity (surrogate key) built from
+      staging."
+  fs_job:
+    select: fs.market_features
+    doc: "Feature Store — market_features (popularity/critic scores), the
+      ML-ready layer."
+  dwh_assets_job:
+    select: raw.rawg__games+
+    doc: "Whole DWH — the dbt raw model and everything downstream
+      (raw→stg→core→fs)."
+  dwh_incremental_job:
+    task: dbt.build
+    tags: {pipeline: dwh, mode: incremental}
+    doc: "Incremental DWH build — `dbt build` (default incremental run). Cheap
+      enough for the hourly schedule and the new-landing-data sensor."
+  dwh_full_refresh_job:
+    task: dbt.build
+    args: {full_refresh: true}
+    tags: {pipeline: dwh, mode: full-refresh}
+    doc: "Full-refresh DWH build — `dbt build --full-refresh`, rebuilding every
+      model from scratch. The nightly source of truth; heavier than the
+      incremental run."
+
+automations:
+  daily_dwh_full_refresh:
+    on: cron("0 3 * * *")
+    run: dwh_full_refresh_job
+    doc: "Nightly (03:00) full rebuild of the whole DWH."
+  hourly_dwh_incremental:
+    on: cron("0 * * * *")
+    run: dwh_incremental_job
+    doc: "Hourly incremental refresh to keep the FS layer fresh between full
+      rebuilds."
+  daily_raw_ingest:
+    on: cron("30 1 * * *")
+    run: raw_ingest_job
+    doc: "Daily (01:30) raw ingestion, ahead of the nightly full refresh."
+  raw_landed_runs_dwh:
+    on: asset_materialized(raw.rawg__games)
+    run: dwh_assets_job
+    doc: "When new raw Parquet materializes, rebuild the whole DWH
+      (raw→stg→core→fs)."
+  new_postgres_raw_data:
+    on: poll(sensors.landing_rowcount, every=60s)
+    run: dwh_incremental_job
+    doc: "Poll the Postgres `landing` schema row count; run the incremental DWH
+      when it grows. Skips cleanly when no landing DB is configured."
+
+checks:
+  market_features_nonempty_and_scored:
+    asset: fs.market_features
+    task: checks.market_features_nonempty
+    blocking: false
+    doc: "FS layer has rows and popularity_score is never null (feature
+      contract)."

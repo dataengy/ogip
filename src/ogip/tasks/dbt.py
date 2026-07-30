@@ -128,5 +128,11 @@ def dbt_build(
     if select is not None:
         flags += ["--select", select]
     if state is not None:
-        flags += ["--state", state]
+        # A relative state dir is resolved against the project, so the portable spec can
+        # say `state: "."` — "this lane's own generated project" — without naming a path
+        # that differs per orchestrator lane (plan-2 decision 4).
+        state_dir = Path(state)
+        if not state_dir.is_absolute():
+            state_dir = project_dir / state_dir
+        flags += ["--state", str(state_dir)]
     _run(project_dir, "build", *flags)
