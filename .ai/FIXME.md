@@ -9,10 +9,12 @@ an entry lives here until it is either fixed inline or graduates into a task fil
 deleted, not left as archaeology. Do not "fix" anything marked **DO NOT TOUCH**.
 
 **Scheduled closures (finalization run 2026-07-30,
-[plan](../docs/superpowers/plans/2026-07-30-finalization-land-everything.md)):** F1 closes at
-step 13 (AGENTS.md hard-rules rewrite + ADR-0020) · F8 at step 14 (ODOS docs sweep) · F2 gets
-the cheap sweep and F4 the stub-READMEs at step 21 · F6 is fixed via the *targeted* sync path
-at step 20. F3/F5 stay owner-decisions — untouched.
+[plan](../docs/superpowers/plans/2026-07-30-finalization-land-everything.md)):** F8 closed
+2026-07-30 (no `ODPS` mention survives in `spec/ODOS/` or the design doc — row deleted per the
+register's own rule) · F2 gets the cheap sweep and F4 the stub-READMEs at step 21 · F6 was fixed
+2026-07-30 (tasks-sync realigned #19's body to its file). **F1 stays open** — it is about the
+*authoring format* (`@bruin` → `@odts`, moves with [#35](https://github.com/dataengy/ogip/issues/35));
+step 13 / ADR-0020 rewrote only hard rule 2's *engine* clause. F3/F5 stay owner-decisions — untouched.
 
 | # | Problem | Severity | Wrong when | Owner lane |
 |---|---|---|---|---|
@@ -22,38 +24,11 @@ at step 20. F3/F5 stay owner-decisions — untouched.
 | [F4](#f4--six-directories-violate-hard-rule-8) | Six directories have no `README.md` | P2 | **now** | `spec` |
 | [F5](#f5--semantic-layer-format-is-undecided-against-odts) | Semantic-layer format undecided against `@odts` | P3 | when [#20](https://github.com/dataengy/ogip/issues/20) starts | `spec` |
 | [F6](#f6--issue-19-body-has-drifted-from-its-task-file) | Issue #19 body drifted from its task file | P3 | **now** | not `spec` |
-| [F8](#f8--handoff-the-odos-design-still-names-the-umbrella-odps) | ODOS design still names the umbrella `ODPS` | **P1** | when the ODOS spec lands | ODOS lane |
 
 _F7 (ODTS vs the Open Transformation Specification) was evaluated and closed — verdict in
 [docs/comparisons/ots-vs-odts.md](../docs/comparisons/ots-vs-odts.md); the alignment work it
 produced lives on [#35](https://github.com/dataengy/ogip/issues/35) and
 [#36](https://github.com/dataengy/ogip/issues/36)._
-
-## F8 — handoff: the ODOS design still names the umbrella `ODPS`
-
-`docs/superpowers/specs/2026-07-20-odos-orchestration-spec-design.md` (uncommitted at the time
-of writing, *"awaiting approval → ADR-0017"*) states the taxonomy with **ODPS** as the umbrella.
-The `spec` lane renamed it to **YADPS** in
-[ADR-0016](../docs/adr/ADR-0016-odts-authoring-format-spec-sql.md) after finding the acronym held
-by Bitol's Open Data Product Standard and the Linux Foundation's Open Data Product Specification
-— with Bitol also maintaining ODCS, already used by `spec/contracts/`.
-
-**Timing, not disagreement:** the rename landed after that design was drafted. Left as a handoff
-because the file belongs to the ODOS lane; editing another lane's in-flight design would be the
-thing this register exists to prevent.
-
-**For the ODOS lane, when that spec lands:**
-- umbrella is **YADPS** (Yet Another Data Platform Standard); ODTS and ODOS keep `Open` — checked,
-  unclaimed;
-- the convention behind it: **a name colliding with an existing standard takes `YA` in place of
-  `Open`** — check before minting the next one;
-- `ADR-0017` is yours; the `spec` lane took `ADR-0016` and is not claiming further numbers.
-
-**Already done, no action needed:** that design's own naming note asks the `spec` lane to fix
-ODTS's expansion (*"Spec"* → *"Standard"*) and the *"not a published standard"* line in
-`spec/sql/AGENTS.md`. Both landed in `aee50ca`.
-
----
 
 ## F1 — hard rule 2 contradicts ADR-0016
 
