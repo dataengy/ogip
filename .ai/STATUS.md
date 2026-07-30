@@ -1,8 +1,17 @@
 # OGIP — Status
 
-_Last updated: 2026-07-17_
+_Last updated: 2026-07-30_
 
 ## Current phase
+
+**Finalization run (2026-07-30, AUTO mode)** — plan of record:
+[docs/superpowers/plans/2026-07-30-finalization-land-everything.md](../docs/superpowers/plans/2026-07-30-finalization-land-everything.md),
+umbrella [tasks/finalization.md](tasks/finalization.md). State: re-root (#40) T1–T3 done /
+T4–T9 in flight on `lane/reroot-dbt-bruin-primary`; goal = three green run commands
+(`run-dbt` · `run-bruin` · `run-dagster-dbt`), lanes landed (dagster #34, odos #37) or
+loudly frozen ([techdebt register](../docs/techdebt/finalization-tbd.md)), then dev→main
+(#10). Ground already cleared: odos safety-pushed, 3 stale locks broken, corrupted
+`pipelines/dbt/prefect.yaml` restored, local `dev` == origin/dev.
 
 **M0 — walking skeleton: ✅ SHIPPED.** RAWG → raw Parquet (**dlt**) → **SQLMesh** (raw→stg→core→fs,
 compiled from Bruin spec) → ML-ready `games.parquet` + `market_features.parquet` → demo notebook,
@@ -44,12 +53,13 @@ bash ~/.ai/skills/_scripts/session/agent-session-lock.sh acquire --repo . --obje
 Use the **direct script**, not `just -f … agent-lock` — its recipe re-parses `--reason` through
 `bash -c`, so parentheses break it.
 
-**Lock audit 2026-07-17 ~21:00.** `core-pipeline` and `dagster` locks are **STALE** (TTL
-expired 16:00 / 16:36; the holder session runs from outside this repo and both lanes belong
-to it) — `break` and re-acquire before touching those lanes, and note `ingestion/` no longer
-belongs to `core-pipeline`'s scope. The `ingestion` lock is also past TTL but its session is
-**live** — coordinate, don't steal. Holder details (session ids, resume commands): local
-`.ai/.locks/*/owner.env` (gitignored).
+**Lock audit 2026-07-30.** All stale locks broken (obj--airbyte in the main tree;
+obj--core-pipeline and obj--dagster lived in **worktree-local** stores — remember each linked
+worktree has its own `.ai/.locks/`, invisible from the main tree). Only the finalization
+session's `repo` lock is live; it is currently the **only** live agent session in this repo.
+The lanes table above is historical: placeholder lanes (evidence/obs/s3/vps) and the
+merged-only branches are being deleted in finalization step 18; `dagster` and `odos` land via
+PR #34 / #37.
 
 ### Handoffs: lane `obs` → lane `core-pipeline`
 
@@ -219,14 +229,15 @@ flagged for the user; alternative is authoring natively in SQLMesh.
 
 ## Next steps
 
-Reprioritized 2026-07-17 — driver checklist in [TODO.md](TODO.md), map in
-[docs/ROADMAP.md](../docs/ROADMAP.md):
+Finalization DAG (2026-07-30) — single source:
+[docs/superpowers/plans/2026-07-30-finalization-land-everything.md](../docs/superpowers/plans/2026-07-30-finalization-land-everything.md):
 
-1. **P1 — resilient scraping slice** (lane `ingestion`): async `ScraperSource` + landing +
-   HLTB end to end, per [ADR-0014](../docs/adr/ADR-0014-resilient-scraping-concurrency.md)
-   → [tasks/scraping-resilient.md](tasks/scraping-resilient.md).
-2. **P1 — finalize R2 + VPS deploy** (lane `core-pipeline`): staged s3 items →
-   `integrations/prefect/deploy.py` → real R2 bucket → host deploy + smoke
-   → [tasks/r2-vps-finalize.md](tasks/r2-vps-finalize.md).
-3. **P2** — groom [tasks/sources-backlog.md](tasks/sources-backlog.md); then M1–M4 toolset
-   replication; broaden per Phases 4–10.
+1. **B** — three green run commands (`run-dbt` · `run-bruin` · `run-dagster-dbt` — the last
+   already exists as `prefect-over-dagster`, [tasks/run-dagster-dbt-profile.md](tasks/run-dagster-dbt-profile.md))
+   + DQ loud-stub.
+2. **C** — re-root T4–T9 ([#40](https://github.com/dataengy/ogip/issues/40)) → reroot→dev PR.
+3. **D** — land dagster #34 + odos #37, delete retired branches, DQ-minimum, TBD sweep
+   ([register](../docs/techdebt/finalization-tbd.md)), docs refresh, dev→main #10.
+4. Previous P1s (resilient scraping [#18](https://github.com/dataengy/ogip/issues/18),
+   R2+VPS [#17](https://github.com/dataengy/ogip/issues/17)) are folded into the TBD register /
+   V2 scope — deferred loudly, not dropped.

@@ -8,6 +8,12 @@ an entry lives here until it is either fixed inline or graduates into a task fil
 **Rules.** Every entry names the *failure*, not just the file. An entry that becomes wrong is
 deleted, not left as archaeology. Do not "fix" anything marked **DO NOT TOUCH**.
 
+**Scheduled closures (finalization run 2026-07-30,
+[plan](../docs/superpowers/plans/2026-07-30-finalization-land-everything.md)):** F1 closes at
+step 13 (AGENTS.md hard-rules rewrite + ADR-0020) · F8 at step 14 (ODOS docs sweep) · F2 gets
+the cheap sweep and F4 the stub-READMEs at step 21 · F6 is fixed via the *targeted* sync path
+at step 20. F3/F5 stay owner-decisions — untouched.
+
 | # | Problem | Severity | Wrong when | Owner lane |
 |---|---|---|---|---|
 | [F1](#f1--hard-rule-2-contradicts-adr-0016) | Hard rule 2 contradicts ADR-0016 | **P1** | when [#35](https://github.com/dataengy/ogip/issues/35) lands | `spec` |
