@@ -16,9 +16,9 @@ help: ## Show the pipelines (all other ops: `just` to list, or `make <op>` → `
 	@echo ""
 	@echo "Everything else lives in the Justfile: run 'just' to list, or 'make <op>' forwards to 'just <op>'."
 
-run: run-sqlmesh ## Default pipeline — SQLMesh (production)
+run: run-dbt ## Default pipeline — dbt (primary, ADR-0020)
 
-run-sqlmesh: ## prefect-sqlmesh (production): dlt → SQLMesh → ML → publish
+run-sqlmesh: ## prefect-sqlmesh (experimental comparison): dlt → SQLMesh → ML → publish
 	@just run-profile prefect-sqlmesh
 
 run-sql: ## prefect-sql: dlt → plain-SQL runner → ML → publish
