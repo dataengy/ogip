@@ -42,6 +42,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
         with: { enable-cache: true }
+      - name: Install Bruin CLI # co-primary engine (ADR-0020) — e2e runs dbt + bruin
+        run: |
+          curl -LsSL https://raw.githubusercontent.com/bruin-data/bruin/refs/heads/main/install.sh | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - run: .ci/run.sh e2e # runs the Prefect pipeline end-to-end on the demo fixture
 
   bash-lint:
