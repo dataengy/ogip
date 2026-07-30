@@ -43,11 +43,15 @@ def dbt_command(project_dir: Path, verb: str, *flags: str) -> list[str]:
 
 
 def _regenerate(project_dir: Path) -> list[str]:
+    # repo_root=Path() keeps runtime paths as './.run/…' — identical to the committed CLI
+    # render (spec_compile.__main__). Correct because `_run` executes dbt with cwd=_REPO, and
+    # essential because the project is TRACKED: an absolute repo_root here rewrote the models
+    # with this machine's private checkout path on every run (leaked in 4 committed files).
     models = compile_to_dbt(
         _SPEC_SQL,
         project_dir,
         warehouse=get_settings().platform.warehouse_path,
-        repo_root=_REPO,
+        repo_root=Path(),
     )
     log.info("regenerated {n} dbt models from spec/ into {p}", n=len(models), p=project_dir)
     return models

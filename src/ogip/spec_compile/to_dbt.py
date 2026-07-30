@@ -301,8 +301,9 @@ def compile_to_dbt(
         yaml.safe_dump({"packages": packages}, sort_keys=False), encoding="utf-8"
     )
     # dbt writes run artifacts + its user cookie into the project dir — never commit those.
+    # `.cache/` is SQLMesh-over-dbt's (this .gitignore is shared by every dbt-family project).
     (project_dir / ".gitignore").write_text(
-        "target/\ndbt_packages/\nlogs/\n.user.yml\n", encoding="utf-8"
+        "target/\ndbt_packages/\nlogs/\n.user.yml\n.cache/\n", encoding="utf-8"
     )
     (project_dir / "README.md").write_text(
         "# GENERATED dbt project — from `spec/` (ADR-0005), do not hand-edit\n\n"
