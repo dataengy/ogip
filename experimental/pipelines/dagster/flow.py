@@ -25,14 +25,20 @@ from pipelines._shared.steps import build_ml_outputs, publish_outputs
 from prefect import flow
 from prefect.assets import materialize
 
+from ogip.config import get_settings
 from ogip.logger import log, setup_logging
+from ogip.spec_compile.to_dbt import compile_to_dbt
 from ogip.tasks.ingest import ingest_scraped
 
 DAGSTER_PROJECT = REPO / "experimental" / "orchestration" / "dagster_ogip"
 # The two Dagster asset selections making up the dlt→dbt combo (see dagster_ogip/e2e/run_combo.sh):
-# the dlt source asset, then the whole dbt subgraph downstream of it.
+# the dlt source asset, then EVERY dbt model. `kind:"dbt"` (not `key:"rawg__games"+`): the
+# cross-source core models read scraped-source staging that is NOT downstream of the rawg
+# key, so the `+`-selection built core without its scraped parents — green only on a warehouse
+# that already carried them, "Catalog Error: table does not exist" on a clean slate (the
+# standing combo-e2e failure on dev).
 _DLT_ASSET = 'key:"raw/rawg__games"'
-_DBT_SUBGRAPH = 'key:"rawg__games"+'
+_DBT_SUBGRAPH = 'kind:"dbt"'
 
 SCRAPED_RAW_KEY = "file://ogip/dagster/raw/scraped"
 RAW_KEY = "file://ogip/dagster/raw/rawg__games"
@@ -51,6 +57,18 @@ def run_dagster_dlt_dbt() -> list[str]:
         raise RuntimeError("uv not on PATH — needed to run the Dagster project's `dg` CLI")
     if not (DAGSTER_PROJECT / "pyproject.toml").is_file():
         raise RuntimeError(f"Dagster project not found at {DAGSTER_PROJECT}")
+    # Regenerate the project's dbt render from spec/ (mirrors e2e/run_combo.sh step 1). This
+    # project is UNTRACKED runtime output, and Dagster's DbtProjectComponent stages a copy
+    # under .local_defs_state/ — so paths must be ABSOLUTE here (a relative warehouse path
+    # resolves inside the staged copy and the build dies on "cannot open database"). The
+    # tracked transform/dbt render is the opposite case: portable paths, cwd=repo.
+    models = compile_to_dbt(
+        REPO / "spec" / "sql",
+        DAGSTER_PROJECT / "dbt",
+        warehouse=get_settings().platform.warehouse_path.resolve(),
+        repo_root=REPO,
+    )
+    log.bind(orchestrator="dagster").info("regenerated dagster dbt render: {n} models", n=len(models))
     for selection in (_DLT_ASSET, _DBT_SUBGRAPH):
         log.bind(orchestrator="dagster").info("dg launch --assets {s}", s=selection)
         subprocess.run(

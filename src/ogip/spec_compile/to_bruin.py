@@ -64,6 +64,9 @@ def compile_to_bruin(spec_sql_dir: Path, project_dir: Path, *, warehouse: Path) 
     (project_dir / ".bruin.yml").write_text(
         yaml.safe_dump(environments, sort_keys=False), encoding="utf-8"
     )
-    (project_dir / ".gitignore").write_text("logs/\n", encoding="utf-8")
+    # `.bruin.yml` line: the Bruin CLI appends it on every run (connection files can carry
+    # secrets); ours is generated and secret-free, and the file is TRACKED so the ignore is a
+    # no-op — emitting it just stops the CLI-append/regen-wipe flip-flop in git status.
+    (project_dir / ".gitignore").write_text("logs/\n.bruin.yml\n", encoding="utf-8")
     (project_dir / "README.md").write_text(_README, encoding="utf-8")
     return names

@@ -53,7 +53,10 @@ PYTHONPATH="$REPO/src:$REPO" "$MAIN_VENV/bin/python" -m ogip.tasks ingest.scrape
 
 # 3. TRANSFORM + DQ: `dbt build` runs models AND the generated tests, in one Dagster run.
 log "dg launch — dbt build (transform + dq) → FS layer"
-uv run dg launch --assets 'key:"rawg__games"+'
+# kind:"dbt" = every dbt model. The old `key:"rawg__games"+` missed the scraped-source staging
+# (not downstream of rawg), so cross-source core models died on a clean warehouse with
+# "Catalog Error: Table with name stg_* does not exist" — the standing combo-e2e failure.
+uv run dg launch --assets 'kind:"dbt"'
 
 # 4. ASSERT the FINAL layer materialized with real rows and satisfies the feature contract.
 log "assert fs.market_features"
