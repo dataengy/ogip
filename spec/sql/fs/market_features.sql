@@ -59,10 +59,13 @@ columns:
     type: boolean
     checks: [{name: not_null}]
 custom_checks:
-  # SINGULAR test: a bespoke assertion that is not a per-column rule. Must return ZERO rows.
+  # Bespoke assertion, authored in Bruin's native semantics: the query returns ONE scalar
+  # (violation count) compared to `value` — Bruin cannot parse a rows-mean-violations query
+  # ("expects one value"). to_dbt unwraps this into a singular test (rows where count != 0).
   - name: popularity_requires_ratings
+    value: 0
     query: |
-      select game_sk
+      select count(*)
       from fs.market_features
       where popularity_score > 0 and coalesce(ratings_count, 0) = 0
 unit_tests:

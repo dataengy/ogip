@@ -168,8 +168,9 @@ def test_custom_checks_become_singular_test_files(tmp_path: Path) -> None:
         "name: fs.feat\ntype: duckdb.sql\nmaterialization: {type: table}\n"
         "custom_checks:\n"
         "  - name: popularity_requires_ratings\n"
+        "    value: 0\n"
         "    query: |\n"
-        "      select game_sk from fs.feat where score > 0\n",
+        "      select count(*) from fs.feat where score > 0\n",
         "select 1 as game_sk, 1 as score",
     )
     out = tmp_path / "out"
@@ -181,6 +182,8 @@ def test_custom_checks_become_singular_test_files(tmp_path: Path) -> None:
     rendered = singular.read_text()
     assert "{{ ref('feat') }}" in rendered
     assert "fs.feat" not in rendered
+    # scalar (Bruin semantics) unwrapped for dbt: rows only when the violation count != 0
+    assert "as _check(violations)" in rendered and "where violations != 0" in rendered
 
 
 def test_unit_tests_are_emitted_into_schema_yml(tmp_path: Path) -> None:
