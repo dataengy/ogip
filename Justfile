@@ -25,8 +25,10 @@ render-env:
 # ─── Quality gates ────────────────────────────────────────────────────────────
 # Ruff lint + format check + SQL lint
 lint:
-    uv run ruff check .
-    uv run ruff format --check .
+    # explicit nested path: `ruff check .` skips experimental/orchestration/dagster_ogip
+    # locally (nested-project boundary) while CI's clean runner reaches it — #39
+    uv run ruff check . experimental/orchestration/dagster_ogip/src
+    uv run ruff format --check . experimental/orchestration/dagster_ogip/src
     @just sql-lint
 
 # Auto-fix lint + format
@@ -56,7 +58,7 @@ test-e2e:
     uv run pytest -m e2e
 
 # All quality gates (CI parity)
-check: lint typecheck test
+check: lint typecheck test dq-check
 
 # Run the shared CI steps exactly as GitHub Actions runs them
 ci:
@@ -192,6 +194,27 @@ sources-route key="--all":
 sources-drift:
     bash src/scripts/sources-registry-check.sh
 
+# --- Airbyte EVALUATION lane (#41) — experimental, OFF the `make` path. See
+#     experimental/ingestion/airbyte/README.md. All local + credential-gated; CI never applies. ---
+airbyte_jf := home_directory() / ".ai/skills/_scripts/de/ingestion/Justfile"
+
+# Validate every `airbyte:` block against the LIVE OSS registry (connector exists; incremental
+# ⇒ cursor; streams non-empty). Self-skips on machines without ~/.ai. Also the pre-commit gate.
+airbyte-validate *args:
+    bash src/scripts/airbyte-blocks-check.sh {{args}}
+
+# Bring up local Airbyte (abctl = kind/k8s-in-Docker). Disk-gated; port from the config SSoT.
+airbyte-up:
+    bash experimental/ingestion/airbyte/up.sh
+
+# Tear it down (persisted volumes kept; pass --persisted to drop them).
+airbyte-down *args:
+    bash experimental/ingestion/airbyte/down.sh {{args}}
+
+# Mint OSS API client-credentials into .env (never printed). Requires the instance up.
+airbyte-creds:
+    bash experimental/ingestion/airbyte/credentials.sh
+
 # --- VPS: manual deploy (ADR-0012). Settings: config/config.yml -> deploy.vps.* ---
 # Each mutating recipe has a -dry sibling; both delegate to _vps-script (single body).
 _vps-script script *args:
@@ -263,3 +286,14 @@ agentic-usage *args:
 # Token/cost by session (project paths visible — pick out OGIP rows).
 agentic-usage-sessions *args:
     npx -y ccusage@latest session {{args}}
+
+# --- Finalization / landing helpers (re-root T9, #40) ---
+
+# Read-only recon before a big landing: branches vs origin/dev, worktree dirt, session locks
+# (incl. worktree-local stores), open PRs + CI rollup. Exit 1 = blockers listed.
+preflight:
+    bash src/scripts/preflight-clean-ground.sh
+
+# Merge a PR as the repo-owner account, then restore the previous gh account (trap-safe).
+gh-merge-as pr *flags:
+    bash src/scripts/gh-merge-as.sh {{pr}} {{flags}}

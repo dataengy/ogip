@@ -26,9 +26,9 @@ assets:
 | Dimension | dagster-odp | OGIP today |
 |---|---|---|
 | Source of truth | its own YAML task DSL | `spec/` — **Bruin assets + ODCS** ([ADR-0005](../adr/ADR-0005-spec-ssot-bruin-odcs-compiler.md)) |
-| Engine coupling | **Dagster-specific** | engine-agnostic — the same spec compiles to **SQLMesh** (prod), dbt, plain-SQL, Bruin |
+| Engine coupling | **Dagster-specific** | engine-agnostic — the same spec compiles to **dbt** (primary), **Bruin** (co-primary), SQLMesh, plain-SQL ([ADR-0020](../adr/ADR-0020-dbt-bruin-primary-transform-engines.md)) |
 | Transform | task graph of pre-built tasks | portable SQL, compiled per engine |
-| Overlap | it *is* a spec→Dagster compiler | we already have `src/ogip/spec_compile` (spec→SQLMesh/dbt) |
+| Overlap | it *is* a spec→Dagster compiler | we already have `src/ogip/spec_compile` (spec→dbt/Bruin/SQLMesh) |
 
 Adopting it would introduce a **second, competing config DSL** that only targets Dagster, undoing
 the "one spec, many engines" thesis. OGIP already gets the config-driven benefit — the Dagster

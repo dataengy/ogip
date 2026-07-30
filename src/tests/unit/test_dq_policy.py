@@ -2,7 +2,7 @@
 
 Monitors (row-count floors, freshness) are NOT ODTS checks and NOT ODOS hooks — their one
 home is `spec/dq/policy.yml` (see .ai/PLAN.md A8, dq/README.md). `dq/run.py` loads and reports
-them; it does not execute them (the executor is Phase 4 — out of scope here, see task brief).
+them, and (since 2026-07-30) EXECUTES them in full mode — see the executor tests below.
 """
 
 from __future__ import annotations
@@ -99,7 +99,7 @@ def test_load_policy_missing_file_returns_empty_list(tmp_path: Path) -> None:
 
 
 def test_main_reports_the_declared_monitor_count(capsys: pytest.CaptureFixture[str]) -> None:
-    exit_code = main([])
+    exit_code = main(["--fast"])  # hermetic: full mode would evaluate the live warehouse
     out = capsys.readouterr().out
     assert exit_code == 0
     assert str(len(_raw_monitors())) in out
@@ -122,3 +122,104 @@ def test_main_missing_policy_file_reports_and_exits_zero(
     out = capsys.readouterr().out
     assert exit_code == 0
     assert "no" in out.lower()
+
+
+# ── dq/run.py: executor (row_count + freshness against a real DuckDB warehouse) ─────────────
+
+
+def _seed_warehouse(path: Path, *, rows: int, age_hours: float) -> None:
+    import duckdb
+
+    con = duckdb.connect(str(path))
+    try:
+        con.execute("create schema if not exists fs")
+        con.execute("create table fs.market_features as select 1 as x from range(?)", [rows])
+        con.execute("create schema if not exists raw")
+        con.execute(
+            "create table raw.rawg__games as select now() - interval (?) hour as _ingested_at",
+            [age_hours],
+        )
+    finally:
+        con.close()
+
+
+def _monitors() -> list[Any]:
+    return [
+        {
+            "name": "fs_nonempty",
+            "model": "fs.market_features",
+            "type": "row_count",
+            "min_rows": 1,
+            "severity": "error",
+        },
+        {
+            "name": "rawg_fresh",
+            "model": "raw.rawg__games",
+            "type": "freshness",
+            "column": "_ingested_at",
+            "max_age_hours": 48,
+            "severity": "warn",
+        },
+    ]
+
+
+def test_execute_passes_on_seeded_healthy_warehouse(tmp_path: Path) -> None:
+    from dq.run import execute
+
+    wh = tmp_path / "wh.duckdb"
+    _seed_warehouse(wh, rows=3, age_hours=1)
+    assert execute(_monitors(), wh) == 0
+
+
+def test_execute_blocks_on_error_monitor_failure(tmp_path: Path) -> None:
+    """The seeded failure that proves the gate is real: empty table → non-zero exit."""
+    from dq.run import execute
+
+    wh = tmp_path / "wh.duckdb"
+    _seed_warehouse(wh, rows=0, age_hours=1)
+    assert execute(_monitors(), wh) == 1
+
+
+def test_execute_warn_failure_reports_but_does_not_block(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from dq.run import execute
+
+    wh = tmp_path / "wh.duckdb"
+    _seed_warehouse(wh, rows=3, age_hours=100)  # stale (max 48h) but warn-severity
+    assert execute(_monitors(), wh) == 0
+    assert "FAIL warn" in capsys.readouterr().out
+
+
+def test_execute_missing_table_fails_that_monitor(tmp_path: Path) -> None:
+    from dq.run import execute
+
+    wh = tmp_path / "wh.duckdb"
+    _seed_warehouse(wh, rows=3, age_hours=1)
+    ghost = [
+        {
+            "name": "ghost",
+            "model": "core.missing_table",
+            "type": "row_count",
+            "min_rows": 1,
+            "severity": "error",
+        }
+    ]
+    assert execute(cast("list[Any]", ghost), wh) == 1
+
+
+def test_main_full_mode_skips_cleanly_without_warehouse(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """`make check` on a fresh checkout must stay green: no warehouse → loud SKIPPED, exit 0."""
+    import ogip.config as ogip_config
+
+    class _Platform:
+        warehouse_path = tmp_path / "absent.duckdb"
+
+    class _Settings:
+        platform = _Platform()
+
+    monkeypatch.setattr(ogip_config, "get_settings", lambda: _Settings())
+    assert main([]) == 0
+    assert "SKIPPED" in capsys.readouterr().out

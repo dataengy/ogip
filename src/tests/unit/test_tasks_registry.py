@@ -105,6 +105,7 @@ def test_the_whole_project_vocabulary_is_registered():
         "ingest.metacritic",
         "ingest.opencritic",
         "ingest.psn",
+        "ingest.scraped",
         "ingest.steamcharts",
         "ingest.parse_to_landing",
         "ingest.rawg",

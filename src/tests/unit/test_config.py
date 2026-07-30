@@ -19,5 +19,5 @@ def test_demo_mode_when_no_credentials() -> None:
 
 def test_app_config_is_a_mapping() -> None:
     cfg = load_app_config()
-    assert cfg["transformation"]["engine"] == "sqlmesh"
-    assert "prefect-sqlmesh" in cfg["run_profiles"]
+    assert cfg["transformation"]["engine"] == "dbt"  # primary (ADR-0020)
+    assert "prefect-dbt" in cfg["run_profiles"]

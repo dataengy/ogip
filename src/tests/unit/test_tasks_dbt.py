@@ -92,6 +92,44 @@ def test_dbt_deps_default_runs_when_dbt_packages_absent(tmp_path: Path) -> None:
     mock_run.assert_called_once_with(tmp_path, "deps")
 
 
+def test_dbt_deps_default_repairs_a_half_populated_install(tmp_path: Path) -> None:
+    """Completeness, not existence: an interrupted `dbt deps` leaves `dbt_packages/` present
+    but missing declared packages, and every later dbt command dies on it. The gate must
+    compare installed dirs against `packages.yml` (ported from the bash `ensure_deps` fix)."""
+    (tmp_path / "dbt_packages" / "dbt_utils").mkdir(parents=True)
+    (tmp_path / "packages.yml").write_text(
+        "packages:\n"
+        "- package: dbt-labs/dbt_utils\n  version: ['>=1.1.1', '<2.0.0']\n"
+        "- package: metaplane/dbt_expectations\n  version: ['>=0.10.0', '<1.0.0']\n",
+        encoding="utf-8",
+    )
+    with (
+        patch("ogip.tasks.dbt._regenerate") as mock_regenerate,
+        patch("ogip.tasks.dbt._run") as mock_run,
+    ):
+        dbt_deps(project_dir=tmp_path)
+    mock_regenerate.assert_called_once_with(tmp_path)
+    mock_run.assert_called_once_with(tmp_path, "deps")
+
+
+def test_dbt_deps_default_skips_when_the_install_is_complete(tmp_path: Path) -> None:
+    (tmp_path / "dbt_packages" / "dbt_utils").mkdir(parents=True)
+    (tmp_path / "dbt_packages" / "dbt_expectations").mkdir()
+    (tmp_path / "packages.yml").write_text(
+        "packages:\n"
+        "- package: dbt-labs/dbt_utils\n  version: ['>=1.1.1', '<2.0.0']\n"
+        "- package: metaplane/dbt_expectations\n  version: ['>=0.10.0', '<1.0.0']\n",
+        encoding="utf-8",
+    )
+    with (
+        patch("ogip.tasks.dbt._regenerate") as mock_regenerate,
+        patch("ogip.tasks.dbt._run") as mock_run,
+    ):
+        dbt_deps(project_dir=tmp_path)
+    mock_regenerate.assert_called_once_with(tmp_path)
+    mock_run.assert_not_called()
+
+
 def test_dbt_deps_force_runs_unconditionally_even_when_packages_exist(tmp_path: Path) -> None:
     (tmp_path / "dbt_packages").mkdir()
     with (

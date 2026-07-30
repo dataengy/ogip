@@ -39,11 +39,15 @@ RAWG demo fixture and DuckDB — no Docker.
 
 ## Regenerate the dbt project from spec
 
+Prefer `bash jobs/dg-tasks.sh update-dbt` (it sources the `DBT_PROJECT_DIR` SSoT). The manual
+equivalent — the dbt project location comes from `jobs/dbt-env.sh`, not a hardcoded `dbt`:
+
 ```bash
+source jobs/dbt-env.sh   # DBT_PROJECT_DIR — SSoT for the generated project's location
 PYTHONPATH=../../../src .venv/bin/python -c "
-from pathlib import Path; from ogip.spec_compile.to_dbt import compile_to_dbt
+from pathlib import Path; import os; from ogip.spec_compile.to_dbt import compile_to_dbt
 root=Path('../../..').resolve()
-compile_to_dbt(root/'spec/sql', Path('dbt'), warehouse=root/'.run/data/warehouse/ogip.duckdb', repo_root=root)"
+compile_to_dbt(root/'spec/sql', Path(os.environ['DBT_PROJECT_DIR']), warehouse=root/'.run/data/warehouse/ogip.duckdb', repo_root=root)"
 ```
 
 ## Orchestration entities (jobs · schedules · sensors · partitions)

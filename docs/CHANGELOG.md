@@ -6,6 +6,28 @@ All notable changes to OGIP are documented here. Format follows
 
 ## [Unreleased]
 
+### Added — DQ monitor executor + dbt/Bruin primary landing (2026-07-30)
+- `dq/run.py` executes the declared monitors (row_count + freshness) against the DuckDB
+  warehouse: `error` severity blocks with exit 1 (ADR-0008); in `make check` (loud SKIP on a
+  fresh checkout) and in the CI e2e step. Caught a real gap on day one: `core.console_pricing`
+  was empty on demo data — the PSN sample now matches a game in the RAWG demo set (Portal 2).
+- Re-root merged (PR #46): dbt primary + Bruin co-primary (ADR-0020), `prefect-dbt` default,
+  three demo commands green (`run-dbt` · `run-bruin` · `run-dagster-dbt`), Bruin CLI in CI,
+  `kind:"dbt"` selection fixes the standing combo-e2e failure, T9 landing scripts
+  (`just preflight` · `just gh-merge-as`).
+- Local/CI lint parity (#39): the nested dagster project is linted explicitly on both sides.
+- Loud TBD stubs for `integrations/prefect/{deploy,trigger}.py` (#11/#17); layer READMEs for
+  `spec/sql*` + `spec/contracts` (closes F4); ODTS 0.2 proposals committed behind their
+  pre-normative banner.
+
+### Changed — Finalization run started (2026-07-30)
+- Plan of record: `docs/superpowers/plans/2026-07-30-finalization-land-everything.md`
+  (umbrella `.ai/tasks/finalization.md`): three green run commands (`run-dbt` · `run-bruin` ·
+  `run-dagster-dbt`) → re-root T4–T9 (#40) → land dagster #34 + odos #37 → dev→main (#10).
+- Ground cleared: `lane/odos-compiler` safety-pushed; 3 stale session locks broken; corrupted
+  `pipelines/dbt/prefect.yaml` restored (name/prefect-version keys); local `dev` reconciled.
+- Frozen-feature register added: `docs/techdebt/finalization-tbd.md` (8 entries, loud-stub rule).
+
 ### Added — Dagster alt-orchestration (dbt + dlt + ingestr CDC)
 - `experimental/orchestration/dagster_ogip/` — self-contained `dg` CLI + Components project
   ([ADR-0015](adr/ADR-0015-dagster-alt-orchestration-dg-components.md)): `DbtProjectComponent`

@@ -6,6 +6,12 @@ documentation; we translate `name` + materialization into a `MODEL(...)` block, 
 is portable across engines, so the check MUST survive the compile or the constraint is lost
 silently. An unknown check name is a compile-time error (ODTS §5: "attributes outside the
 check vocabulary MUST fail compilation"), never a silent skip.
+
+The ONE exception is `_DBT_ONLY_CHECKS`: since the re-root (#40) dbt is a primary engine and
+authors DQ that SQLMesh has no builtin audit for (`relationships`, `not_empty`). Those are
+skipped here - deliberately, by name - so a dbt-authored model still compiles for the SQLMesh
+comparison setup. The allowlist is EXPLICIT precisely so it cannot degrade into "skip anything
+unrecognized": a typo like `relationshipz` still fails loud.
 """
 
 from __future__ import annotations
@@ -13,10 +19,16 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, cast
 
+from ogip.logger import log
+
 from .bruin import Asset, load_assets
 from .dialect import SqlSpecError
 
 _KIND = {"table": "FULL", "view": "VIEW"}
+
+# dbt-native checks with no SQLMesh builtin equivalent — skipped (never raised) at the
+# SQLMesh target, projected for real by `to_dbt`/`to_bruin`. Keep this list tiny and explicit.
+_DBT_ONLY_CHECKS = frozenset({"relationships", "not_empty"})
 
 
 def _is_numeric(value: Any) -> bool:
@@ -24,15 +36,47 @@ def _is_numeric(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
-def _audit_for(model: str, col: str, chk: dict[str, Any]) -> str:
-    """One `@bruin` check -> one SQLMesh audit call. Raises on an unknown check name."""
+def _accepted_range_from_value(model: str, col: str, chk: dict[str, Any]) -> str:
+    """`accepted_range` authored as `value: {min, max}` (the dbt-side shape, #34).
+
+    Distinct from `between`, which carries `args: [min, max]`. At least one bound is
+    required — an `accepted_range` with neither asserts nothing and is a spec bug.
+    """
+    raw = chk.get("value")
+    value = cast("dict[str, Any]", raw) if isinstance(raw, dict) else {}
+    lo, hi = value.get("min"), value.get("max")
+    bounds = [f"min_v := {lo}" for _ in (1,) if _is_numeric(lo)]
+    bounds += [f"max_v := {hi}" for _ in (1,) if _is_numeric(hi)]
+    if not bounds:
+        raise SqlSpecError(
+            f"{model}.{col}: 'accepted_range' needs value {{min, max}} (at least one numeric "
+            f"bound), got {raw!r}"
+        )
+    return f"accepted_range(column := {col}, {', '.join(bounds)})"
+
+
+def _audit_for(model: str, col: str, chk: dict[str, Any]) -> str | None:
+    """One `@bruin` check -> one SQLMesh audit call.
+
+    Returns ``None`` for a dbt-only check (skipped by design); raises on an unknown name.
+    """
     name = chk.get("name")
+    if name in _DBT_ONLY_CHECKS:
+        log.debug(
+            "{m}.{c}: check {n!r} is dbt-only — no SQLMesh builtin, skipping at this target",
+            m=model,
+            c=col,
+            n=name,
+        )
+        return None
     if name == "not_null":
         return f"not_null(columns := ({col}))"
     if name == "unique":
         return f"unique_values(columns := ({col}))"
     if name == "non_negative":
         return f"accepted_range(column := {col}, min_v := 0)"
+    if name == "accepted_range":
+        return _accepted_range_from_value(model, col, chk)
     if name == "between":
         raw_args = chk.get("args")
         args = cast("list[Any]", raw_args) if isinstance(raw_args, list) else []
@@ -59,9 +103,18 @@ def _audits(asset: Asset) -> list[str]:
     for column in cast("list[dict[str, Any]]", asset.meta.get("columns") or []):
         col = str(column["name"])
         for chk in cast("list[dict[str, Any]]", column.get("checks") or []):
-            audits.append(_audit_for(asset.name, col, chk))
+            audit = _audit_for(asset.name, col, chk)
+            if audit is not None:  # None == dbt-only check, skipped by design
+                audits.append(audit)
     for chk in cast("list[dict[str, Any]]", asset.meta.get("checks") or []):
         name = chk.get("name")
+        if name in _DBT_ONLY_CHECKS:
+            log.debug(
+                "{m}: asset-level check {n!r} is dbt-only — skipping at the SQLMesh target",
+                m=asset.name,
+                n=name,
+            )
+            continue
         if name != "unique":
             # the only top-level (cross-column) check the ODTS vocabulary defines is a
             # composite `unique` over `columns:` - anything else at this level is unknown.

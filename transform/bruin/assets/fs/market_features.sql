@@ -10,15 +10,26 @@ depends:
   - core.critic_reception
   - core.console_pricing
   - core.traction
+checks:
+  # ASSET-level: no single column can assert "the table produced rows at all".
+  - {name: not_empty}
 columns:
   - name: game_sk
     type: varchar
-    checks: [{name: not_null}, {name: unique}]
+    # relationships = referential integrity back to the core entity this FS row describes.
+    # Flat keys (to/field), NOT `value: {…}`: Bruin's columnCheck parser fatally rejects a map
+    # in `value:` ("unexpected type map[string]interface {}"), while unknown flat fields only
+    # warn — the same tolerance the `between`/`args` spelling relies on.
+    checks:
+      - {name: not_null}
+      - {name: unique}
+      - {name: relationships, to: game, field: game_sk}
   - name: popularity_score
     type: double
-    checks: [{name: non_negative}]
+    checks: [{name: not_null}, {name: non_negative}]
   - name: critic_score
     type: double
+    # metacritic/100 — a closed range, so assert both bounds rather than just non-negativity.
     checks: [{name: between, args: [0, 1]}]
   - name: metacritic_score
     type: integer
@@ -47,6 +58,36 @@ columns:
   - name: has_traction
     type: boolean
     checks: [{name: not_null}]
+custom_checks:
+  # Bespoke assertion, authored in Bruin's native semantics: the query returns ONE scalar
+  # (violation count) compared to `value` — Bruin cannot parse a rows-mean-violations query
+  # ("expects one value"). to_dbt unwraps this into a singular test (rows where count != 0).
+  - name: popularity_requires_ratings
+    value: 0
+    query: |
+      select count(*)
+      from fs.market_features
+      where popularity_score > 0 and coalesce(ratings_count, 0) = 0
+unit_tests:
+  # UNIT test (dbt >= 1.8): proves the popularity_score FORMULA on mocked input — no warehouse
+  # data involved. rating=0 must zero the score even when ratings_count is large. The three
+  # scraped-source refs are mocked EMPTY: the LEFT JOINs then yield NULLs, which is exactly the
+  # no-coverage case, and the expect row only compares the columns it names.
+  - name: popularity_score_is_zero_when_rating_is_zero
+    given:
+      - input: ref('game')
+        rows:
+          - {game_sk: "a", game_id: 1, title: t, release_year: 2020, rating: 0.0,
+             ratings_count: 500, metacritic: 80, playtime_hours: 1, added_count: 1}
+      - input: ref('critic_reception')
+        rows: []
+      - input: ref('console_pricing')
+        rows: []
+      - input: ref('traction')
+        rows: []
+    expect:
+      rows:
+        - {game_sk: "a", popularity_score: 0.0}
 @bruin */
 -- `core.console_pricing` grain is (game_sk, locale) across every PSN storefront, so a bare
 -- `min(psn_price)` mixes currencies (e.g. JPY vs USD) into one meaningless number. Restrict to

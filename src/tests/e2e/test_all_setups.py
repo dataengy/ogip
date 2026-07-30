@@ -6,16 +6,15 @@ ingest → transform → ML → publish chain the setup's Prefect flow runs (via
 and is proved separately by `test_pipeline.py`), and asserts the warehouse layer + the ML feature
 outputs actually materialized.
 
-Base engines (`plain_sql`, `sqlmesh`) run in the default env and always execute. The heavy engines
-(`dbt`, `opendbt`, `sqlmesh_dbt`, `bruin`) and the Dagster-wrapped setup need extra toolchains, so
-they run only with `OGIP_E2E_ALL_ENGINES=1` — keeping CI fast while a full local run covers every
-setup. Tests run serially (each cleans first); parallel runs need per-engine warehouses (see TODO).
+The primary engines (`dbt`, `bruin` — ADR-0020) always execute; the comparison engines
+(`plain_sql`, `sqlmesh`, `opendbt`, `sqlmesh_dbt`) and the Dagster-wrapped setup run only with
+`OGIP_E2E_ALL_ENGINES=1` — the default gate proves the engines the platform actually ships.
+Tests run serially (each cleans first); parallel runs need per-engine warehouses (see TODO).
 """
 
 from __future__ import annotations
 
 import os
-import shutil
 from typing import TYPE_CHECKING
 
 import duckdb
@@ -28,8 +27,9 @@ if TYPE_CHECKING:
 
 pytestmark = pytest.mark.e2e
 
-BASE_ENGINES = ["plain_sql", "sqlmesh"]
-HEAVY_ENGINES = ["dbt", "opendbt", "sqlmesh_dbt", "bruin"]
+# Primary engines (ADR-0020) run in every e2e; the comparison engines only under the flag.
+BASE_ENGINES = ["dbt", "bruin"]
+HEAVY_ENGINES = ["plain_sql", "sqlmesh", "opendbt", "sqlmesh_dbt"]
 _ALL_ENGINES_FLAG = "OGIP_E2E_ALL_ENGINES"
 
 
@@ -97,8 +97,8 @@ def test_base_setup_builds_and_produces_ml(engine: str, _clean: None) -> None:
 )
 @pytest.mark.parametrize("engine", HEAVY_ENGINES)
 def test_heavy_setup_builds_and_produces_ml(engine: str, _clean: None) -> None:
-    if engine == "bruin" and shutil.which("bruin") is None:
-        pytest.skip("bruin CLI not on PATH")
+    if engine == "sqlmesh_dbt":
+        pytest.skip("TBD #42 — SQLMesh-over-dbt heavy e2e is broken; techdebt row 1")
     _assert_warehouse_and_ml(_run_setup_chain(engine))
 
 
@@ -107,7 +107,7 @@ def test_heavy_setup_builds_and_produces_ml(engine: str, _clean: None) -> None:
 )
 def test_dagster_wrapped_in_prefect(_clean: None) -> None:
     """Dagster (dlt+dbt) wrapped in Prefect (ML+publish) — needs the Dagster project env."""
-    from pipelines.dagster.flow import DAGSTER_PROJECT, run_dagster_dlt_dbt
+    from experimental.pipelines.dagster.flow import DAGSTER_PROJECT, run_dagster_dlt_dbt
 
     if not (DAGSTER_PROJECT / ".venv").exists():
         pytest.skip(

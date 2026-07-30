@@ -1,6 +1,17 @@
 # Task — Resilient scraping: `ScraperSource` + landing + first scraped source (~~HLTB~~ → Metacritic)
 
-**Status:** 📋 planned · **Priority:** **P1**
+**Status:** 🟡 **SLICE-ONLY** (walking-slice shipped; resilient layer deferred) · **Priority:** **P1**
+
+> **Audit 2026-07-27** (`/audit-feature-implementation-and-integration`): the **walking-slice is
+> DONE and integrated end-to-end** — `ScraperSource` (sync) + four sources (Metacritic,
+> OpenCritic, PSN, SteamCharts) `fetch → raw Parquet`, wired via `@odos_task ingest.<src>` /
+> `ingest.scraped` into every run profile, with ODCS contracts, raw+staging models, and green
+> unit tests. **Deferred = the resilient layer** in Deliverables below: async concurrency,
+> politeness throttle/backoff, circuit breaker + DLQ, effectively-once Postgres `landing` upsert,
+> watermarks, CPU parse pool, fetch observability. Admission in code:
+> `src/ogip/tasks/ingest.py: ingest.parse_to_landing` is a placeholder "wire the async
+> ScraperSource here". The Deliverables list below is HLTB-worded but the target swapped to
+> Metacritic (see the ⛔ note); the resilience items are engine-agnostic and stand unchanged.
 
 > **⛔ 2026-07-18 — HLTB is legally blocked; first scraped source is now Metacritic.**
 > HowLongToBeat (Ziff Davis) robots.txt prohibits automated retrieval outright and names

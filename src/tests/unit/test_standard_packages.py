@@ -190,3 +190,89 @@ def test_odts_fixture_bodies_are_byte_identical_to_spec_sql() -> None:
         _, sep, live_body = live.read_text(encoding="utf-8").partition("@bruin */\n")
         assert sep, f"{live}: expected a legacy @bruin header"
         assert fixture_body == live_body, f"{path}: SQL body drifted from {live}"
+
+
+# SPEC.md §5 — core attributes carry structure, not correctness; only the check vocabulary
+# (`!null` · `unique` · `non_negative` · `between`) states a contract worth comparing.
+_CORE_ATTRIBUTES = frozenset({"pk", "bk", "generated", "deprecated", "pii"})
+
+
+def _canonical_check(check: dict[str, Any]) -> str:
+    """A legacy ``@bruin`` check rendered in inline-attribute spelling: ``between(0,100)``."""
+    arguments = cast("list[Any]", check.get("args", []))
+    name = str(check["name"])
+    return f"{name}({','.join(str(argument) for argument in arguments)})" if arguments else name
+
+
+def _live_check_map(path: Path) -> dict[str, set[str]]:
+    """Column -> canonical checks declared in a live ``spec/sql`` ``@bruin`` header."""
+    header, sep, _ = path.read_text(encoding="utf-8").partition("@bruin */\n")
+    assert sep, f"{path}: expected a legacy @bruin header"
+    value = yaml.safe_load(header.removeprefix("/* @bruin\n"))
+    assert isinstance(value, dict), f"{path}: @bruin header must be a YAML mapping"
+    document = cast("dict[str, Any]", value)
+    columns = cast("list[dict[str, Any]]", document.get("columns", []))
+    declared = ((str(column["name"]), column.get("checks", [])) for column in columns)
+    return {
+        name: {_canonical_check(check) for check in cast("list[dict[str, Any]]", checks)}
+        for name, checks in declared
+        if checks
+    }
+
+
+def _fixture_check(attribute: str) -> str | None:
+    """An ``@odts`` inline attribute as a canonical check name, or ``None`` if it is not one."""
+    if attribute == "!null":
+        return "not_null"
+    if attribute in _CORE_ATTRIBUTES or attribute.startswith("fk("):
+        return None
+    return attribute
+
+
+def _fixture_check_map(header_lines: list[str]) -> dict[str, set[str]]:
+    """Column -> canonical checks declared as inline attributes in an ``@odts`` header.
+
+    Column lines are indented two spaces (``name  type  attribute*``); a deeper indent is a
+    ``namespace.key value`` metadata line (SPEC.md §5), not a column. Attributes are
+    whitespace-free tokens — ``between(0,100)``, never ``between(0, 100)``.
+    """
+    result: dict[str, set[str]] = {}
+    inside_columns = False
+    for line in header_lines:
+        if not line.strip():
+            continue
+        if not line.startswith((" ", "\t")):
+            inside_columns = line.split()[0].rstrip(":") == "columns"
+            continue
+        if not inside_columns or line.startswith("    "):
+            continue
+        name, _type, *attributes = line.split()
+        checks = {check for attribute in attributes if (check := _fixture_check(attribute))}
+        if checks:
+            result[name] = checks
+    return result
+
+
+def test_odts_fixture_checks_match_spec_sql() -> None:
+    """A fixture must state the same contract as the live model it documents.
+
+    ``test_odts_fixture_bodies_are_byte_identical_to_spec_sql`` guards the SQL body; nothing
+    guarded the header, so a fixture could publish a weaker constraint than the model — and one
+    did: ``metascore  non_negative`` against a live ``between(0, 100)``, which admits 150. A
+    fixture that omits the ``columns:`` block entirely does not opt out: if the live model
+    declares checks, dropping them is the same drift.
+    """
+    drift: list[str] = []
+    for path in sorted(_ODTS_EXAMPLES.glob("*/*.sql")):
+        live = _SPEC_SQL / path.parent.name / path.name
+        assert live.is_file(), f"{path} has no live counterpart at {live}"
+        header, _ = _odts_header_and_body(path.read_text(encoding="utf-8"))
+        fixture_checks, live_checks = _fixture_check_map(header), _live_check_map(live)
+        for column in sorted(set(fixture_checks) | set(live_checks)):
+            fixture_column, live_column = fixture_checks.get(column), live_checks.get(column)
+            if fixture_column != live_column:
+                drift.append(
+                    f"  {path.parent.name}/{path.name}::{column} — "
+                    f"fixture {sorted(fixture_column or [])} != live {sorted(live_column or [])}"
+                )
+    assert not drift, "ODTS fixtures under-declare their live contract:\n" + "\n".join(drift)

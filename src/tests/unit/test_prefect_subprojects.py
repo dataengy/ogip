@@ -1,10 +1,10 @@
-"""Guard: each engine gets a separately-deployable Prefect sub-project (#37, Part 3.2/3.3).
+"""Guard: primary vs experimental Prefect sub-projects (re-root #40).
 
-`pipelines/<engine>/{__init__.py,flow.py,prefect.yaml}` — one per SQL profile (including
-`plain_sql`) plus `dagster` — each importing the shared step library from `pipelines._shared`
-(Part 3.1). The old `pipelines/flows/engines/prefect_*.py` modules and the `ENGINE_FLOWS`
-registry that lived alongside them were retired in Part 3.3: every consumer now resolves an
-engine's flow through one of these sub-projects (see `pipelines._shared.engines.ENGINE_FLOWS`).
+The two PRIMARY comparison candidates — **dbt** and **bruin** — stay on the default path under
+`pipelines/<engine>/`. The five demoted engines (sqlmesh, plain_sql, opendbt, sqlmesh_dbt,
+dagster) move OFF the default path to `experimental/pipelines/<engine>/`. Each sub-project is a
+separately-deployable `{__init__.py,flow.py,prefect.yaml}` importing the shared step library from
+`pipelines._shared`; `pipelines._shared.engines.ENGINE_FLOWS` is the only flow registry.
 """
 
 from __future__ import annotations
@@ -15,30 +15,48 @@ from pathlib import Path
 import pytest
 import yaml
 
-_ENGINES = ["sqlmesh", "plain_sql", "dbt", "bruin", "opendbt", "sqlmesh_dbt", "dagster"]
+_PRIMARY = ["dbt", "bruin"]
+_EXPERIMENTAL = ["sqlmesh", "plain_sql", "opendbt", "sqlmesh_dbt", "dagster"]
+_ALL = _PRIMARY + _EXPERIMENTAL
 
 
-@pytest.mark.parametrize("engine", _ENGINES)
+def _base(engine: str) -> Path:
+    return (Path("pipelines") if engine in _PRIMARY else Path("experimental/pipelines")) / engine
+
+
+@pytest.mark.parametrize("engine", _ALL)
 def test_each_engine_is_a_separated_subproject(engine: str) -> None:
-    base = Path("pipelines") / engine
+    base = _base(engine)
     assert (base / "flow.py").is_file()
     assert (base / "prefect.yaml").is_file()
-    flow = importlib.import_module(f"pipelines.{engine}.flow").flow
+    module = "pipelines" if engine in _PRIMARY else "experimental.pipelines"
+    flow = importlib.import_module(f"{module}.{engine}.flow").flow
     assert callable(flow)
 
 
-@pytest.mark.parametrize("engine", _ENGINES)
+@pytest.mark.parametrize("engine", _EXPERIMENTAL)
+def test_experimental_engines_are_off_the_default_path(engine: str) -> None:
+    assert not (Path("pipelines") / engine).exists(), (
+        f"{engine} must live under experimental/pipelines/, not pipelines/"
+    )
+
+
+@pytest.mark.parametrize("engine", _ALL)
 def test_prefect_yaml_is_valid_with_deployments(engine: str) -> None:
-    path = Path("pipelines") / engine / "prefect.yaml"
-    doc = yaml.safe_load(path.read_text())
+    doc = yaml.safe_load((_base(engine) / "prefect.yaml").read_text())
     assert doc.get("deployments")
+    # `name` + `prefect-version` guard the file's identity: a real corruption once collapsed
+    # both lines into one bogus key and this test stayed green on `deployments` alone.
+    assert str(doc.get("name", "")).startswith("ogip-"), f"{engine}: prefect.yaml lost its name"
+    assert doc.get("prefect-version"), f"{engine}: prefect.yaml lost its prefect-version pin"
 
 
 def test_engine_flows_registry_points_at_every_subproject() -> None:
-    """`pipelines._shared.engines.ENGINE_FLOWS` is the ONLY registry now — no `engines/` package."""
+    """Primary maps to `pipelines.<e>.flow`, experimental to `experimental.pipelines.<e>.flow`."""
     from pipelines._shared.engines import ENGINE_FLOWS
 
-    assert set(ENGINE_FLOWS) == set(_ENGINES)
+    assert set(ENGINE_FLOWS) == set(_ALL)
     for engine, module_path in ENGINE_FLOWS.items():
-        assert module_path == f"pipelines.{engine}.flow"
+        prefix = "pipelines" if engine in _PRIMARY else "experimental.pipelines"
+        assert module_path == f"{prefix}.{engine}.flow"
         assert callable(importlib.import_module(module_path).flow)

@@ -21,6 +21,7 @@ postgres: # ADR-0008 — landing zone + platform_meta + Prefect backend
   database: ogip
   landing_schema: landing # scraped/parsed intermediate (D11)
   meta_schema: platform_meta # run stats, watermarks, DQ results
+  airbyte_schema: airbyte_raw # experimental Airbyte evaluation lane (#41) ONLY — not the prod path
 
 services: # compose port mappings (rendered into .env)
   postgres_port: 5432
@@ -31,12 +32,13 @@ services: # compose port mappings (rendered into .env)
   loki_port: 3100
   grafana_port: 3300
   evidence_port: 3400 # optional Evidence visualizer (experimental/bi, D8)
+  airbyte_port: 8000 # experimental Airbyte evaluation lane (#41); abctl's local ingress
 
 endpoints:
   prefect_api_url: http://localhost:4200/api
 
 transformation:
-  engine: sqlmesh # default transform engine (ADR-0004, D5); compiled from spec/
+  engine: dbt # primary engine (ADR-0020; bruin co-primary); every project compiled from spec/
 
 ingestion:
   engine: dlt # default (ADR-0006, D11)
@@ -46,51 +48,62 @@ secrets:
   backend: env # ADR-0011 / D10 — env (default) | github (CI) | bitwarden | git-secret
 
 prefect:
-  runtime: ephemeral # ephemeral (default) | server (+ Postgres compose) — D3
+  # ephemeral PINNED as the demo/deploy run model (finalization decision 2026-07-30 — the
+  # compose stack runs a server with no worker, so `server` is not a complete mode yet;
+  # server+worker is V2 scope, docs/techdebt/finalization-tbd.md row 8).
+  runtime: ephemeral # ephemeral (pinned default) | server (+ Postgres compose) — D3
 
 # Run profiles: `just run-profile <name>` — orchestrator × engine setups (A12).
+# Primary trio (ADR-0020): prefect-dbt (default) · prefect-bruin · prefect-over-dagster.
+# `experimental: true` = comparison setup: EXPERIMENTAL banner at launch, e2e only under
+# OGIP_E2E_ALL_ENGINES=1 (docs/techdebt/finalization-tbd.md row 2).
 run_profiles:
-  prefect-sqlmesh: # DEFAULT / production
+  prefect-dbt: # DEFAULT / primary (ADR-0020)
     default: true
     services: [postgres, prefect]
     orchestrator: prefect
     ingestion: dlt
-    transform: sqlmesh
-  prefect-sql:
-    services: [postgres, prefect]
-    orchestrator: prefect
-    ingestion: dlt
-    transform: plain_sql
-  prefect-bruin: # complete alternative setup
+    transform: dbt
+  prefect-bruin: # co-primary — runs the spec natively (zero-translation path)
     services: [postgres, prefect]
     orchestrator: prefect
     ingestion: dlt
     transform: bruin
-  prefect-dbt:
-    services: [postgres, prefect]
-    orchestrator: prefect
-    ingestion: dlt
-    transform: dbt
-  prefect-opendbt: # dbt-core extended (opendbt) over the SAME generated dbt project
-    services: [postgres, prefect]
-    orchestrator: prefect
-    ingestion: dlt
-    transform: opendbt
-  prefect-sqlmesh-over-dbt:
-    services: [postgres, prefect]
-    orchestrator: prefect
-    ingestion: dlt
-    transform: sqlmesh_dbt
-  prefect-dagster-dlt-dbt: # complete alternative setup
-    services: [postgres, prefect]
-    orchestrator: dagster
-    ingestion: dlt
-    transform: dbt
   prefect-over-dagster: # Prefect wraps Dagster (dlt+dbt only); Prefect owns ML/scraping/obs/alerting
     services: [postgres, prefect]
     orchestrator: prefect
     ingestion: dlt
     transform: dagster
+  prefect-sqlmesh: # comparison (was default until ADR-0020)
+    experimental: true
+    services: [postgres, prefect]
+    orchestrator: prefect
+    ingestion: dlt
+    transform: sqlmesh
+  prefect-sql:
+    experimental: true
+    services: [postgres, prefect]
+    orchestrator: prefect
+    ingestion: dlt
+    transform: plain_sql
+  prefect-opendbt: # dbt-core extended (opendbt) over the SAME generated dbt project
+    experimental: true
+    services: [postgres, prefect]
+    orchestrator: prefect
+    ingestion: dlt
+    transform: opendbt
+  prefect-sqlmesh-over-dbt:
+    experimental: true
+    services: [postgres, prefect]
+    orchestrator: prefect
+    ingestion: dlt
+    transform: sqlmesh_dbt
+  prefect-dagster-dlt-dbt: # standalone Dagster complete setup (own project + workflow)
+    experimental: true
+    services: [postgres, prefect]
+    orchestrator: dagster
+    ingestion: dlt
+    transform: dbt
 
 sources:
   rawg: # M0 walking-skeleton source (clean documented REST)

@@ -4,6 +4,12 @@ Phased delivery with a **user approval gate after each phase**. Full detail and 
 criteria live in [.ai/PLAN.md](../.ai/PLAN.md); this is the at-a-glance map. Requirement
 unknowns that steer this map live in [OPEN-QUESTIONS.md](OPEN-QUESTIONS.md).
 
+> **Finalization run in progress (2026-07-30)** — the operative plan is
+> [superpowers/plans/2026-07-30-finalization-land-everything.md](superpowers/plans/2026-07-30-finalization-land-everything.md)
+> (three green run commands → re-root T4–T9 → land all lanes → dev→main). The priorities
+> table below predates it and is kept for context; statuses in the phase map are refreshed
+> at finalization step 21. Frozen features: [techdebt register](techdebt/finalization-tbd.md).
+
 ## Current priorities (reprioritized 2026-07-17)
 
 | # | Item | Lane | Detail |
@@ -23,13 +29,13 @@ unknowns that steer this map live in [OPEN-QUESTIONS.md](OPEN-QUESTIONS.md).
 | M0 | **Walking skeleton** — RAWG → dlt raw → SQLMesh (from spec) → ML parquet + notebook, on Prefect; e2e in CI | ✅ shipped (CI 7/7) |
 | 1 | **`spec/` SSoT** — ODCS contracts + Bruin-format portable SQL (incl. `fs/`) + DQ + lineage | 🟡 M0 slice only |
 | 2 | **Ingestion (dlt) + Steam/RAWG** — `BaseSource`→dlt; Postgres `landing` + **scraping ([ADR-0014](adr/ADR-0014-resilient-scraping-concurrency.md))** | 🟡 RAWG shipped; **scraping = P1** |
-| 3 | **Transform (SQLMesh default)** — spec compiler + SQLMesh on DuckDB, `staging→core→{star,am}→marts→fs` | 🟡 M0 slice (raw→stg→core→fs) |
-| 4 | **Data quality** — freshness · uniqueness · RI · business rules | ⬜ planned |
+| 3 | **Transform (dbt primary + Bruin co-primary, ADR-0020)** — spec compiler → engine projects on DuckDB, `raw→stg→core→fs` | ✅ primaries green E2E; star/am/marts layers pending |
+| 4 | **Data quality** — spec checks → engine tests (ADR-0019) + policy monitors (row-count, freshness) executed by `dq/run.py` | 🟡 executor shipped 2026-07-30; results recording → V2 |
 | 5 | **ML-ready outputs + notebooks** — 6 `*.parquet` (marts + FS); DATASETS.md; JupyterLab demos | 🟡 2 outputs + 1 notebook (M0) |
 | 6 | **Orchestration (Prefect) + Postgres** — end-to-end `make run`; `platform_meta`; ephemeral + server profiles | 🟡 ephemeral flow shipped; server profile + `platform_meta` pending |
 | 7 | **Observability** — VictoriaMetrics + Loki + Alloy + Grafana; alerts abstraction | 🟡 stack + `Notifier` shipped; pipeline instrumentation pending |
 | 8 | **Remaining sources + cloud storage** — Steam Reviews, IGDB, Reddit, Twitch, HLTB, Metacritic; R2/MinIO/S3 profiles | 🟡 storage seam + MinIO shipped; **R2 finalize = P1**; sources → [backlog](../.ai/tasks/sources-backlog.md) |
-| 9 | **Comparisons + runnable profiles + research** — spec compiler → dbt/Bruin; engine/orchestration profiles; feature-store-tools + Evidence analyses | ⬜ planned |
+| 9 | **Comparisons + runnable profiles + research** — 8 run profiles (3 primary + 5 experimental-flagged); feature-store-tools + Evidence analyses | 🟡 profiles shipped; research tracks open |
 | 10 | **VPS deploy + README + polish** — manual VPS runbook (DevOps separate); outcome-first README; final audit | 🟡 `deploy/vps/` tooling shipped; **real host deploy = P1** |
 
 **Fast slice (D4):** Phases 0–6 on **Steam + RAWG** give a working end-to-end

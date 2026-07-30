@@ -1,6 +1,8 @@
 # Airbyte evaluation lane — implementation plan
 
-- **Date:** 2026-07-24 · **Refs:** OGIP#18, OGIP#19
+- **Date:** 2026-07-24 · **Refs:** OGIP#41 · task file `.ai/tasks/airbyte-evaluation-lane.md`
+  - (Earlier drafts cited #18/#19 — wrong: those are the resilient-scraping and sources-backlog
+    tasks. This lane's tracker is **#41**.)
 - **Design SSoT:** `docs/superpowers/specs/2026-07-23-airbyte-terraform-lane-design.md`
 - **Techdebt tracker:** `docs/techdebt/airbyte-lane.md`
 - **Anchor source:** `github_repos` (`airbyte/source-github` 2.1.37 — certified, Python CDK, GA)
