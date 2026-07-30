@@ -10,8 +10,9 @@ umbrella [tasks/finalization.md](tasks/finalization.md). State: **re-root DONE**
 merged — dbt primary + bruin co-primary, ADR-0020); **three demo commands green** on sample
 data (`make run-dbt` · `run-bruin` · `run-dagster-dbt`, the last proven on a wiped
 warehouse); **DQ monitors execute for real** (row_count+freshness on DuckDB, error → exit 1,
-wired into `make check` + the CI e2e step); 7 retired branches+worktrees deleted; frozen
-features tracked in the [techdebt register](../docs/techdebt/finalization-tbd.md). In
+wired into `make check` + the CI e2e step); retired branches are KEPT and marked stale
+([stale-branches register](../docs/techdebt/stale-branches.md) — owner directive: mark, never
+delete); frozen features tracked in the [techdebt register](../docs/techdebt/finalization-tbd.md). In
 flight: dagster #34 catch-up (agent), odos #37, dev→main (#10).
 
 **M0 — walking skeleton: ✅ SHIPPED.** RAWG → raw Parquet (**dlt**) → **SQLMesh** (raw→stg→core→fs,

@@ -133,3 +133,28 @@ off-repo.
   / `just gh-merge-as`; live self-test ran). Next: full gate → PR reroot→dev (step 15).
 - Discovered for step 22: PR #10's failing check is **combo-e2e** (dagster-e2e workflow) —
   investigate before the dev→main merge.
+- 2026-07-30 · **C landed**: PR #46 merged after 3 CI rounds (fix trail: 5 nested-project
+  I001s + 2 stale engine tests + loguru-less generation + scraped-ingest CWD — each now a
+  regression-proofed fix). **combo-e2e green again** (standing dev failure cured by
+  kind:"dbt" + root-env + cd-$REPO). #40 closed, T8 recorded skipped.
+- 2026-07-30 · **D (partial)**: step 18 done (7 branches+worktrees deleted; remote reroot/
+  salvage/core-pipeline pruned) · step 19 done via PR #47 — DQ executor real (10/10 PASS;
+  day-one catch: core.console_pricing EMPTY on demo → PSN sample now matches Portal 2) ·
+  step 20 done (loud prefect stubs #11/#17, #42 skip-with-issue, F4/F6 retired, lint parity
+  #39 closed, 6 frozen issues carry techdebt pointers, #39/#40/#44 closed) · step 21 done
+  (STATUS/ROADMAP/CHANGELOG refreshed; ODTS 0.2 proposals committed) · remaining: #34
+  (agent in worktree), #37 odos, step 22 dev→main.
+- 2026-07-30 · **E (partial)**: deck built & validated in the deck-factory repo (31 slides,
+  ru, pptx+html; commit there, not pushed); outreach drafts at `.ai/outreach-drafts.local.md`
+  (git-excluded — merge with the TG-thread base drafts by hand).
+- 2026-07-30 · **Policy change (owner, mid-run): mark branches stale, never delete.** The
+  step-18 deletions were reverted the same day — every pointer restored at its exact tip
+  (local ×9, origin ×3); no commits were ever at risk (containment-proofed before the original
+  deletion). Registry: docs/techdebt/stale-branches.md. Features stay TBD-frozen (loud stubs),
+  which already matched the directive. Acceptance criterion "only main/dev + active lanes
+  remain" is superseded by the stale-register model.
+- 2026-07-30 · **#34 catch-up**: orphaned agent's merge commits recovered from the worktree
+  (merge a139184 + fixture alignment faf4532), gates green, pushed. CI exposed one more
+  clean-slate bug: custom_checks singular tests were emitted with LITERAL table refs (no
+  dependency edge → test ran before its model) — to_dbt now ref-rewrites them; expectation
+  test updated to pin the correct behavior.
