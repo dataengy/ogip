@@ -147,3 +147,14 @@ off-repo.
 - 2026-07-30 · **E (partial)**: deck built & validated in the deck-factory repo (31 slides,
   ru, pptx+html; commit there, not pushed); outreach drafts at `.ai/outreach-drafts.local.md`
   (git-excluded — merge with the TG-thread base drafts by hand).
+- 2026-07-30 · **Policy change (owner, mid-run): mark branches stale, never delete.** The
+  step-18 deletions were reverted the same day — every pointer restored at its exact tip
+  (local ×9, origin ×3); no commits were ever at risk (containment-proofed before the original
+  deletion). Registry: docs/techdebt/stale-branches.md. Features stay TBD-frozen (loud stubs),
+  which already matched the directive. Acceptance criterion "only main/dev + active lanes
+  remain" is superseded by the stale-register model.
+- 2026-07-30 · **#34 catch-up**: orphaned agent's merge commits recovered from the worktree
+  (merge a139184 + fixture alignment faf4532), gates green, pushed. CI exposed one more
+  clean-slate bug: custom_checks singular tests were emitted with LITERAL table refs (no
+  dependency edge → test ran before its model) — to_dbt now ref-rewrites them; expectation
+  test updated to pin the correct behavior.

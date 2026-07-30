@@ -25,7 +25,7 @@ Mode: AUTO (owner directive) — no per-phase approval gates; checkpoint reports
 - [x] **B** — three green run commands (`run-dbt` · `run-bruin` · `run-dagster-dbt`, all
       exit 0, outputs 5/5/5) + DQ loud-stub; 3 latent path bugs fixed (dbt/bruin/dagster)
 - [x] **C** — re-root T4–T9 done, PR #46 merged (T8 skipped by design; ADR-0020; #40 closed)
-- [ ] **D** — in flight: ✓ 7 branches+worktrees deleted · ✓ DQ executor (PR #47, day-one
+- [ ] **D** — in flight: ✓ retired branches marked stale (kept — owner directive; worktree dirs of retired lanes removed) · ✓ DQ executor (PR #47, day-one
       catch: empty console_pricing → demo coherent) · ✓ TBD sweep + issue triage (#39/#40/#44
       closed, 6 frozen issues carry techdebt pointers) · ✓ docs refresh · remaining: dagster
       #34 (agent), odos #37, dev→main (#10)
@@ -35,7 +35,8 @@ Mode: AUTO (owner directive) — no per-phase approval gates; checkpoint reports
 
 ## Acceptance
 
-- CI green on `dev` and `main`; only `main`/`dev` + genuinely active lanes remain in
-  `git branch -a`; STATUS/ROADMAP/techdebt ≤1 day stale; every deferred feature has a loud
+- CI green on `dev` and `main`; every non-active branch is listed in
+  [docs/techdebt/stale-branches.md](../../docs/techdebt/stale-branches.md) (kept, marked —
+  never deleted); STATUS/ROADMAP/techdebt ≤1 day stale; every deferred feature has a loud
   stub + a row in [docs/techdebt/finalization-tbd.md](../../docs/techdebt/finalization-tbd.md)
   + an issue.
