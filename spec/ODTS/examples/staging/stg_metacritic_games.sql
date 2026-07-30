@@ -5,9 +5,10 @@ owner     data-eng@ogip
 tags      staging, metacritic, daily
 
 columns:
-  slug        varchar   !null unique
-  name        varchar   !null
-  metascore   integer   non_negative
+  slug           varchar   !null unique
+  name           varchar   !null
+  metascore      integer   between(0,100)
+  review_count   integer   non_negative
 */
 select
     slug
