@@ -7,7 +7,7 @@ SHELL := /bin/bash
 export UV_PROJECT_ENVIRONMENT := .run/venv
 
 .PHONY: help run run-sqlmesh run-sql run-dbt run-opendbt run-sqlmesh-dbt run-bruin \
-        run-over-dagster run-dagster-dlt-dbt
+        run-over-dagster run-dagster-dbt run-dagster-dlt-dbt
 
 help: ## Show the pipelines (all other ops: `just` to list, or `make <op>` → `just <op>`)
 	@echo "OGIP pipelines (1 op = 1 pipeline):"
@@ -38,6 +38,8 @@ run-bruin: ## prefect-bruin: dlt → Bruin native → ML → publish
 
 run-over-dagster: ## prefect-over-dagster: Dagster (dlt+dbt) wrapped in Prefect (ML/publish)
 	@just run-profile prefect-over-dagster
+
+run-dagster-dbt: run-over-dagster ## alias — Prefect + dbt-under-Dagster (= run-over-dagster)
 
 run-dagster-dlt-dbt: ## prefect-dagster-dlt-dbt: standalone Dagster complete setup
 	@just run-profile prefect-dagster-dlt-dbt
