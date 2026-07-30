@@ -7,6 +7,9 @@ tags      staging, rawg, daily
 columns:
   game_id   integer   !null unique
   name      varchar   !null
+  ratings_count    integer   non_negative
+  playtime_hours   integer   non_negative
+  added_count      integer   non_negative
 */
 select
     id as game_id
