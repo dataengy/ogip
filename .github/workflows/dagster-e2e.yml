@@ -39,7 +39,10 @@ jobs:
       - name: Generate the dbt project from spec/ (DbtProjectComponent needs it; it is gitignored)
         working-directory: experimental/orchestration/dagster_ogip
         run: |
-          PYTHONPATH="$GITHUB_WORKSPACE/src" .venv/bin/python - "$GITHUB_WORKSPACE" <<'PY'
+          # Root env, not the Dagster venv: ogip.spec_compile pulls ogip.logger → loguru,
+          # which the nested project deliberately does not carry (re-root made this fatal).
+          UV_PROJECT_ENVIRONMENT="$GITHUB_WORKSPACE/.run/venv" \
+            uv run --project "$GITHUB_WORKSPACE" python - "$GITHUB_WORKSPACE" <<'PY'
           import sys
           from pathlib import Path
           from ogip.spec_compile.to_dbt import compile_to_dbt

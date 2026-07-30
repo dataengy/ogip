@@ -22,7 +22,9 @@ mkdir -p "$REPO/.run/data/warehouse" # DuckDB opens, but does not create, the pa
 
 # 1. compile spec/ (Bruin, the SSoT) → the dbt project. Never hand-authored (ADR-0005).
 log "compile spec → dbt project"
-PYTHONPATH="$REPO/src" .venv/bin/python - "$REPO" <<'PY'
+# Root env, not the Dagster venv: ogip.spec_compile pulls ogip.logger -> loguru, which the
+# nested project deliberately does not carry.
+UV_PROJECT_ENVIRONMENT="$REPO/.run/venv" uv run --project "$REPO" python - "$REPO" <<'PY'
 import sys
 from pathlib import Path
 

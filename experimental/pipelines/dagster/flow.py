@@ -68,7 +68,9 @@ def run_dagster_dlt_dbt() -> list[str]:
         warehouse=get_settings().platform.warehouse_path.resolve(),
         repo_root=REPO,
     )
-    log.bind(orchestrator="dagster").info("regenerated dagster dbt render: {n} models", n=len(models))
+    log.bind(orchestrator="dagster").info(
+        "regenerated dagster dbt render: {n} models", n=len(models)
+    )
     for selection in (_DLT_ASSET, _DBT_SUBGRAPH):
         log.bind(orchestrator="dagster").info("dg launch --assets {s}", s=selection)
         subprocess.run(

@@ -56,9 +56,7 @@ def compile_to_bruin(spec_sql_dir: Path, project_dir: Path, *, warehouse: Path) 
     environments: dict[str, Any] = {
         "default_environment": "default",
         "environments": {
-            "default": {
-                "connections": {"duckdb": [{"name": _CONNECTION, "path": connection_path}]}
-            }
+            "default": {"connections": {"duckdb": [{"name": _CONNECTION, "path": connection_path}]}}
         },
     }
     (project_dir / ".bruin.yml").write_text(
