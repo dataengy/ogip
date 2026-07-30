@@ -45,6 +45,10 @@ def test_experimental_engines_are_off_the_default_path(engine: str) -> None:
 def test_prefect_yaml_is_valid_with_deployments(engine: str) -> None:
     doc = yaml.safe_load((_base(engine) / "prefect.yaml").read_text())
     assert doc.get("deployments")
+    # `name` + `prefect-version` guard the file's identity: a real corruption once collapsed
+    # both lines into one bogus key and this test stayed green on `deployments` alone.
+    assert str(doc.get("name", "")).startswith("ogip-"), f"{engine}: prefect.yaml lost its name"
+    assert doc.get("prefect-version"), f"{engine}: prefect.yaml lost its prefect-version pin"
 
 
 def test_engine_flows_registry_points_at_every_subproject() -> None:

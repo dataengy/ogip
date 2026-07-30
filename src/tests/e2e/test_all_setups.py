@@ -28,8 +28,9 @@ if TYPE_CHECKING:
 
 pytestmark = pytest.mark.e2e
 
-BASE_ENGINES = ["plain_sql", "sqlmesh"]
-HEAVY_ENGINES = ["dbt", "opendbt", "sqlmesh_dbt", "bruin"]
+# Primary engines (ADR-0020) run in every e2e; the comparison engines only under the flag.
+BASE_ENGINES = ["dbt", "bruin"]
+HEAVY_ENGINES = ["plain_sql", "sqlmesh", "opendbt", "sqlmesh_dbt"]
 _ALL_ENGINES_FLAG = "OGIP_E2E_ALL_ENGINES"
 
 
