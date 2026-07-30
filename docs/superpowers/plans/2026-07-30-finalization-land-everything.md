@@ -158,3 +158,8 @@ off-repo.
   clean-slate bug: custom_checks singular tests were emitted with LITERAL table refs (no
   dependency edge → test ran before its model) — to_dbt now ref-rewrites them; expectation
   test updated to pin the correct behavior.
+- 2026-07-30 · **#34 MERGED** (round 4: custom-check semantics reconciled — spec authors
+  Bruin-native scalar checks, to_dbt unwraps them into ref-rewritten singular tests; both
+  e2e legs proven on wiped warehouses). **#49 (odos) MERGED** — clean auto-merge, the
+  runtime bridge needed zero changes for the flattened defs; spec-design layout refs
+  updated; 278 unit tests green. All lanes are in dev. Remaining: dev→main (#10).

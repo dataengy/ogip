@@ -27,8 +27,9 @@ Mode: AUTO (owner directive) — no per-phase approval gates; checkpoint reports
 - [x] **C** — re-root T4–T9 done, PR #46 merged (T8 skipped by design; ADR-0020; #40 closed)
 - [ ] **D** — in flight: ✓ retired branches marked stale (kept — owner directive; worktree dirs of retired lanes removed) · ✓ DQ executor (PR #47, day-one
       catch: empty console_pricing → demo coherent) · ✓ TBD sweep + issue triage (#39/#40/#44
-      closed, 6 frozen issues carry techdebt pointers) · ✓ docs refresh · remaining: dagster
-      #34 (agent), odos #37, dev→main (#10)
+      closed, 6 frozen issues carry techdebt pointers) · ✓ docs refresh · ✓ dagster
+      PR #34 merged (custom checks: Bruin scalar semantics, dbt unwraps) · ✓ odos PR #49
+      merged (clean; adapters stay on #37) · remaining: dev→main (#10)
 - [~] **E** — deck BUILT & validated (31 slides, deck-factory repo, pptx+html in ~/Downloads);
       outreach drafts written to `.ai/outreach-drafts.local.md` (excluded) — merge with the TG
       thread's base drafts manually
