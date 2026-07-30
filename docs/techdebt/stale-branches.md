@@ -13,8 +13,8 @@ containment before trusting: `git rev-list --left-right --count origin/dev...<br
 | `lane/transform-dq-expansion` | `452ad8c` | stale — contained | merged into dev pre-finalization |
 | `lane/airbyte` | `5d67276` | stale — contained (== old dev tip) | evaluation lane, runtime NO-GO (#41) |
 | `lane/evidence` · `lane/obs` · `lane/s3` · `lane/vps` | `1b9071d` | stale — empty placeholders (138+ behind), no unique work | never developed |
-| `lane/dagster` | — | active → stale after PR #34 merges (keep the branch) | PR #34 |
-| `lane/odos-compiler` | — | active → stale after #37 lands or freezes (keep the branch) | #37 |
+| `lane/dagster` | `645d190` | stale — merged 2026-07-30 | PR #34 (flattened defs, warehouse split, dbt-native DQ) |
+| `lane/odos-compiler` | `6669142` | stale — merged 2026-07-30 (adapters/equivalence stay open on #37) | PR #49 |
 
 History note: on 2026-07-30 (finalization step 18) these pointers were briefly deleted after
 containment proof, then restored at their exact tips the same day when the owner set the
