@@ -69,6 +69,12 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     name, profile = resolve_profile(profiles, args.profile)
+    if profile.get("experimental"):
+        print(
+            f"[EXPERIMENTAL] profile {name!r} is a comparison setup off the production path "
+            "(ADR-0020) — not exercised by the default gates "
+            "(docs/techdebt/finalization-tbd.md row 2)"
+        )
     if profile.get("orchestrator") == "dagster":
         print(f"profile {name!r} {_DAGSTER_HINT}")
         return 2

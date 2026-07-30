@@ -12,6 +12,7 @@ __all__ = [
     "ingest_opencritic",
     "ingest_psn",
     "ingest_rawg",
+    "ingest_scraped",
     "ingest_steamcharts",
     "parse_to_landing",
 ]
@@ -76,6 +77,34 @@ def ingest_steamcharts() -> str:
     return str(out)
 
 
+# The scraped sources, in landing order. RAWG is deliberately absent: it is the dlt-ingested
+# Layer-0 producer, landed on its own (unconditional) path — see `ingest_rawg`.
+_SCRAPED = (
+    ("metacritic", ingest_metacritic),
+    ("opencritic", ingest_opencritic),
+    ("psn", ingest_psn),
+    ("steamcharts", ingest_steamcharts),
+)
+
+
+@odos_task("ingest.scraped")
+def ingest_scraped() -> None:
+    """Land every ENABLED **scraped** source (not RAWG). Returns nothing — RAWG owns the path.
+
+    This is the step Prefect owns in the Dagster combo profile: Dagster ingests RAWG via dlt and
+    builds dbt, but the scraped sources are landed OUTSIDE dlt (no bespoke-parser dlt source
+    exists). Without it, dbt models that reference scraped-source staging (critic_reception,
+    console_pricing, traction) have no raw Parquet to read and the whole build fails — even
+    though those enrichments are optional LEFT JOINs off the RAWG spine.
+    """
+    enabled = load_app_config()["sources"]
+    for name, task in _SCRAPED:
+        if enabled.get(name, {}).get("enabled"):
+            task()
+        else:
+            log.bind(source=name).info("disabled in config — skipped")
+
+
 @odos_task("ingest.all")
 def ingest_all() -> str:
     """Run every source enabled in `config/config.yml`; return the RAWG output path.
@@ -88,18 +117,8 @@ def ingest_all() -> str:
     RAWG is unconditional: it is the Layer-0 producer the whole warehouse is built on. Its path
     is the return value because downstream steps key off the RAWG landing.
     """
-    enabled = load_app_config()["sources"]
     out = ingest_rawg()
-    for name, task in (
-        ("metacritic", ingest_metacritic),
-        ("opencritic", ingest_opencritic),
-        ("psn", ingest_psn),
-        ("steamcharts", ingest_steamcharts),
-    ):
-        if enabled.get(name, {}).get("enabled"):
-            task()
-        else:
-            log.bind(source=name).info("disabled in config — skipped")
+    ingest_scraped()
     return out
 
 

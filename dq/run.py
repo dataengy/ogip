@@ -67,8 +67,13 @@ def main(argv: list[str]) -> int:
     if not monitors:
         print(f"[dq] {scope}: no policy declared at spec/dq/policy.yml — OK")
         return 0
-    # TODO(phase-4): execute these monitors against the warehouse and record results.
-    print(f"[dq] {scope}: {_summarize(monitors)} — load+report only, execution arrives in Phase 4")
+    # TODO(phase-4): execute these monitors against the warehouse and record results (#43 step 19).
+    print(f"[dq] {scope}: {_summarize(monitors)}")
+    print(
+        "[dq] WARNING: monitors are DECLARED but NOT EXECUTED — this run proves nothing.\n"
+        "[dq]          Executor lands with finalization step 19 (issue #43); until then\n"
+        "[dq]          treat every DQ 'pass' as unverified (docs/techdebt/finalization-tbd.md #9)."
+    )
     return 0
 
 

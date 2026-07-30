@@ -28,8 +28,9 @@ if TYPE_CHECKING:
 
 pytestmark = pytest.mark.e2e
 
-BASE_ENGINES = ["plain_sql", "sqlmesh"]
-HEAVY_ENGINES = ["dbt", "opendbt", "sqlmesh_dbt", "bruin"]
+# Primary engines (ADR-0020) run in every e2e; the comparison engines only under the flag.
+BASE_ENGINES = ["dbt", "bruin"]
+HEAVY_ENGINES = ["plain_sql", "sqlmesh", "opendbt", "sqlmesh_dbt"]
 _ALL_ENGINES_FLAG = "OGIP_E2E_ALL_ENGINES"
 
 
@@ -107,7 +108,7 @@ def test_heavy_setup_builds_and_produces_ml(engine: str, _clean: None) -> None:
 )
 def test_dagster_wrapped_in_prefect(_clean: None) -> None:
     """Dagster (dlt+dbt) wrapped in Prefect (ML+publish) — needs the Dagster project env."""
-    from pipelines.dagster.flow import DAGSTER_PROJECT, run_dagster_dlt_dbt
+    from experimental.pipelines.dagster.flow import DAGSTER_PROJECT, run_dagster_dlt_dbt
 
     if not (DAGSTER_PROJECT / ".venv").exists():
         pytest.skip(

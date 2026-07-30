@@ -16,7 +16,7 @@ still describe reality?"*.
 |---|---|
 | Task registry (`registry: ogip.tasks`) | **live** — [`src/ogip/tasks/`](../../src/ogip/tasks/), ten `@odos_task` entries |
 | Dagster projection | hand-written — `defs/orchestration/<group>/definitions.py`, six groups |
-| Prefect projection | hand-written — `make_engine_flow` in [`pipelines/_shared/steps.py`](../../pipelines/_shared/steps.py), wrapped by **seven** separated, individually-deployable sub-projects (`pipelines/{sqlmesh,plain_sql,dbt,opendbt,sqlmesh_dbt,bruin,dagster}/flow.py`, each with its own `prefect.yaml`) |
+| Prefect projection | hand-written — `make_engine_flow` in [`pipelines/_shared/steps.py`](../../pipelines/_shared/steps.py), wrapped by **seven** separated, individually-deployable sub-projects: two primary in `pipelines/{dbt,bruin}/` + five comparison in `experimental/pipelines/{sqlmesh,plain_sql,opendbt,sqlmesh_dbt,dagster}/` (ADR-0020, re-root #40), each with its own `prefect.yaml` |
 | The design's §2 drift (`ensure_raw`) | **resolved at the task layer** — both lanes call the same registry callables |
 | Compiler, adapters, equivalence test | not built — the remaining scope of [#37](https://github.com/dataengy/ogip/issues/37) |
 
@@ -158,13 +158,14 @@ in [`pipelines/_shared/`](../../pipelines/_shared/) (`steps.py` — `ingest_raw`
 `notify_flow_failure`; `paths.py` — repo-relative constants; `engines.py` — `ENGINE_FLOWS`,
 the transform-name → sub-project-module map), and each of the seven SQL/orchestration profiles
 (`sqlmesh`, `plain_sql`, `dbt`, `opendbt`, `sqlmesh_dbt`, `bruin`, `dagster`) is its own
-directory under `pipelines/<engine>/` — `{__init__.py, flow.py, prefect.yaml}` — separately
-`prefect deploy`-able without pulling in the other six. `pipelines/flows/main.py` survives only
-as the `ingest_transform_publish` re-export of `pipelines.sqlmesh.flow` (the production setup),
-because `src/ogip/tasks/integrations.py` shells `python -m pipelines.flows.main` and that entry
-point must stay importable at its historical path. `src/scripts/run-profile.py` resolves a
-`config.yml run_profiles[<name>].transform` name through `ENGINE_FLOWS` rather than importing
-all seven eagerly. The `dagster` sub-project (`pipelines/dagster/flow.py`) is the one exception
+directory — primaries under `pipelines/<engine>/`, comparison setups under
+`experimental/pipelines/<engine>/` (ADR-0020) — `{__init__.py, flow.py, prefect.yaml}` —
+separately `prefect deploy`-able without pulling in the others. `pipelines/flows/main.py`
+survives only as the `ingest_transform_publish` re-export of `pipelines.dbt.flow` (the primary
+setup), because `src/ogip/tasks/integrations.py` shells `python -m pipelines.flows.main` and
+that entry point must stay importable at its historical path. `src/scripts/run-profile.py`
+resolves a `config.yml run_profiles[<name>].transform` name through `ENGINE_FLOWS` rather than
+importing all seven eagerly. The `dagster` sub-project (`experimental/pipelines/dagster/flow.py`) is the one exception
 to the plain per-engine shape: Prefect stays the outer orchestrator, but the dlt-ingest + dbt
 combo runs *under* Dagster (`dg launch`) — see [`pipelines/README.md`](../../pipelines/README.md)
 "Dagster sub-project" and §3 below for the Components this wraps.

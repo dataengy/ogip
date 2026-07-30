@@ -169,6 +169,79 @@ def test_top_level_unique_without_columns_raises_sqlspec_error(tmp_path: Path) -
         compile_to_sqlmesh(spec, tmp_path / "out")
 
 
+def test_dbt_only_column_check_is_skipped_not_raised(tmp_path: Path) -> None:
+    """`relationships` is dbt-native; SQLMesh has no builtin for it, so it is SKIPPED.
+
+    Re-root (#40/#34): dbt becomes a primary engine and authors richer DQ in `spec/sql`.
+    SQLMesh must compile such a model instead of dying on it — but ONLY for names on the
+    explicit dbt-only allowlist, so a genuine typo still fails loud (ODTS §5).
+    """
+    spec = tmp_path / "spec"
+    _write_asset(
+        spec,
+        "fs",
+        "x",
+        "name: fs.x\ntype: duckdb.sql\nmaterialization: {type: table}\n"
+        "columns:\n  - name: game_sk\n    checks:\n"
+        "      - {name: not_null}\n"
+        "      - {name: relationships, value: {to: game, field: game_sk}}",
+        "select 1 as game_sk",
+    )
+    compile_to_sqlmesh(spec, tmp_path / "out")
+    text = (tmp_path / "out" / "fs" / "x.sql").read_text()
+    assert "not_null(columns := (game_sk))" in text  # native check still projected
+    assert "relationships" not in text  # dbt-only check skipped, not emitted
+
+
+def test_dbt_only_top_level_check_is_skipped_not_raised(tmp_path: Path) -> None:
+    """Asset-level `not_empty` is dbt-only — skipped, and must not break the MODEL block."""
+    spec = tmp_path / "spec"
+    _write_asset(
+        spec,
+        "fs",
+        "y",
+        "name: fs.y\ntype: duckdb.sql\nmaterialization: {type: table}\n"
+        "checks:\n  - {name: not_empty}",
+        "select 1 as a",
+    )
+    compile_to_sqlmesh(spec, tmp_path / "out")
+    text = (tmp_path / "out" / "fs" / "y.sql").read_text()
+    assert "not_empty" not in text
+    assert "audits" not in text  # nothing native left → no empty audits() noise
+
+
+def test_accepted_range_value_form_becomes_audit(tmp_path: Path) -> None:
+    """#34 authors `accepted_range` as `value: {min, max}` — a different shape from `between`."""
+    spec = tmp_path / "spec"
+    _write_asset(
+        spec,
+        "fs",
+        "z",
+        "name: fs.z\ntype: duckdb.sql\nmaterialization: {type: table}\n"
+        "columns:\n  - name: critic_score\n"
+        "    checks: [{name: accepted_range, value: {min: 0, max: 1}}]",
+        "select 0.5 as critic_score",
+    )
+    compile_to_sqlmesh(spec, tmp_path / "out")
+    text = (tmp_path / "out" / "fs" / "z.sql").read_text()
+    assert "accepted_range(column := critic_score, min_v := 0, max_v := 1)" in text
+
+
+def test_typo_check_still_fails_loud_after_allowlist(tmp_path: Path) -> None:
+    """The dbt-only allowlist must NOT degrade into 'skip anything unrecognized'."""
+    spec = tmp_path / "spec"
+    _write_asset(
+        spec,
+        "fs",
+        "w",
+        "name: fs.w\ntype: duckdb.sql\nmaterialization: {type: table}\n"
+        "columns:\n  - name: a\n    checks: [{name: relationshipz}]",
+        "select 1 as a",
+    )
+    with pytest.raises(SqlSpecError, match="unknown check"):
+        compile_to_sqlmesh(spec, tmp_path / "out")
+
+
 def test_accepted_values_check_becomes_sqlmesh_audit(tmp_path: Path) -> None:
     spec = tmp_path / "spec"
     _write_asset(

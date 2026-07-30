@@ -1,8 +1,8 @@
-name: ogip-dagster
+name: ogip-sqlmesh
 prefect-version: 3.0.0
 deployments:
-  - name: ingest-transform-publish-dagster
-    entrypoint: pipelines/dagster/flow.py:flow
+  - name: ingest-transform-publish-sqlmesh
+    entrypoint: experimental/pipelines/sqlmesh/flow.py:flow
     work_pool:
       name: default
     schedule:

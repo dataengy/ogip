@@ -284,3 +284,14 @@ agentic-usage *args:
 # Token/cost by session (project paths visible — pick out OGIP rows).
 agentic-usage-sessions *args:
     npx -y ccusage@latest session {{args}}
+
+# --- Finalization / landing helpers (re-root T9, #40) ---
+
+# Read-only recon before a big landing: branches vs origin/dev, worktree dirt, session locks
+# (incl. worktree-local stores), open PRs + CI rollup. Exit 1 = blockers listed.
+preflight:
+    bash src/scripts/preflight-clean-ground.sh
+
+# Merge a PR as the repo-owner account, then restore the previous gh account (trap-safe).
+gh-merge-as pr *flags:
+    bash src/scripts/gh-merge-as.sh {{pr}} {{flags}}

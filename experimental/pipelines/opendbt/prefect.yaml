@@ -1,8 +1,8 @@
-name: ogip-sqlmesh
+name: ogip-opendbt
 prefect-version: 3.0.0
 deployments:
-  - name: ingest-transform-publish-sqlmesh
-    entrypoint: pipelines/sqlmesh/flow.py:flow
+  - name: ingest-transform-publish-opendbt
+    entrypoint: experimental/pipelines/opendbt/flow.py:flow
     work_pool:
       name: default
     schedule:

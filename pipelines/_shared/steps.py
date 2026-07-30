@@ -26,7 +26,7 @@ from ogip.config import get_settings
 from ogip.logger import log, setup_logging
 from ogip.spec_compile import compile_to_sqlmesh, load_assets
 from ogip.tasks.dbt import dbt_build
-from ogip.tasks.ingest import ingest_all
+from ogip.tasks.ingest import ingest_all, ingest_rawg, ingest_scraped
 from ogip.warehouse import export_table
 
 if TYPE_CHECKING:
@@ -105,17 +105,31 @@ def make_engine_flow(engine: str, *, flow_name: str | None = None) -> Flow[[], d
     """
     name = flow_name or f"ingest_transform_publish_{engine}"
     raw_key = f"file://ogip/{engine}/raw/rawg__games"
+    scraped_key = f"file://ogip/{engine}/raw/scraped"
     core_key = f"duckdb://ogip/{engine}/core.game"
     fs_key = f"duckdb://ogip/{engine}/fs.market_features"
     ml_key = f"file://ogip/{engine}/outputs/ml_features.parquet"
     out_key = f"file://ogip/{engine}/outputs/games.parquet"
 
     @materialize(raw_key)
-    def _ingest() -> str:
-        return ingest_raw()
+    def _ingest_rawg() -> str:
+        """RAWG via dlt — the Layer-0 spine (its own asset)."""
+        return ingest_rawg()
+
+    @materialize(scraped_key)
+    def _ingest_scraped() -> str:
+        """The scraped sources (metacritic/opencritic/psn/steamcharts) as a FIRST-CLASS asset.
+
+        Landed outside dlt (no bespoke-parser dlt source exists). A distinct lineage node so the
+        scraping task is visible in the Prefect UI of every setup — not hidden inside the RAWG
+        asset — and so the cross-source models (critic_reception/console_pricing/traction) have
+        their staging. Enablement is config SSoT (`sources.<name>.enabled`).
+        """
+        ingest_scraped()
+        return scraped_key
 
     @materialize(core_key, fs_key)
-    def _transform(_raw: str) -> list[str]:
+    def _transform(_rawg: str, _scraped: str) -> list[str]:
         return build_warehouse(engine)
 
     @materialize(ml_key)
@@ -132,8 +146,9 @@ def make_engine_flow(engine: str, *, flow_name: str | None = None) -> Flow[[], d
         # SSoT json/level knobs instead of a bare default (obs handoff — core-pipeline lane, #29).
         _platform = get_settings().platform
         setup_logging(json_logs=_platform.log_json, log_file=_platform.log_file)
-        raw = _ingest()
-        models = _transform(raw)
+        rawg = _ingest_rawg()
+        scraped = _ingest_scraped()
+        models = _transform(rawg, scraped)
         ml = _ml_features(models)
         outputs = _publish(ml)
         return {**outputs, **{f"ml::{k}": v for k, v in ml.items()}}

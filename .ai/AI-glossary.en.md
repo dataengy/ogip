@@ -20,6 +20,11 @@ behind `/add-terms-to-glossary`); Russian-slang twins live in
 | [ODPS / ODTS / ODOS (семейство стандартов)](#odps--odts--odos-семейство-стандартов) | project | зонт называется YADPS, а не ODPS — имя занято Bitol и LF; конвенция: конфликтующее имя берёт YA вместо Open |
 | [@odts](#@odts) | project | формат авторинга spec/sql в OGIP: компактный header → рендер в @bruin YAML → адаптеры без изменений |
 | [.ai/FIXME.md (conflict register)](#aifixmemd-conflict-register) | project | реестр известных противоречий между документами; протухшее hard rule опаснее протухшего README |
+| [call-sites](#call-sites) | general | every place a symbol is imported/invoked; zero = dead code |
+| [wire / wired-in](#wire--wired-in) | general | connect a component into the runtime path so it actually runs |
+| [deferral-admission](#deferral-admission) | general | in-code statement that a feature is not finished (placeholder/stub/TODO) |
+| [walking-slice](#walking-slice) | general | thin end-to-end vertical exercising every layer before the full version |
+| [SLICE-ONLY](#slice-only) | project | audit verdict: walking-slice done + integrated, named parts deferred |
 
 ## OTel / OTLP (Claude Code native telemetry)
 
@@ -86,3 +91,33 @@ behind `/add-terms-to-glossary`); Russian-slang twins live in
 `[project]` OGIP's register of known contradictions between documents and convention gaps — sits between `TODO.md` (near-term actions) and `tasks/` (scoped work with an issue). It exists because the project asserts facts in prose rather than deriving them: the `spec/sql` authoring format alone is stated in ten documents.
 > **RU:** Реестр известных противоречий между документами и пробелов в конвенциях — между `TODO.md` и `tasks/`. Нужен потому, что факты в проекте заявляются прозой, а не выводятся: один только формат авторинга `spec/sql` записан в десяти документах. Ключевое правило: протухшее hard rule в `AGENTS.md` опаснее протухшего README — hard rules **исполняют**, а не просто читают.
 > **Пример:** F1: hard rule 2 всё ещё говорит «Bruin asset format» и станет ложью в момент приземления #35.
+
+## call-sites
+
+`[general]` Every place a symbol (class/function) is imported or invoked across the codebase. In an implementation audit, the presence of call-sites is what separates an INTEGRATED feature from dead code: a class can exist yet have zero call-sites (implemented-but-not-wired).
+> **RU:** Все места, где символ (класс/функция) импортируется или вызывается по коду. В аудите реализации именно наличие call-sites отличает ИНТЕГРИРОВАННУЮ фичу от мёртвого кода: класс может существовать, но иметь ноль call-sites (реализован, но не подключён).
+> **Пример:** /audit-feature-implementation-and-integration нашёл MetacriticGame в src/ogip/tasks/ingest.py:42 + тестах → интегрирован, не мёртвый код.
+
+## wire / wired-in
+
+`[general]` To connect a component into the runtime path so it actually runs — registered in the task registry, called by a pipeline/flow, reachable from make/CI. 'Wired in' = integrated; 'not wired' = present but inert.
+> **RU:** Подключить компонент в рантайм-путь, чтобы он реально исполнялся — зарегистрирован в реестре задач, вызывается пайплайном/флоу, достижим из make/CI. «Wired in» = интегрирован; «not wired» = присутствует, но мёртв.
+> **Пример:** Скрапер wired-in через @odos_task('ingest.metacritic') и вызов из ingest_scraped/ingest_all в pipelines/.
+
+## deferral-admission
+
+`[general]` An explicit in-code statement (docstring/comment) that a feature is not finished: 'deferred', 'placeholder', 'stub', 'next increment', 'for now', TODO/FIXME. The highest-value evidence when judging complete-vs-partial — the author telling you it is a slice.
+> **RU:** Явное признание в коде (докстринг/комментарий), что фича не готова: «deferred», «placeholder», «stub», «next increment», «for now», TODO/FIXME. Самое ценное доказательство при оценке «готово vs частично» — автор сам говорит, что это срез.
+> **Пример:** src/ogip/tasks/ingest.py: ingest.parse_to_landing — placeholder для async ScraperSource (ADR-0014); поймано /audit-feature-implementation-and-integration.
+
+## walking-slice
+
+`[general]` A thin but end-to-end vertical implementation that exercises every layer (source→raw→staging→core→fs→output) with minimal breadth, proving the path works before the resilient/full version is built.
+> **RU:** Тонкая, но сквозная вертикальная реализация, задевающая каждый слой (source→raw→staging→core→fs→output) с минимальной шириной — доказывает, что путь работает, до того как построена resilient/полная версия.
+> **Пример:** Metacritic-скрапер приземляет fetch→raw Parquet как walking-slice; async-конкуррентность + Postgres landing — следующий инкремент (#18).
+
+## SLICE-ONLY
+
+`[project]` An audit verdict from /audit-feature-implementation-and-integration: the feature's walking-slice is complete and integrated end-to-end, but named parts are deferred (with a tracking issue). Contrast with DONE — presence of a class is never enough for DONE.
+> **RU:** Вердикт аудита из /audit-feature-implementation-and-integration: walking-slice фичи готов и интегрирован end-to-end, но названные части отложены (с трекинг-issue). Контраст с DONE — наличия класса недостаточно для DONE.
+> **Пример:** Скрапер = SLICE-ONLY: walking-slice готов+интегрирован; resilient ADR-0014 (async + Postgres landing upsert) отложен, трекается .ai/tasks/scraping-resilient.md + #18.
