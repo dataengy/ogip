@@ -192,6 +192,27 @@ sources-route key="--all":
 sources-drift:
     bash src/scripts/sources-registry-check.sh
 
+# --- Airbyte EVALUATION lane (#41) — experimental, OFF the `make` path. See
+#     experimental/ingestion/airbyte/README.md. All local + credential-gated; CI never applies. ---
+airbyte_jf := home_directory() / ".ai/skills/_scripts/de/ingestion/Justfile"
+
+# Validate every `airbyte:` block against the LIVE OSS registry (connector exists; incremental
+# ⇒ cursor; streams non-empty). Self-skips on machines without ~/.ai. Also the pre-commit gate.
+airbyte-validate *args:
+    bash src/scripts/airbyte-blocks-check.sh {{args}}
+
+# Bring up local Airbyte (abctl = kind/k8s-in-Docker). Disk-gated; port from the config SSoT.
+airbyte-up:
+    bash experimental/ingestion/airbyte/up.sh
+
+# Tear it down (persisted volumes kept; pass --persisted to drop them).
+airbyte-down *args:
+    bash experimental/ingestion/airbyte/down.sh {{args}}
+
+# Mint OSS API client-credentials into .env (never printed). Requires the instance up.
+airbyte-creds:
+    bash experimental/ingestion/airbyte/credentials.sh
+
 # --- VPS: manual deploy (ADR-0012). Settings: config/config.yml -> deploy.vps.* ---
 # Each mutating recipe has a -dry sibling; both delegate to _vps-script (single body).
 _vps-script script *args:
