@@ -263,9 +263,7 @@ def compile_to_dbt(
             # the test could run before its model materializes (clean-slate CI failure).
             inner = _rewrite_refs(query, assets).rstrip().rstrip(";")
             wrapped = (
-                "select violations\n"
-                f"from ({inner}) as _check(violations)\n"
-                "where violations != 0\n"
+                f"select violations\nfrom ({inner}) as _check(violations)\nwhere violations != 0\n"
             )
             (tests_dir / f"{name}.sql").write_text(wrapped, encoding="utf-8")
     # Use each model's configured `schema` verbatim (no `<target>_` prefix) so the layer
