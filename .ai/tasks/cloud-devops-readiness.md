@@ -26,7 +26,8 @@ Skill family (catalog `infra/project-readiness`): `/verify-project-local-full` �
 - [x] Verification matrix (`config/verify.yml`) — local (8 stages) + cloud (8 stages)
 - [x] Skill family created in the catalog + stage runner (`verify-stages.sh`)
 - [x] Role agent `ogip-cloud-devops`
-- [ ] Skills approved at the review gate → deployed to `~/.claude/skills` (user step)
+- [x] Skills approved at the review gate → deployed to `~/.claude/skills` + synced to
+      other agent targets (2026-08-16, hardlinks verified by inode; provenance stamped)
 - [x] First full readiness run recorded below
 - [ ] Deploy proposal approved / rejected by owner
 
