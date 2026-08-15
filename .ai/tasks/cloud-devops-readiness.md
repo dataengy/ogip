@@ -49,3 +49,8 @@ Skill family (catalog `infra/project-readiness`): `/verify-project-local-full` �
    `RAWG_API_KEY` (`deploy/vps/check-secrets.sh`). Escrow before any VPS deploy:
    `just secrets-setup-git-secret && just secrets-hide` (needs GPG key) **or** `bw unlock` +
    `just secrets-push`.
+3. **dev CI e2e red — Bruin CLI drift** ([#54](https://github.com/dataengy/ogip/issues/54),
+   handoff → `core-pipeline`): CI installs unpinned latest Bruin; the `[bruin]` e2e case fails
+   there while local v0.11.680 is green. Blocks dev→main promotion (not the `main` deploy —
+   `main` CI is green). Fix: pin the CLI version in `.github/workflows/ci.yml`. Until then the
+   `ci-green-dev` cloud stage fails honestly.
