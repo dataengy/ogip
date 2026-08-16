@@ -1,5 +1,7 @@
 # Task — S3 object storage (the `minio` / `s3` / `r2` lake profiles)
 
+> 🇷🇺 Русская версия: [s3-object-storage.ru.md](s3-object-storage.ru.md)
+
 **Status:** 🚧 in progress — the seam, the MinIO stack, tests and docs are complete and verified
 green against a real MinIO. The `core-pipeline` lane is retired (2026-07-30): the remaining
 call sites (4 items, Layer-0 lake-root injection is the real one) now ride the R2/VPS umbrella

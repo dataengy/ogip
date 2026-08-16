@@ -1,5 +1,7 @@
 # Task — `spec/sql`: `@odts` macro layer (registry + native per-engine adapters)
 
+> 🇷🇺 Русская версия: [spec-macros.ru.md](spec-macros.ru.md)
+
 **Status:** 📋 planned · **Priority:** mid · **Suggested model:** Sonnet 5 @ `high`
 
 Lane: `spec`. Scope: `spec/`, `src/ogip/spec_compile/`. Issue: [#36](https://github.com/dataengy/ogip/issues/36).

@@ -1,5 +1,7 @@
 # ADR-0005 — `spec/` as engine-agnostic SSoT: Bruin format + ODCS + compiler
 
+> 🇷🇺 Русская версия: [ADR-0005-spec-ssot-bruin-odcs-compiler.ru.md](ADR-0005-spec-ssot-bruin-odcs-compiler.ru.md)
+
 - **Status:** Accepted
 - **Date:** 2026-07-17
 - **Relates to:** D0/D5 · [ADR-0004](ADR-0004-sqlmesh-default-transform-engine.md)

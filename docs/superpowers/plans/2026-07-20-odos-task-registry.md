@@ -1,5 +1,7 @@
 # ODOS Task Registry Implementation Plan
 
+> 🇷🇺 Русская версия: [2026-07-20-odos-task-registry.ru.md](2026-07-20-odos-task-registry.ru.md)
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build `src/ogip/tasks/` — one registry of typed Python task functions — and route both

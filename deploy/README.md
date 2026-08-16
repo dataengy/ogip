@@ -1,5 +1,7 @@
 # deploy/ — local & VPS runtime stacks
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 Compose stacks for the services OGIP runs against. Everything is driven from the SSoT
 (`config/config.yml` → rendered `.env` via `make render-env`) — never hardcode a port,
 bucket or user here; add it to the SSoT and reference `${VAR}`.

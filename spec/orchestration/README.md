@@ -1,5 +1,7 @@
 # spec/orchestration — ODOS 0.1 (Open Data Orchestration Standard)
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 The orchestration SSoT: *when, in what order, and how it survives failure* — never *what*
 is computed (that is ODTS, `spec/sql`). One file per group; `_defaults.yml` is merged into
 every job. Any key ODOS does not define is a compile error (design §4.9).

@@ -1,5 +1,7 @@
 # Architecture Decision Records (ADRs)
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 Point-in-time architecture decisions for OGIP. One decision per file, immutable once
 `Accepted` — superseded decisions get a new ADR that references the old one. Format:
 lightweight [MADR](https://adr.github.io/madr/)/Nygard (Status · Context · Decision ·

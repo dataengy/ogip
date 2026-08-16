@@ -1,5 +1,7 @@
 # ADR-0017 — ODOS 0.1 normative orchestration profile
 
+> 🇷🇺 Русская версия: [ADR-0017-odos-normative-profile.ru.md](ADR-0017-odos-normative-profile.ru.md)
+
 - **Status:** Accepted
 - **Date:** 2026-07-21
 - **Relates to:** [ADR-0016](ADR-0016-odts-authoring-format-spec-sql.md) ·

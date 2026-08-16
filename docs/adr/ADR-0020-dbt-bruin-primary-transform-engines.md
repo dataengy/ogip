@@ -1,5 +1,7 @@
 # ADR-0020 — dbt (primary) + Bruin (co-primary) transform engines; SQLMesh becomes a comparison setup
 
+> 🇷🇺 Русская версия: [ADR-0020-dbt-bruin-primary-transform-engines.ru.md](ADR-0020-dbt-bruin-primary-transform-engines.ru.md)
+
 - **Status:** Accepted
 - **Date:** 2026-07-30
 - **Relates to:** PLAN decision D5 · [ADR-0004](ADR-0004-sqlmesh-default-transform-engine.md) ·

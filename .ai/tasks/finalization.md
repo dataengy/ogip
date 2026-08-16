@@ -1,5 +1,7 @@
 # Task — Finalization: land everything, three green run commands, dev→main
 
+> 🇷🇺 Русская версия: [finalization.ru.md](finalization.ru.md)
+
 **Status:** ✅ done (2026-07-30, same day) · **Priority:** **P1** ·
 **Issue:** [#43](https://github.com/dataengy/ogip/issues/43)
 

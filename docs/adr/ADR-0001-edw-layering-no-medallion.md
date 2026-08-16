@@ -1,5 +1,7 @@
 # ADR-0001 — Classical EDW layering, no medallion vocabulary
 
+> 🇷🇺 Русская версия: [ADR-0001-edw-layering-no-medallion.ru.md](ADR-0001-edw-layering-no-medallion.ru.md)
+
 - **Status:** Accepted
 - **Date:** 2026-07-17
 - **Relates to:** ARCHITECTURE · layer naming law

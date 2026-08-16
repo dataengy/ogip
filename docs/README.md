@@ -1,5 +1,7 @@
 # OGIP — Documentation
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 **OGIP · Open Games Intelligence Platform** — a Market Intelligence Platform that turns
 public gaming-market data into **ML-ready Parquet datasets** for Data Scientists, ML
 Engineers, and Analysts.

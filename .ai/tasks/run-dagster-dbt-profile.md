@@ -1,5 +1,7 @@
 # Task — `make run-dagster-dbt`: expose the Prefect + dbt-under-Dagster setup
 
+> 🇷🇺 Русская версия: [run-dagster-dbt-profile.ru.md](run-dagster-dbt-profile.ru.md)
+
 **Status:** 📋 ready · **Priority:** P1 (finalization phase B, step 9) ·
 **Issue:** [#44](https://github.com/dataengy/ogip/issues/44)
 

@@ -1,5 +1,7 @@
 # ADR-0021 — Orchestrator/transform responsibility boundary (no DQ duplication in Dagster)
 
+> 🇷🇺 Русская версия: [ADR-0021-orchestrator-transform-dq-boundary.ru.md](ADR-0021-orchestrator-transform-dq-boundary.ru.md)
+
 - **Status:** Accepted
 - **Date:** 2026-07-19 (renumbered from 0017 on 2026-07-30 — the number collided with
   [ADR-0017-odos-normative-profile](ADR-0017-odos-normative-profile.md), authored in parallel)

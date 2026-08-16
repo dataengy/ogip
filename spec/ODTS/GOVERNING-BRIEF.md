@@ -1,5 +1,7 @@
 # ODTS — governing design brief
 
+> 🇷🇺 Русская версия: [GOVERNING-BRIEF.ru.md](GOVERNING-BRIEF.ru.md)
+
 The standard-owner's design brief for ODTS, recorded verbatim. This is the governing document
 whose absence [ADR-0017](../../docs/adr/ADR-0017-odos-normative-profile.md) named as the blocker
 for publishing an ODTS package; [ADR-0018](../../docs/adr/ADR-0018-odts-normative-profile.md)

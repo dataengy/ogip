@@ -1,5 +1,7 @@
 # Source Definition-of-Done, registry truth, and the business-domain docs — Implementation Plan
 
+> 🇷🇺 Русская версия: [2026-07-20-source-dod-registry-and-domain-docs.ru.md](2026-07-20-source-dod-registry-and-domain-docs.ru.md)
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Close the Metacritic source debt, make the Definition of Done an executable gate instead of prose, record the 2026-07-20 source-research findings as registry truth, and give OGIP the business-domain vocabulary and documentation it currently has none of.

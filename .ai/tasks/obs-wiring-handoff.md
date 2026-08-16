@@ -1,5 +1,7 @@
 # Task — obs wiring handoff (lane obs → core-pipeline)
 
+> 🇷🇺 Русская версия: [obs-wiring-handoff.ru.md](obs-wiring-handoff.ru.md)
+
 **Status:** ✅ done — the shipped obs stack's pipeline-facing half, which lived in the
 core-pipeline lane (`config/`, `pipelines/`), is now wired.
 

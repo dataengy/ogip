@@ -1,5 +1,7 @@
 # `.ai/SKILLS.md` — which agent skills apply to OGIP
 
+> 🇷🇺 Русская версия: [SKILLS.ru.md](SKILLS.ru.md)
+
 The shared catalog (`~/.ai/skills/_catalog/`, **521 skills**) is built mostly for a *corporate
 GitLab + Jira + ClickHouse* platform. OGIP is **public OSS on GitHub with DuckDB**. Roughly
 **193 of those 521 skills target infrastructure this project does not have** — so "the catalog has

@@ -1,5 +1,7 @@
 # Airbyte evaluation lane — implementation plan
 
+> 🇷🇺 Русская версия: [2026-07-24-airbyte-lane-implementation.ru.md](2026-07-24-airbyte-lane-implementation.ru.md)
+
 - **Date:** 2026-07-24 · **Refs:** OGIP#41 · task file `.ai/tasks/airbyte-evaluation-lane.md`
   - (Earlier drafts cited #18/#19 — wrong: those are the resilient-scraping and sources-backlog
     tasks. This lane's tracker is **#41**.)

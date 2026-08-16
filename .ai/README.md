@@ -1,5 +1,7 @@
 # `.ai/` — agentic hub
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 Discovery hub for AI agents and humans working on OGIP. Root `AGENTS.md` symlinks here.
 
 | File / dir | Purpose |

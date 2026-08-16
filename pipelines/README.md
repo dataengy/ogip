@@ -1,5 +1,7 @@
 # `pipelines/`
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 **Prefect 3** flows and deployments (ADR-0007). Separated, independently
 `prefect deploy`-able sub-projects share ONE step library — no per-engine duplication.
 The **primary** sub-projects (dbt · bruin, [ADR-0020](../docs/adr/ADR-0020-dbt-bruin-primary-transform-engines.md))

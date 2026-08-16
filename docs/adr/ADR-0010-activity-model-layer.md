@@ -1,5 +1,7 @@
 # ADR-0010 — Activity Model (Activity Schema) layer
 
+> 🇷🇺 Русская версия: [ADR-0010-activity-model-layer.ru.md](ADR-0010-activity-model-layer.ru.md)
+
 - **Status:** Accepted
 - **Date:** 2026-07-17
 - **Relates to:** D13 · [ADR-0001](ADR-0001-edw-layering-no-medallion.md) · `docs/comparisons/modeling-techniques.md`

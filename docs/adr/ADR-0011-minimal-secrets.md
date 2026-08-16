@@ -1,5 +1,7 @@
 # ADR-0011 — Minimal secrets: `.env` + GitHub Actions secrets
 
+> 🇷🇺 Русская версия: [ADR-0011-minimal-secrets.ru.md](ADR-0011-minimal-secrets.ru.md)
+
 - **Status:** Accepted
 - **Date:** 2026-07-17
 - **Relates to:** D10 · `docs/comparisons/secrets-management.md`

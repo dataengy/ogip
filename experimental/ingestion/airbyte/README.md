@@ -1,5 +1,7 @@
 # Airbyte + Terraform — evaluation lane
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 > **Experimental. Off the `make` path.** This lane **evaluates** Airbyte; it is not production
 > ingestion. Product ingestion goes via **dlt**. Nothing here is wired into `make run`.
 

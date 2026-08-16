@@ -1,5 +1,7 @@
 # Task — Unified alerting: Notifier + Telegram/Mattermost/Slack (Phase 7)
 
+> 🇷🇺 Русская версия: [alerting.ru.md](alerting.ru.md)
+
 **Status:** 🚧 in progress — abstraction + three transports shipped, unit-tested and verified
 against the live Telegram API. Config still env-driven (SSoT section is a handoff); no alert
 source is wired yet.

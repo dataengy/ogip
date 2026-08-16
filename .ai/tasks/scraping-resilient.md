@@ -1,5 +1,7 @@
 # Task — Resilient scraping: `ScraperSource` + landing + first scraped source (~~HLTB~~ → Metacritic)
 
+> 🇷🇺 Русская версия: [scraping-resilient.ru.md](scraping-resilient.ru.md)
+
 **Status:** 🟡 **SLICE-ONLY** (walking-slice shipped; resilient layer deferred) · **Priority:** **P1**
 
 > **Audit 2026-07-27** (`/audit-feature-implementation-and-integration`): the **walking-slice is

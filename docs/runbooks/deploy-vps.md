@@ -1,5 +1,7 @@
 # Runbook — Manual deploy to VPS
 
+> 🇷🇺 Русская версия: [deploy-vps.ru.md](deploy-vps.ru.md)
+
 - **Trigger:** ship a new version to the VPS. **DevOps/infra is handled separately** ([ADR-0012](../adr/ADR-0012-github-ci-manual-vps-deploy.md)).
 - **Owner:** maintainer with VPS access.
 - **Scripts:** [`deploy/vps/`](../../deploy/vps/README.md) — every one takes `--dry-run` and `--help`.

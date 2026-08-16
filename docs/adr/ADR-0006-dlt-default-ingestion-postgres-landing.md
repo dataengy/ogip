@@ -1,5 +1,7 @@
 # ADR-0006 — dlt default ingestion + Postgres landing; ingestr optional (CDC)
 
+> 🇷🇺 Русская версия: [ADR-0006-dlt-default-ingestion-postgres-landing.ru.md](ADR-0006-dlt-default-ingestion-postgres-landing.ru.md)
+
 - **Status:** Accepted
 - **Date:** 2026-07-17
 - **Relates to:** D11 · [ADR-0008](ADR-0008-postgresql-roles.md) · `docs/comparisons/dlt-vs-ingestr.md`

@@ -1,5 +1,7 @@
 # ADR-0016 — `@odts` authoring format for `spec/sql`: compact header, macros, SQL discipline
 
+> 🇷🇺 Русская версия: [ADR-0016-odts-authoring-format-spec-sql.ru.md](ADR-0016-odts-authoring-format-spec-sql.ru.md)
+
 - **Status:** Accepted
 - **Date:** 2026-07-20
 - **Relates to:** D0/D5 · [ADR-0005](ADR-0005-spec-ssot-bruin-odcs-compiler.md) · [ADR-0004](ADR-0004-sqlmesh-default-transform-engine.md) · [ADR-0001](ADR-0001-edw-layering-no-medallion.md)

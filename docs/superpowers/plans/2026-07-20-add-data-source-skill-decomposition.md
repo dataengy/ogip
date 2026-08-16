@@ -1,5 +1,7 @@
 # `/add-data-source` — Skill Decomposition Proposal
 
+> 🇷🇺 Русская версия: [2026-07-20-add-data-source-skill-decomposition.ru.md](2026-07-20-add-data-source-skill-decomposition.ru.md)
+
 > **Status: PROPOSAL — gated.** No skill is created by this document. Creation runs through
 > `/propose-skill-for-that` → `/create-skill` → `/save-all-deterministic-for-skill-as-scripts`
 > per the standing skill-creation policy (skill files are never hand-written).

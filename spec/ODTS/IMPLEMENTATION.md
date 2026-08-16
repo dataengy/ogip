@@ -1,5 +1,7 @@
 # ODTS 0.1 — the OGIP implementation, described
 
+> 🇷🇺 Русская версия: [IMPLEMENTATION.ru.md](IMPLEMENTATION.ru.md)
+
 This document describes OGIP's transformation stack in the standard's terms:
 [`spec/sql/`](../sql/AGENTS.md) is the authoring layer,
 [`src/ogip/spec_compile/`](../../src/ogip/spec_compile/) is the compiler, and

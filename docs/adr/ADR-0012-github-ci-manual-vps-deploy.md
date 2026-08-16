@@ -1,5 +1,7 @@
 # ADR-0012 — GitHub Actions CI + manual VPS deploy (DevOps separate)
 
+> 🇷🇺 Русская версия: [ADR-0012-github-ci-manual-vps-deploy.ru.md](ADR-0012-github-ci-manual-vps-deploy.ru.md)
+
 - **Status:** Accepted
 - **Date:** 2026-07-17
 - **Relates to:** D9 · `deploy/vps/` · `docs/runbooks/deploy-vps.md`

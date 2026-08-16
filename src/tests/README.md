@@ -1,5 +1,7 @@
 # `src/tests/` — test suite (four tiers)
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 | Tier | Marker | Scope | Runs |
 |---|---|---|---|
 | **smoke** | `@pytest.mark.smoke` | cheapest wiring (imports, config renders) — no services | pre-commit, CI |

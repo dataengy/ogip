@@ -1,0 +1,674 @@
+# GENERATED — do not hand-edit; run /translate-md-docs-to-russian (manifest step).
+# SSoT for RU doc translations. The .md view is rendered from this file.
+meta:
+  generated_by: /translate-md-docs-to-russian
+  target_ext: .ru.md
+  gitignored: true          # both TRANSLATIONS.ru.yml and .md are untracked by default
+  scopes: [all, core]
+translations:
+  - source: .ai/AGENTS.md
+    target: .ai/AGENTS.ru.md
+    recorded_sha12: 6804e3f583d0
+    current_sha12: 6804e3f583d0
+    state: up-to-date
+  - source: .ai/CLAUDE.md
+    target: .ai/CLAUDE.ru.md
+    recorded_sha12: 7153156bc605
+    current_sha12: 7153156bc605
+    state: up-to-date
+  - source: .ai/FIXME.md
+    target: .ai/FIXME.ru.md
+    recorded_sha12: 45728102570f
+    current_sha12: 45728102570f
+    state: up-to-date
+  - source: .ai/PLAN.md
+    target: .ai/PLAN.ru.md
+    recorded_sha12: 2cfaff1b84c0
+    current_sha12: 2cfaff1b84c0
+    state: up-to-date
+  - source: .ai/README.md
+    target: .ai/README.ru.md
+    recorded_sha12: 30d3c4fdec24
+    current_sha12: 30d3c4fdec24
+    state: up-to-date
+  - source: .ai/SKILLS.md
+    target: .ai/SKILLS.ru.md
+    recorded_sha12: 96bd9e276a44
+    current_sha12: 96bd9e276a44
+    state: up-to-date
+  - source: .ai/STATUS.md
+    target: .ai/STATUS.ru.md
+    recorded_sha12: b61c674a7cb4
+    current_sha12: b61c674a7cb4
+    state: up-to-date
+  - source: .ai/TODO.md
+    target: .ai/TODO.ru.md
+    recorded_sha12: 059085535750
+    current_sha12: 059085535750
+    state: up-to-date
+  - source: .ai/tasks/README.md
+    target: .ai/tasks/README.ru.md
+    recorded_sha12: 03be2a69ab41
+    current_sha12: 03be2a69ab41
+    state: up-to-date
+  - source: .ai/tasks/agentic-monitoring.md
+    target: .ai/tasks/agentic-monitoring.ru.md
+    recorded_sha12: cd228a0223fe
+    current_sha12: cd228a0223fe
+    state: up-to-date
+  - source: .ai/tasks/airbyte-evaluation-lane.md
+    target: .ai/tasks/airbyte-evaluation-lane.ru.md
+    recorded_sha12: d95d72a69280
+    current_sha12: d95d72a69280
+    state: up-to-date
+  - source: .ai/tasks/alerting.md
+    target: .ai/tasks/alerting.ru.md
+    recorded_sha12: eb76f9d0f133
+    current_sha12: eb76f9d0f133
+    state: up-to-date
+  - source: .ai/tasks/cloud-devops-readiness.md
+    target: .ai/tasks/cloud-devops-readiness.ru.md
+    recorded_sha12: caf27eea058a
+    current_sha12: caf27eea058a
+    state: up-to-date
+  - source: .ai/tasks/dagster-setup.md
+    target: .ai/tasks/dagster-setup.ru.md
+    recorded_sha12: 348d93cc0378
+    current_sha12: 348d93cc0378
+    state: up-to-date
+  - source: .ai/tasks/dbt-packages.md
+    target: .ai/tasks/dbt-packages.ru.md
+    recorded_sha12: 3b53fa06d3f7
+    current_sha12: 3b53fa06d3f7
+    state: up-to-date
+  - source: .ai/tasks/finalization.md
+    target: .ai/tasks/finalization.ru.md
+    recorded_sha12: 5f95b5304d7f
+    current_sha12: 5f95b5304d7f
+    state: up-to-date
+  - source: .ai/tasks/m0-walking-skeleton.md
+    target: .ai/tasks/m0-walking-skeleton.ru.md
+    recorded_sha12: 6c65a5d2884d
+    current_sha12: 6c65a5d2884d
+    state: up-to-date
+  - source: .ai/tasks/ml-tasks-and-prefect-per-engine-setups.md
+    target: .ai/tasks/ml-tasks-and-prefect-per-engine-setups.ru.md
+    recorded_sha12: bec3805eb38f
+    current_sha12: bec3805eb38f
+    state: up-to-date
+  - source: .ai/tasks/obs-wiring-handoff.md
+    target: .ai/tasks/obs-wiring-handoff.ru.md
+    recorded_sha12: 6b4c9a9c40e2
+    current_sha12: 6b4c9a9c40e2
+    state: up-to-date
+  - source: .ai/tasks/odos-orchestration-spec.md
+    target: .ai/tasks/odos-orchestration-spec.ru.md
+    recorded_sha12: 961473c4dcc8
+    current_sha12: 961473c4dcc8
+    state: up-to-date
+  - source: .ai/tasks/phase-0-scaffold.md
+    target: .ai/tasks/phase-0-scaffold.ru.md
+    recorded_sha12: b4104cc6c4c2
+    current_sha12: b4104cc6c4c2
+    state: up-to-date
+  - source: .ai/tasks/python-task-integration.md
+    target: .ai/tasks/python-task-integration.ru.md
+    recorded_sha12: 2f75db754b24
+    current_sha12: 2f75db754b24
+    state: up-to-date
+  - source: .ai/tasks/r2-vps-finalize.md
+    target: .ai/tasks/r2-vps-finalize.ru.md
+    recorded_sha12: 0ba1bb3d952f
+    current_sha12: 0ba1bb3d952f
+    state: up-to-date
+  - source: .ai/tasks/run-dagster-dbt-profile.md
+    target: .ai/tasks/run-dagster-dbt-profile.ru.md
+    recorded_sha12: 7e07e8aa72bd
+    current_sha12: 7e07e8aa72bd
+    state: up-to-date
+  - source: .ai/tasks/s3-object-storage.md
+    target: .ai/tasks/s3-object-storage.ru.md
+    recorded_sha12: 8716dfe20dc0
+    current_sha12: 8716dfe20dc0
+    state: up-to-date
+  - source: .ai/tasks/scraping-resilient.md
+    target: .ai/tasks/scraping-resilient.ru.md
+    recorded_sha12: d03ef90c664a
+    current_sha12: d03ef90c664a
+    state: up-to-date
+  - source: .ai/tasks/session-coordination.md
+    target: .ai/tasks/session-coordination.ru.md
+    recorded_sha12: 0adca1ae58f2
+    current_sha12: 0adca1ae58f2
+    state: up-to-date
+  - source: .ai/tasks/sources-backlog.md
+    target: .ai/tasks/sources-backlog.ru.md
+    recorded_sha12: 99b3ba4caec4
+    current_sha12: 99b3ba4caec4
+    state: up-to-date
+  - source: .ci/README.md
+    target: .ci/README.ru.md
+    recorded_sha12: a369ebc117a6
+    current_sha12: a369ebc117a6
+    state: up-to-date
+  - source: .claude/CLAUDE.md
+    target: .claude/CLAUDE.ru.md
+    recorded_sha12: 7153156bc605
+    current_sha12: 7153156bc605
+    state: up-to-date
+  - source: .claude/agents/ogip-cloud-devops.md
+    target: .claude/agents/ogip-cloud-devops.ru.md
+    recorded_sha12: 7e9ddecc62c2
+    current_sha12: 7e9ddecc62c2
+    state: up-to-date
+  - source: .claude/agents/ogip-ingestion-engineer.md
+    target: .claude/agents/ogip-ingestion-engineer.ru.md
+    recorded_sha12: 103bf2e19f4a
+    current_sha12: 103bf2e19f4a
+    state: up-to-date
+  - source: AGENTS.md
+    target: AGENTS.ru.md
+    recorded_sha12: 6804e3f583d0
+    current_sha12: 6804e3f583d0
+    state: up-to-date
+  - source: README.md
+    target: README.ru.md
+    recorded_sha12: efabe516cc9d
+    current_sha12: efabe516cc9d
+    state: up-to-date
+  - source: config/README.md
+    target: config/README.ru.md
+    recorded_sha12: 198c6a0aacc6
+    current_sha12: 198c6a0aacc6
+    state: up-to-date
+  - source: config/secrets/README.md
+    target: config/secrets/README.ru.md
+    recorded_sha12: 43d8ed3e1b51
+    current_sha12: 43d8ed3e1b51
+    state: up-to-date
+  - source: deploy/README.md
+    target: deploy/README.ru.md
+    recorded_sha12: bf40966c9af6
+    current_sha12: bf40966c9af6
+    state: up-to-date
+  - source: deploy/obs/README.md
+    target: deploy/obs/README.ru.md
+    recorded_sha12: 58cbd49bd54b
+    current_sha12: 58cbd49bd54b
+    state: up-to-date
+  - source: deploy/vps/README.md
+    target: deploy/vps/README.ru.md
+    recorded_sha12: cca5242f952e
+    current_sha12: cca5242f952e
+    state: up-to-date
+  - source: docs/OPEN-QUESTIONS.md
+    target: docs/OPEN-QUESTIONS.ru.md
+    recorded_sha12: ccc8191da6eb
+    current_sha12: ccc8191da6eb
+    state: up-to-date
+  - source: docs/README.md
+    target: docs/README.ru.md
+    recorded_sha12: 07d29533704b
+    current_sha12: 07d29533704b
+    state: up-to-date
+  - source: docs/ROADMAP.md
+    target: docs/ROADMAP.ru.md
+    recorded_sha12: 52ddd554b96d
+    current_sha12: 52ddd554b96d
+    state: up-to-date
+  - source: docs/RU-DOCS-BRANCH.md
+    target: docs/RU-DOCS-BRANCH.ru.md
+    recorded_sha12: ec829d729031
+    current_sha12: ec829d729031
+    state: up-to-date
+  - source: docs/adr/ADR-0001-edw-layering-no-medallion.md
+    target: docs/adr/ADR-0001-edw-layering-no-medallion.ru.md
+    recorded_sha12: 5aad27f5f855
+    current_sha12: 5aad27f5f855
+    state: up-to-date
+  - source: docs/adr/ADR-0002-duckdb-analytical-engine.md
+    target: docs/adr/ADR-0002-duckdb-analytical-engine.ru.md
+    recorded_sha12: 5c509f435702
+    current_sha12: 5c509f435702
+    state: up-to-date
+  - source: docs/adr/ADR-0003-parquet-lake-defer-iceberg-ducklake.md
+    target: docs/adr/ADR-0003-parquet-lake-defer-iceberg-ducklake.ru.md
+    recorded_sha12: 28de951c3b3e
+    current_sha12: 28de951c3b3e
+    state: up-to-date
+  - source: docs/adr/ADR-0004-sqlmesh-default-transform-engine.md
+    target: docs/adr/ADR-0004-sqlmesh-default-transform-engine.ru.md
+    recorded_sha12: 367950ff8ed3
+    current_sha12: 367950ff8ed3
+    state: up-to-date
+  - source: docs/adr/ADR-0005-spec-ssot-bruin-odcs-compiler.md
+    target: docs/adr/ADR-0005-spec-ssot-bruin-odcs-compiler.ru.md
+    recorded_sha12: c24ab0c4969f
+    current_sha12: c24ab0c4969f
+    state: up-to-date
+  - source: docs/adr/ADR-0006-dlt-default-ingestion-postgres-landing.md
+    target: docs/adr/ADR-0006-dlt-default-ingestion-postgres-landing.ru.md
+    recorded_sha12: bb9de3d8bccf
+    current_sha12: bb9de3d8bccf
+    state: up-to-date
+  - source: docs/adr/ADR-0007-prefect-orchestration.md
+    target: docs/adr/ADR-0007-prefect-orchestration.ru.md
+    recorded_sha12: 59dc5727c5f2
+    current_sha12: 59dc5727c5f2
+    state: up-to-date
+  - source: docs/adr/ADR-0008-postgresql-roles.md
+    target: docs/adr/ADR-0008-postgresql-roles.ru.md
+    recorded_sha12: acd007a65d01
+    current_sha12: acd007a65d01
+    state: up-to-date
+  - source: docs/adr/ADR-0009-ml-outputs-feature-store.md
+    target: docs/adr/ADR-0009-ml-outputs-feature-store.ru.md
+    recorded_sha12: 6488f92b341b
+    current_sha12: 6488f92b341b
+    state: up-to-date
+  - source: docs/adr/ADR-0010-activity-model-layer.md
+    target: docs/adr/ADR-0010-activity-model-layer.ru.md
+    recorded_sha12: b8188672a72e
+    current_sha12: b8188672a72e
+    state: up-to-date
+  - source: docs/adr/ADR-0011-minimal-secrets.md
+    target: docs/adr/ADR-0011-minimal-secrets.ru.md
+    recorded_sha12: 97f224f99f13
+    current_sha12: 97f224f99f13
+    state: up-to-date
+  - source: docs/adr/ADR-0012-github-ci-manual-vps-deploy.md
+    target: docs/adr/ADR-0012-github-ci-manual-vps-deploy.ru.md
+    recorded_sha12: a7a530669aff
+    current_sha12: a7a530669aff
+    state: up-to-date
+  - source: docs/adr/ADR-0013-github-issues-projects-tasks.md
+    target: docs/adr/ADR-0013-github-issues-projects-tasks.ru.md
+    recorded_sha12: d499e8c4e268
+    current_sha12: d499e8c4e268
+    state: up-to-date
+  - source: docs/adr/ADR-0014-resilient-scraping-concurrency.md
+    target: docs/adr/ADR-0014-resilient-scraping-concurrency.ru.md
+    recorded_sha12: 1701ceba1455
+    current_sha12: 1701ceba1455
+    state: up-to-date
+  - source: docs/adr/ADR-0015-dagster-alt-orchestration-dg-components.md
+    target: docs/adr/ADR-0015-dagster-alt-orchestration-dg-components.ru.md
+    recorded_sha12: d81cfc2723d9
+    current_sha12: d81cfc2723d9
+    state: up-to-date
+  - source: docs/adr/ADR-0016-odts-authoring-format-spec-sql.md
+    target: docs/adr/ADR-0016-odts-authoring-format-spec-sql.ru.md
+    recorded_sha12: 5aa143f82abc
+    current_sha12: 5aa143f82abc
+    state: up-to-date
+  - source: docs/adr/ADR-0017-odos-normative-profile.md
+    target: docs/adr/ADR-0017-odos-normative-profile.ru.md
+    recorded_sha12: 23c5dae099f6
+    current_sha12: 23c5dae099f6
+    state: up-to-date
+  - source: docs/adr/ADR-0018-odts-normative-profile.md
+    target: docs/adr/ADR-0018-odts-normative-profile.ru.md
+    recorded_sha12: 868f510b1c6b
+    current_sha12: 868f510b1c6b
+    state: up-to-date
+  - source: docs/adr/ADR-0019-odts-dq-projection-and-seven-prefect-subprojects.md
+    target: docs/adr/ADR-0019-odts-dq-projection-and-seven-prefect-subprojects.ru.md
+    recorded_sha12: 1a413e75b2f4
+    current_sha12: 1a413e75b2f4
+    state: up-to-date
+  - source: docs/adr/ADR-0020-dbt-bruin-primary-transform-engines.md
+    target: docs/adr/ADR-0020-dbt-bruin-primary-transform-engines.ru.md
+    recorded_sha12: e687ef7c98a9
+    current_sha12: e687ef7c98a9
+    state: up-to-date
+  - source: docs/adr/ADR-0021-orchestrator-transform-dq-boundary.md
+    target: docs/adr/ADR-0021-orchestrator-transform-dq-boundary.ru.md
+    recorded_sha12: 22977d140173
+    current_sha12: 22977d140173
+    state: up-to-date
+  - source: docs/adr/README.md
+    target: docs/adr/README.ru.md
+    recorded_sha12: b8fab57592f2
+    current_sha12: b8fab57592f2
+    state: up-to-date
+  - source: docs/adr/_template.md
+    target: docs/adr/_template.ru.md
+    recorded_sha12: 7876e378460a
+    current_sha12: 7876e378460a
+    state: up-to-date
+  - source: docs/architecture/README.md
+    target: docs/architecture/README.ru.md
+    recorded_sha12: 6f41039953a4
+    current_sha12: 6f41039953a4
+    state: up-to-date
+  - source: docs/architecture/observability.md
+    target: docs/architecture/observability.ru.md
+    recorded_sha12: edc24a805090
+    current_sha12: edc24a805090
+    state: up-to-date
+  - source: docs/architecture/overview.md
+    target: docs/architecture/overview.ru.md
+    recorded_sha12: 57afd6084a21
+    current_sha12: 57afd6084a21
+    state: up-to-date
+  - source: docs/architecture/storage.md
+    target: docs/architecture/storage.ru.md
+    recorded_sha12: 31e0479ae7f8
+    current_sha12: 31e0479ae7f8
+    state: up-to-date
+  - source: docs/comparisons/dagster-odp-vs-spec-compiler.md
+    target: docs/comparisons/dagster-odp-vs-spec-compiler.ru.md
+    recorded_sha12: 613d51daeefa
+    current_sha12: 613d51daeefa
+    state: up-to-date
+  - source: docs/comparisons/github_repos-ingestion-dlt-vs-airbyte-vs-custom.md
+    target: docs/comparisons/github_repos-ingestion-dlt-vs-airbyte-vs-custom.ru.md
+    recorded_sha12: bc943db62554
+    current_sha12: bc943db62554
+    state: up-to-date
+  - source: docs/comparisons/ots-vs-odts.md
+    target: docs/comparisons/ots-vs-odts.ru.md
+    recorded_sha12: bf8b5f2894e4
+    current_sha12: bf8b5f2894e4
+    state: up-to-date
+  - source: docs/comparisons/scraping-candidates-after-registry-exhausted.md
+    target: docs/comparisons/scraping-candidates-after-registry-exhausted.ru.md
+    recorded_sha12: 5b3171c1b70e
+    current_sha12: 5b3171c1b70e
+    state: up-to-date
+  - source: docs/comparisons/secrets-management.md
+    target: docs/comparisons/secrets-management.ru.md
+    recorded_sha12: b88bade2b576
+    current_sha12: b88bade2b576
+    state: up-to-date
+  - source: docs/runbooks/README.md
+    target: docs/runbooks/README.ru.md
+    recorded_sha12: daf5d8b3a4d6
+    current_sha12: daf5d8b3a4d6
+    state: up-to-date
+  - source: docs/runbooks/_template.md
+    target: docs/runbooks/_template.ru.md
+    recorded_sha12: e14335f7857a
+    current_sha12: e14335f7857a
+    state: up-to-date
+  - source: docs/runbooks/deploy-vps.md
+    target: docs/runbooks/deploy-vps.ru.md
+    recorded_sha12: 5856dbdb5e23
+    current_sha12: 5856dbdb5e23
+    state: up-to-date
+  - source: docs/runbooks/local-dev.md
+    target: docs/runbooks/local-dev.ru.md
+    recorded_sha12: 0cb7a3c7c886
+    current_sha12: 0cb7a3c7c886
+    state: up-to-date
+  - source: docs/runbooks/new-workstation.md
+    target: docs/runbooks/new-workstation.ru.md
+    recorded_sha12: 2c2edda216d2
+    current_sha12: 2c2edda216d2
+    state: up-to-date
+  - source: docs/runbooks/pipeline-failure.md
+    target: docs/runbooks/pipeline-failure.ru.md
+    recorded_sha12: be037ed3014f
+    current_sha12: be037ed3014f
+    state: up-to-date
+  - source: docs/runbooks/run-dagster.md
+    target: docs/runbooks/run-dagster.ru.md
+    recorded_sha12: 4802ece96bcb
+    current_sha12: 4802ece96bcb
+    state: up-to-date
+  - source: docs/runbooks/run-pipeline.md
+    target: docs/runbooks/run-pipeline.ru.md
+    recorded_sha12: f70767e2fce6
+    current_sha12: f70767e2fce6
+    state: up-to-date
+  - source: docs/superpowers/plans/2026-07-20-add-data-source-skill-decomposition.md
+    target: docs/superpowers/plans/2026-07-20-add-data-source-skill-decomposition.ru.md
+    recorded_sha12: e2b294c1fbd6
+    current_sha12: e2b294c1fbd6
+    state: up-to-date
+  - source: docs/superpowers/plans/2026-07-20-handoff-prompts.md
+    target: docs/superpowers/plans/2026-07-20-handoff-prompts.ru.md
+    recorded_sha12: 59e20a7bfb4f
+    current_sha12: 59e20a7bfb4f
+    state: up-to-date
+  - source: docs/superpowers/plans/2026-07-20-odos-task-registry.md
+    target: docs/superpowers/plans/2026-07-20-odos-task-registry.ru.md
+    recorded_sha12: a2709e8450a3
+    current_sha12: a2709e8450a3
+    state: up-to-date
+  - source: docs/superpowers/plans/2026-07-20-source-dod-registry-and-domain-docs.md
+    target: docs/superpowers/plans/2026-07-20-source-dod-registry-and-domain-docs.ru.md
+    recorded_sha12: cc6589e524c8
+    current_sha12: cc6589e524c8
+    state: up-to-date
+  - source: docs/superpowers/plans/2026-07-23-transform-expansion-and-six-prefect-subprojects.md
+    target: docs/superpowers/plans/2026-07-23-transform-expansion-and-six-prefect-subprojects.ru.md
+    recorded_sha12: e8f7345331a9
+    current_sha12: e8f7345331a9
+    state: up-to-date
+  - source: docs/superpowers/plans/2026-07-23-wire-scraper-tasks-into-orchestration-layers.md
+    target: docs/superpowers/plans/2026-07-23-wire-scraper-tasks-into-orchestration-layers.ru.md
+    recorded_sha12: 3418abc1d131
+    current_sha12: 3418abc1d131
+    state: up-to-date
+  - source: docs/superpowers/plans/2026-07-24-airbyte-lane-implementation.md
+    target: docs/superpowers/plans/2026-07-24-airbyte-lane-implementation.ru.md
+    recorded_sha12: 352f86a2307a
+    current_sha12: dbb7d208dddd
+    state: stale
+  - source: docs/superpowers/plans/2026-07-24-reroot-dbt-bruin-primary-candidates.md
+    target: docs/superpowers/plans/2026-07-24-reroot-dbt-bruin-primary-candidates.ru.md
+    recorded_sha12: 94a92c04470a
+    current_sha12: 70bf86e02193
+    state: stale
+  - source: docs/superpowers/specs/2026-07-20-odos-orchestration-spec-design.md
+    target: docs/superpowers/specs/2026-07-20-odos-orchestration-spec-design.ru.md
+    recorded_sha12: ffae73f41d06
+    current_sha12: ffae73f41d06
+    state: up-to-date
+  - source: docs/superpowers/specs/2026-07-23-airbyte-terraform-lane-design.md
+    target: docs/superpowers/specs/2026-07-23-airbyte-terraform-lane-design.ru.md
+    recorded_sha12: 8d12de49bd2d
+    current_sha12: 8d12de49bd2d
+    state: up-to-date
+  - source: docs/techdebt/airbyte-lane.md
+    target: docs/techdebt/airbyte-lane.ru.md
+    recorded_sha12: d90122b5efca
+    current_sha12: e31234e6f43f
+    state: stale
+  - source: dq/README.md
+    target: dq/README.ru.md
+    recorded_sha12: 70b627d6cc16
+    current_sha12: 70b627d6cc16
+    state: up-to-date
+  - source: experimental/ingestion/airbyte/README.md
+    target: experimental/ingestion/airbyte/README.ru.md
+    recorded_sha12: c6d8b9a4ea86
+    current_sha12: c6d8b9a4ea86
+    state: up-to-date
+  - source: experimental/orchestration/dagster_ogip/README.md
+    target: experimental/orchestration/dagster_ogip/README.ru.md
+    recorded_sha12: eed60a89fc4b
+    current_sha12: eed60a89fc4b
+    state: up-to-date
+  - source: experimental/orchestration/dagster_ogip/cdc/README.md
+    target: experimental/orchestration/dagster_ogip/cdc/README.ru.md
+    recorded_sha12: a5e13add7f35
+    current_sha12: a5e13add7f35
+    state: up-to-date
+  - source: experimental/pipelines/README.md
+    target: experimental/pipelines/README.ru.md
+    recorded_sha12: a2330bd5c7d6
+    current_sha12: a2330bd5c7d6
+    state: up-to-date
+  - source: experimental/python_tasks/README.md
+    target: experimental/python_tasks/README.ru.md
+    recorded_sha12: a30d5ff6c0bf
+    current_sha12: a30d5ff6c0bf
+    state: up-to-date
+  - source: ingestion/README.md
+    target: ingestion/README.ru.md
+    recorded_sha12: 36793fd1bd6f
+    current_sha12: 36793fd1bd6f
+    state: up-to-date
+  - source: ingestion/samples/README.md
+    target: ingestion/samples/README.ru.md
+    recorded_sha12: 6bbc97656a18
+    current_sha12: 6bbc97656a18
+    state: up-to-date
+  - source: pipelines/README.md
+    target: pipelines/README.ru.md
+    recorded_sha12: 8a7c59905856
+    current_sha12: 8a7c59905856
+    state: up-to-date
+  - source: spec/ODOS/IMPLEMENTATION.md
+    target: spec/ODOS/IMPLEMENTATION.ru.md
+    recorded_sha12: 94034d07df55
+    current_sha12: 94034d07df55
+    state: up-to-date
+  - source: spec/ODOS/README.md
+    target: spec/ODOS/README.ru.md
+    recorded_sha12: 862196908d0c
+    current_sha12: 862196908d0c
+    state: up-to-date
+  - source: spec/ODOS/SPEC.md
+    target: spec/ODOS/SPEC.ru.md
+    recorded_sha12: 8fdbff682799
+    current_sha12: 8fdbff682799
+    state: up-to-date
+  - source: spec/ODOS/examples/README.md
+    target: spec/ODOS/examples/README.ru.md
+    recorded_sha12: abdc3a08c6db
+    current_sha12: abdc3a08c6db
+    state: up-to-date
+  - source: spec/ODTS/IMPLEMENTATION.md
+    target: spec/ODTS/IMPLEMENTATION.ru.md
+    recorded_sha12: fec03186b86c
+    current_sha12: fec03186b86c
+    state: up-to-date
+  - source: spec/ODTS/README.md
+    target: spec/ODTS/README.ru.md
+    recorded_sha12: 3cc03eeb2785
+    current_sha12: 3cc03eeb2785
+    state: up-to-date
+  - source: spec/ODTS/SPEC.md
+    target: spec/ODTS/SPEC.ru.md
+    recorded_sha12: 8de5afa01958
+    current_sha12: 8de5afa01958
+    state: up-to-date
+  - source: spec/ODTS/examples/README.md
+    target: spec/ODTS/examples/README.ru.md
+    recorded_sha12: b107fb98b4c0
+    current_sha12: b107fb98b4c0
+    state: up-to-date
+  - source: spec/README.md
+    target: spec/README.ru.md
+    recorded_sha12: ec2a233593bd
+    current_sha12: ec2a233593bd
+    state: up-to-date
+  - source: spec/contracts/README.md
+    target: spec/contracts/README.ru.md
+    recorded_sha12: baeebdb1fc08
+    current_sha12: baeebdb1fc08
+    state: up-to-date
+  - source: spec/orchestration/README.md
+    target: spec/orchestration/README.ru.md
+    recorded_sha12: 08c631f9074b
+    current_sha12: 08c631f9074b
+    state: up-to-date
+  - source: spec/sources/README.md
+    target: spec/sources/README.ru.md
+    recorded_sha12: 0d96300384b5
+    current_sha12: 0d96300384b5
+    state: up-to-date
+  - source: spec/sql/AGENTS.md
+    target: spec/sql/AGENTS.ru.md
+    recorded_sha12: 79602286b2bf
+    current_sha12: 79602286b2bf
+    state: up-to-date
+  - source: spec/sql/README.md
+    target: spec/sql/README.ru.md
+    recorded_sha12: d92196ef379d
+    current_sha12: d92196ef379d
+    state: up-to-date
+  - source: spec/sql/core/README.md
+    target: spec/sql/core/README.ru.md
+    recorded_sha12: 25aa2ee18cc0
+    current_sha12: 25aa2ee18cc0
+    state: up-to-date
+  - source: spec/sql/fs/README.md
+    target: spec/sql/fs/README.ru.md
+    recorded_sha12: d248496b4514
+    current_sha12: d248496b4514
+    state: up-to-date
+  - source: spec/sql/raw/README.md
+    target: spec/sql/raw/README.ru.md
+    recorded_sha12: febfabf14264
+    current_sha12: febfabf14264
+    state: up-to-date
+  - source: spec/sql/staging/README.md
+    target: spec/sql/staging/README.ru.md
+    recorded_sha12: 86d903783111
+    current_sha12: 86d903783111
+    state: up-to-date
+  - source: src/ogip/README.md
+    target: src/ogip/README.ru.md
+    recorded_sha12: 6c4b04ee09ab
+    current_sha12: 6c4b04ee09ab
+    state: up-to-date
+  - source: src/scripts/README.md
+    target: src/scripts/README.ru.md
+    recorded_sha12: 63c42bbd2053
+    current_sha12: 63c42bbd2053
+    state: up-to-date
+  - source: src/tests/README.md
+    target: src/tests/README.ru.md
+    recorded_sha12: a52b843b4fb5
+    current_sha12: a52b843b4fb5
+    state: up-to-date
+  - source: transform/README.md
+    target: transform/README.ru.md
+    recorded_sha12: 4851199b3209
+    current_sha12: 4851199b3209
+    state: up-to-date
+  - source: transform/bruin/README.md
+    target: transform/bruin/README.ru.md
+    recorded_sha12: bca176f83a6d
+    current_sha12: bca176f83a6d
+    state: up-to-date
+  - source: transform/dbt/README.md
+    target: transform/dbt/README.ru.md
+    recorded_sha12: 2c5a04b0382f
+    current_sha12: 2c5a04b0382f
+    state: up-to-date
+  - source: transform/opendbt/README.md
+    target: transform/opendbt/README.ru.md
+    recorded_sha12: 2c5a04b0382f
+    current_sha12: 2c5a04b0382f
+    state: up-to-date
+  - source: transform/sqlmesh_dbt/README.md
+    target: transform/sqlmesh_dbt/README.ru.md
+    recorded_sha12: f879e36f6339
+    current_sha12: f879e36f6339
+    state: up-to-date
+glossaries:
+  - target: .ai/AI-glossary.ru.md
+    companion_of: .ai/AI-glossary.en.md
+    kind: glossary-or-companion
+    note: no .md source; hand-maintained (not auto-translated)
+  - target: .ai/CONTEXT.man.ru.md
+    companion_of: null
+    kind: glossary-or-companion
+    note: no .md source; hand-maintained (not auto-translated)
+  - target: .ai/outreach-drafts.local.ru.md
+    companion_of: null
+    kind: glossary-or-companion
+    note: no .md source; hand-maintained (not auto-translated)
+  - target: docs/TRANSLATIONS.ru.md
+    companion_of: null
+    kind: glossary-or-companion
+    note: no .md source; hand-maintained (not auto-translated)
+summary:
+  translations: 129
+  glossaries: 4
+  stale_or_unmarked: 3

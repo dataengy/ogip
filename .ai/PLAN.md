@@ -1,5 +1,7 @@
 # OGIP — Creation Plan
 
+> 🇷🇺 Русская версия: [PLAN.ru.md](PLAN.ru.md)
+
 **OGIP · Open Games Intelligence Platform** — an end-to-end **Market Intelligence
 Platform** that continuously collects public gaming-market data, transforms it into
 analytical datasets, and ships **ML-ready outputs** (incl. a feature store) for Data

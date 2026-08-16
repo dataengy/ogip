@@ -1,5 +1,7 @@
 # `spec/sources/` — data-source reach descriptors (GENERATED)
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 **Every file here is generated — do not edit.** Each descriptor is a one-way projection
 from the ingestion registry SSoT (`~/.ai/skills/.settings/de/ingestion/sources/`), stamped
 with a DO-NOT-EDIT header and the regeneration command. Hardlinking SSoT↔projection was

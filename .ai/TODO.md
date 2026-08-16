@@ -1,5 +1,7 @@
 # OGIP — TODO
 
+> 🇷🇺 Русская версия: [TODO.ru.md](TODO.ru.md)
+
 Short, ordered, near-term actions. Each references a detailed task file in [tasks/](tasks/)
 and/or a phase in [PLAN.md](PLAN.md) · [../docs/ROADMAP.md](../docs/ROADMAP.md). Delivery is
 **walking-skeleton first** (D14): thin vertical slice end-to-end, then replicate across toolsets.

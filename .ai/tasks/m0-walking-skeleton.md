@@ -1,5 +1,7 @@
 # Task — M0: Walking skeleton (RAWG → ML outputs, on Prefect+dlt+SQLMesh)
 
+> 🇷🇺 Русская версия: [m0-walking-skeleton.ru.md](m0-walking-skeleton.ru.md)
+
 **Status:** ✅ done — pipeline runs end-to-end; `make check` green; e2e green locally + in CI; CI 7/7.
 
 ## Delivered

@@ -1,5 +1,7 @@
 # OGIP — Open requirement questions
 
+> 🇷🇺 Русская версия: [OPEN-QUESTIONS.ru.md](OPEN-QUESTIONS.ru.md)
+
 Requirement unknowns that shape architecture choices but cannot be settled from inside the
 repo — they need numbers or intent from the data consumers (DS/ML team) or the data owner.
 Each entry records what we know, what is open, the **current default** (we build this until

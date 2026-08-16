@@ -1,5 +1,7 @@
 # Runbook — Run the pipeline (Docker + Prefect)
 
+> 🇷🇺 Русская версия: [run-pipeline.ru.md](run-pipeline.ru.md)
+
 - **Trigger:** run the daily pipeline, a backfill, or an alternative `run-profile`.
 - **Owner:** any contributor / operator.
 

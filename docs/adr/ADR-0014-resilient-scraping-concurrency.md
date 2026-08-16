@@ -1,5 +1,7 @@
 # ADR-0014 — Resilient scraping: async-first concurrency, effectively-once landing
 
+> 🇷🇺 Русская версия: [ADR-0014-resilient-scraping-concurrency.ru.md](ADR-0014-resilient-scraping-concurrency.ru.md)
+
 - **Status:** Proposed
 - **Date:** 2026-07-17
 - **Relates to:** PLAN A6 · D11 · [ADR-0006](ADR-0006-dlt-default-ingestion-postgres-landing.md) ·

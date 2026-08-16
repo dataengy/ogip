@@ -1,5 +1,7 @@
 # `spec/` — engine-agnostic Data Specification (SSoT)
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 The implementation-agnostic specification layer — *Open Data Contracts + portable SQL*
 ([ADR-0005](../docs/adr/ADR-0005-spec-ssot-bruin-odcs-compiler.md)). Execution engines
 **consume** this; they never redefine it. No engine binary is required to *read* `spec/`.

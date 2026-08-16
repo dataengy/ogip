@@ -1,5 +1,7 @@
 # `experimental/pipelines/` — comparison / R&D transform setups
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 Separately-deployable Prefect sub-projects for the transform engines that are **not** the two
 primary comparison candidates. Off the default `make`/pipeline path (re-root, ADR-0020, #40).
 

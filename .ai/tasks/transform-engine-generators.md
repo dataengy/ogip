@@ -1,5 +1,7 @@
 # Task — Transform setups as generators from `spec/sql` (A12 comparison engines)
 
+> 🇷🇺 Русская версия: [transform-engine-generators.ru.md](transform-engine-generators.ru.md)
+
 **Status:** 🟢 shipped — every `transform/` setup is generated from the one `spec/sql`; a
 SQLGlot AST layer replaces the text-substitution ref-rewrite; cross-engine parity is a gate.
 

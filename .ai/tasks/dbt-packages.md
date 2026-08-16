@@ -1,5 +1,7 @@
 # Task — dbt packages (well-known dbt-hub packages) + jobs that use them
 
+> 🇷🇺 Русская версия: [dbt-packages.ru.md](dbt-packages.ru.md)
+
 **Status:** 🟡 in progress — 8 core packages install on dbt-duckdb; `dbt deps` wired into builds;
 dbt_project_evaluator job added. Extra/opinionated packages + separate tools = follow-ups.
 

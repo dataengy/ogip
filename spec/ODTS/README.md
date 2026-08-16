@@ -1,5 +1,7 @@
 # ODTS — Open Data Transformation Standard
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 This directory is OGIP's normative **ODTS 0.1 profile**. ODTS describes what a transformation
 computes — its model, columns, and correctness constraints. It does not describe when work
 runs (that is [ODOS](../ODOS/README.md)) or dataset interchange (that is ODCS,

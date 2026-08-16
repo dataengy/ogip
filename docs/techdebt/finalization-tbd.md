@@ -1,5 +1,7 @@
 # Techdebt — finalization TBD-disable register (2026-07-30)
 
+> 🇷🇺 Русская версия: [finalization-tbd.ru.md](finalization-tbd.ru.md)
+
 One row per feature deliberately frozen during the finalization run
 ([plan](../superpowers/plans/2026-07-30-finalization-land-everything.md) ·
 [umbrella task](../../.ai/tasks/finalization.md)). Rule: "defer, don't fake" — a frozen

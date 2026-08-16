@@ -1,5 +1,7 @@
 # ADR-0018 — ODTS 0.1 normative transformation profile
 
+> 🇷🇺 Русская версия: [ADR-0018-odts-normative-profile.ru.md](ADR-0018-odts-normative-profile.ru.md)
+
 - **Status:** Accepted
 - **Date:** 2026-07-22
 - **Relates to:** [ADR-0016](ADR-0016-odts-authoring-format-spec-sql.md) ·

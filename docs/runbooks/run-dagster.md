@@ -1,5 +1,7 @@
 # Runbook — run the Dagster alt-orchestration (dbt + dlt + ingestr CDC)
 
+> 🇷🇺 Русская версия: [run-dagster.ru.md](run-dagster.ru.md)
+
 - **Trigger:** run or demo the `prefect-dagster-dlt-dbt` combo profile ([ADR-0015](../adr/ADR-0015-dagster-alt-orchestration-dg-components.md)).
 - **Owner:** any contributor. **Path:** `experimental/orchestration/dagster_ogip/` (self-contained uv project, off the production path).
 

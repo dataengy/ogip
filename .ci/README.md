@@ -1,5 +1,7 @@
 # `.ci/` — shared CI step library
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 `run.sh <step>` is the single entry point; GitHub Actions (`.github/workflows/ci.yml`) is a
 thin frontend that calls it, so pipelines stay reproducible and runnable locally (`make ci`).
 

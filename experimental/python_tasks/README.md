@@ -1,5 +1,7 @@
 # Python transform tasks
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 This is an isolated demo of dataframe tasks that can sit between SQL models in an
 ML-oriented pipeline. It uses the existing `core.game` / `fs.market_features` shape:
 

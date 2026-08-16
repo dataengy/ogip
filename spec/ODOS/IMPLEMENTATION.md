@@ -1,5 +1,7 @@
 # ODOS 0.1 — the OGIP implementation, described
 
+> 🇷🇺 Русская версия: [IMPLEMENTATION.ru.md](IMPLEMENTATION.ru.md)
+
 [`examples/`](examples/README.md) is the normative six-group conformance model. This document
 anchors every object in those fixtures to the code that implements it today:
 [`experimental/orchestration/dagster_ogip/`](../../experimental/orchestration/dagster_ogip/README.md)

@@ -1,5 +1,7 @@
 # ODTS 0.1 normative profile
 
+> 🇷🇺 Русская версия: [SPEC.ru.md](SPEC.ru.md)
+
 **Status:** approved OGIP profile
 **Version:** 0.1
 **Scope:** the `@odts` authoring format for `spec/sql`, compiled to OGIP's six targets

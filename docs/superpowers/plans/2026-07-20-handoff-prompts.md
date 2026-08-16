@@ -1,5 +1,7 @@
 # Handoff prompts — session `3ad45e75` (OGIP @ dev)
 
+> 🇷🇺 Русская версия: [2026-07-20-handoff-prompts.ru.md](2026-07-20-handoff-prompts.ru.md)
+
 ```
 # origin: cd ~/gi/@dataengy/OGIP && claude --resume 3ad45e75-ed02-41d9-a624-c6f1919e81d1 # OGIP sources + skills decomposition
 ```

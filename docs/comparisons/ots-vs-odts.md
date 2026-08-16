@@ -1,5 +1,7 @@
 # Open Transformation Specification (OTS) vs OGIP's `@odts`
 
+> 🇷🇺 Русская версия: [ots-vs-odts.ru.md](ots-vs-odts.ru.md)
+
 **Question asked:** [OTS](https://github.com/francescomucio/open-transformation-specification)
 states `@odts`'s problem almost word for word — *"define portable, executable data
 transformations with a standard specification"*. Are we reinventing it? (Raised as F7 in

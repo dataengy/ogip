@@ -1,5 +1,7 @@
 # ADR-0008 — PostgreSQL roles: landing + platform_meta + Prefect backend
 
+> 🇷🇺 Русская версия: [ADR-0008-postgresql-roles.ru.md](ADR-0008-postgresql-roles.ru.md)
+
 - **Status:** Accepted
 - **Date:** 2026-07-17
 - **Relates to:** D9/D11 · [ADR-0006](ADR-0006-dlt-default-ingestion-postgres-landing.md)

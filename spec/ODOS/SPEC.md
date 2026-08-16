@@ -1,5 +1,7 @@
 # ODOS 0.1 normative profile
 
+> 🇷🇺 Русская версия: [SPEC.ru.md](SPEC.ru.md)
+
 **Status:** approved OGIP profile  
 **Version:** 0.1  
 **Scope:** Dagster 1.13 and Prefect 3.4 or newer

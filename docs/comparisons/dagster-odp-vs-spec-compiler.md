@@ -1,5 +1,7 @@
 # dagster-odp vs OGIP's spec→compiler (config-driven Dagster)
 
+> 🇷🇺 Русская версия: [dagster-odp-vs-spec-compiler.ru.md](dagster-odp-vs-spec-compiler.ru.md)
+
 **Question asked:** can [dagster-odp](https://github.com/jonathanbhaskar/dagster-odp) be used for
 this project? **Verdict: keep as a reference/comparison, do not adopt on the production path** —
 it overlaps our existing spec-as-SSoT compiler and is Dagster-specific.

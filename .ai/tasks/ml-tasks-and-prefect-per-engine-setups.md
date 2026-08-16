@@ -1,5 +1,7 @@
 # Task — ML feature tasks + separated per-engine Prefect setups + Dagster-from-Prefect
 
+> 🇷🇺 Русская версия: [ml-tasks-and-prefect-per-engine-setups.ru.md](ml-tasks-and-prefect-per-engine-setups.ru.md)
+
 **Status:** 🟢 shipped — every SQL-tool setup has its own Prefect flow, runs the ML feature step,
 and is covered by e2e; `log` is the house logger alias; Makefile is the pipeline launcher.
 

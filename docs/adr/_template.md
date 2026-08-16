@@ -1,5 +1,7 @@
 # ADR-NNNN — <title>
 
+> 🇷🇺 Русская версия: [_template.ru.md](_template.ru.md)
+
 - **Status:** Proposed | Accepted | Superseded by [ADR-XXXX](ADR-XXXX-...md) | Deprecated
 - **Date:** YYYY-MM-DD
 - **Relates to:** PLAN decision D<n> · [ARCHITECTURE](../architecture/overview.md)

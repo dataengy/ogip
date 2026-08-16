@@ -1,5 +1,7 @@
 # Runbook — Pipeline failure triage
 
+> 🇷🇺 Русская версия: [pipeline-failure.ru.md](pipeline-failure.ru.md)
+
 - **Trigger:** a Prefect flow run failed, or a DQ `error` check blocked the pipeline.
 - **Owner:** on-call operator. **Urgency:** depends on staleness SLA.
 

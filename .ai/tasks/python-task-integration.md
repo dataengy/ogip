@@ -1,5 +1,7 @@
 # Task — Python-task integration demo
 
+> 🇷🇺 Русская версия: [python-task-integration.ru.md](python-task-integration.ru.md)
+
 **Status:** ✅ demo shipped; future SQL-transform-tool adapter remains planned.
 
 ## Delivered

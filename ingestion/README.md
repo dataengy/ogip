@@ -1,5 +1,7 @@
 # `ingestion/`
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 Reusable ingestion abstractions and per-source pipelines (ADR-0006, D11). **dlt** is the
 default engine; scraped/parsed data lands in the Postgres `landing` schema first.
 

@@ -1,5 +1,7 @@
 # OGIP — Open Games Intelligence Platform
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 > A **Market Intelligence Platform** for the games industry: it continuously collects public
 > gaming-market data, transforms it with SQL on DuckDB, and ships **ML-ready Parquet datasets**
 > for **Data Scientists, ML Engineers, and Analysts**.

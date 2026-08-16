@@ -1,5 +1,7 @@
 # dagster_ogip
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 ## Getting started
 
 ### Installing dependencies

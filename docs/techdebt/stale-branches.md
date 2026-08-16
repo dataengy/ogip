@@ -1,5 +1,7 @@
 # Stale branches register (owner directive 2026-07-30: mark, never delete)
 
+> 🇷🇺 Русская версия: [stale-branches.ru.md](stale-branches.ru.md)
+
 Branches whose work is fully contained in `dev` (or superseded). They are **kept as
 pointers** — do not develop on them, do not rebase them, do not delete them. Verify
 containment before trusting: `git rev-list --left-right --count origin/dev...<branch>`

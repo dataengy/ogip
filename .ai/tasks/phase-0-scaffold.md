@@ -1,5 +1,7 @@
 # Task — Phase 0: Scaffold & identity
 
+> 🇷🇺 Русская версия: [phase-0-scaffold.ru.md](phase-0-scaffold.ru.md)
+
 **Status:** ✅ done — `make check` green (ruff · pyright strict 0 errors · 6 tests), `uv sync` OK.
 
 ## Delivered

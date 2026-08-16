@@ -1,5 +1,7 @@
 # Architecture
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 The architecture docs for OGIP. Start with [`overview.md`](overview.md); point-in-time
 decisions live as [ADRs](../adr/); the full creation plan is [`.ai/PLAN.md`](../../.ai/PLAN.md).
 

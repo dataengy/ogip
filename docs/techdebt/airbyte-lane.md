@@ -1,5 +1,7 @@
 # Techdebt — Airbyte evaluation lane
 
+> 🇷🇺 Русская версия: [airbyte-lane.ru.md](airbyte-lane.ru.md)
+
 One row per deferred item, each with the condition that unblocks it. Pattern rationale:
 `~/.ai/skills/.settings/code_specs/script_standards.yml#deferred_functionality` — mark loudly,
 never fake. Design SSoT: `docs/superpowers/specs/2026-07-23-airbyte-terraform-lane-design.md`.

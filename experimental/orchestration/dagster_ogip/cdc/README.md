@@ -1,5 +1,7 @@
 # CDC — Change Data Capture from the Postgres landing zone (ingestr)
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 **One pipeline uses CDC, deliberately** (D11). The default ingester is **dlt** for batch API
 sources (ADR-0006). But the Postgres **landing** zone — where scrapers write parsed rows
 continuously — is exactly the source where CDC pays off, so it uses **ingestr**, which exposes

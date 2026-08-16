@@ -1,3 +1,5 @@
+> 🇷🇺 Русская версия: [FIXME.ru.md](FIXME.ru.md)
+
       # `.ai/FIXME.md` — known conflicts and debt, high priority
 
 Problems that are **real but not yet fixed** — contradictions between documents, convention

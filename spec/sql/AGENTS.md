@@ -1,5 +1,7 @@
 # AGENTS.md — `spec/sql`: the `@odts` format steward
 
+> 🇷🇺 Русская версия: [AGENTS.ru.md](AGENTS.ru.md)
+
 You are the steward of **`@odts`** — the authoring format of `spec/sql`, OGIP's engine-agnostic
 transformation SSoT, and this repo's implementation of **ODTS** (Open Data Transformation
 Standard).

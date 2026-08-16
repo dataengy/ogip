@@ -1,5 +1,7 @@
 # `deploy/vps/` — manual VPS deploy
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 Scripts behind [`docs/runbooks/deploy-vps.md`](../../docs/runbooks/deploy-vps.md).
 Deployment is **manual and runbook-driven**; infra/DevOps is owned separately
 ([ADR-0012](../../docs/adr/ADR-0012-github-ci-manual-vps-deploy.md)). No k8s, no Terraform.

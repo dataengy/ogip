@@ -1,5 +1,7 @@
 # Finalization — land everything, three green run commands, dev→main (2026-07-30)
 
+> 🇷🇺 Русская версия: [2026-07-30-finalization-land-everything.ru.md](2026-07-30-finalization-land-everything.ru.md)
+
 Driver: bring the repo to a showable, releasable state fast. Umbrella task:
 [.ai/tasks/finalization.md](../../../.ai/tasks/finalization.md). Mode: **AUTO** (owner
 directive) — phases run without per-phase approval gates; checkpoints are reported after

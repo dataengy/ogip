@@ -1,5 +1,7 @@
 # ADR-0003 — Parquet lake; defer Iceberg/DuckLake
 
+> 🇷🇺 Русская версия: [ADR-0003-parquet-lake-defer-iceberg-ducklake.ru.md](ADR-0003-parquet-lake-defer-iceberg-ducklake.ru.md)
+
 - **Status:** Accepted
 - **Date:** 2026-07-17
 - **Relates to:** [ADR-0002](ADR-0002-duckdb-analytical-engine.md) · `docs/comparisons/iceberg-vs-ducklake.md`

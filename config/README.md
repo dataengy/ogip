@@ -1,5 +1,7 @@
 # `config/` — configuration (SSoT)
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 Every non-secret default is declared **once** here. Nothing config-shaped lives in the repo root.
 
 | File | Purpose |

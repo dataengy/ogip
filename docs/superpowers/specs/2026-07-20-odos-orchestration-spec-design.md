@@ -1,5 +1,7 @@
 # ODOS 0.1 — Open Data Orchestration Standard (design)
 
+> 🇷🇺 Русская версия: [2026-07-20-odos-orchestration-spec-design.ru.md](2026-07-20-odos-orchestration-spec-design.ru.md)
+
 - **Date:** 2026-07-20
 - **Status:** approved → [ADR-0017](../../adr/ADR-0017-odos-normative-profile.md) and
   [`spec/ODOS`](../../../spec/ODOS/README.md)

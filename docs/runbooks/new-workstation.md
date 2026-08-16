@@ -1,5 +1,7 @@
 # Runbook — Bootstrap OGIP R&D on a new workstation
 
+> 🇷🇺 Русская версия: [new-workstation.ru.md](new-workstation.ru.md)
+
 - **Trigger:** moving R&D to a fresh machine; the repo must arrive whole (code + secrets +
   reproducible env) with nothing left behind on the old one.
 - **Owner:** repo owner. **Severity/urgency:** planned migration, not an incident.

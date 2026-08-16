@@ -1,5 +1,7 @@
 # OGIP — Status
 
+> 🇷🇺 Русская версия: [STATUS.ru.md](STATUS.ru.md)
+
 _Last updated: 2026-07-30_
 
 ## Current phase

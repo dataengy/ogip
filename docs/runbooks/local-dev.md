@@ -1,5 +1,7 @@
 # Runbook — Local development bootstrap
 
+> 🇷🇺 Русская версия: [local-dev.ru.md](local-dev.ru.md)
+
 - **Trigger:** first-time setup, or refreshing a local checkout.
 - **Owner:** any contributor.
 

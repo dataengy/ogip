@@ -1,5 +1,7 @@
 # ODTS 0.1 conformance examples
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 Six of the sixteen live `spec/sql` models re-authored with `@odts 0.1` headers — the same
 layout (`<layer>/<name>.sql`), the same SQL bodies **byte for byte**, only the header differs.
 `just standards-validate` asserts all of that: closed directive vocabulary, model-name/path

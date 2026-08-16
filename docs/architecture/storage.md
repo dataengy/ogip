@@ -1,5 +1,7 @@
 # Storage — the Parquet lake
 
+> 🇷🇺 Русская версия: [storage.ru.md](storage.ru.md)
+
 > Scope: where raw Parquet lives and how the pipeline reaches it.
 > Decisions: [ADR-0003](../adr/ADR-0003-parquet-lake-defer-iceberg-ducklake.md) (Parquet lake;
 > Iceberg/DuckLake deferred) · [ADR-0002](../adr/ADR-0002-duckdb-analytical-engine.md) (DuckDB

@@ -1,5 +1,7 @@
 # ADR-0004 — SQLMesh as the default transform engine
 
+> 🇷🇺 Русская версия: [ADR-0004-sqlmesh-default-transform-engine.ru.md](ADR-0004-sqlmesh-default-transform-engine.ru.md)
+
 - **Status:** Accepted
 - **Date:** 2026-07-17
 - **Relates to:** D5 · [ADR-0005](ADR-0005-spec-ssot-bruin-odcs-compiler.md), [ADR-0007](ADR-0007-prefect-orchestration.md)

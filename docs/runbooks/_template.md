@@ -1,5 +1,7 @@
 # Runbook — <title>
 
+> 🇷🇺 Русская версия: [_template.ru.md](_template.ru.md)
+
 - **Trigger:** what situation or request starts this procedure.
 - **Owner:** role responsible. **Severity/urgency:** if incident-related.
 

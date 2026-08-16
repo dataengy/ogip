@@ -1,5 +1,7 @@
 # Task — `spec/`: engine-agnostic semantic layer description (Bruin Semantic Layer)
 
+> 🇷🇺 Русская версия: [spec-semantic-layer.ru.md](spec-semantic-layer.ru.md)
+
 **Status:** 📋 planned · **Priority:** mid
 
 Lane: `spec`. Scope: `spec/`. Issue: [#20](https://github.com/dataengy/ogip/issues/20).

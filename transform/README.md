@@ -1,5 +1,7 @@
 # `transform/`
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 Every transform setup here is **generated from `spec/sql`** (Bruin asset format, the SSoT —
 [ADR-0005](../docs/adr/ADR-0005-spec-ssot-bruin-odcs-compiler.md)); none is hand-authored.
 Regenerate all of them with `just spec-compile` (one engine: `just spec-compile dbt`).

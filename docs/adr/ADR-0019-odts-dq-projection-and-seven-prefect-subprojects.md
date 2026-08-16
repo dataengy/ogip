@@ -1,5 +1,7 @@
 # ADR-0019 — ODTS DQ projection into SQLMesh audits + seven separated Prefect sub-projects
 
+> 🇷🇺 Русская версия: [ADR-0019-odts-dq-projection-and-seven-prefect-subprojects.ru.md](ADR-0019-odts-dq-projection-and-seven-prefect-subprojects.ru.md)
+
 - **Status:** Accepted
 - **Date:** 2026-07-23
 - **Relates to:** [ADR-0004](ADR-0004-sqlmesh-default-transform-engine.md) ·

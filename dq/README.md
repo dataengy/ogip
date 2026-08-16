@@ -1,5 +1,7 @@
 # `dq/` — data-quality executor
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 Runs the assertions declared in [`spec/dq`](../spec/) + Bruin column checks + ODCS SLAs
 against the DuckDB warehouse. Severity: `error` blocks the flow, `warn` records to
 `platform_meta.dq_results` and alerts ([ADR-0008](../docs/adr/ADR-0008-postgresql-roles.md)).

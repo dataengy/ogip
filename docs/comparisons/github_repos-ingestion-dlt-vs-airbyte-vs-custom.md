@@ -1,5 +1,7 @@
 # Ingesting `github_repos`: dlt vs Airbyte vs custom client
 
+> 🇷🇺 Русская версия: [github_repos-ingestion-dlt-vs-airbyte-vs-custom.ru.md](github_repos-ingestion-dlt-vs-airbyte-vs-custom.ru.md)
+
 - **Date:** 2026-07-23 · **Refs:** OGIP#18, OGIP#19
 - **Source:** `spec/sources/games/github_repos.yaml` (certified Airbyte fit, per the 2026-07-20 refit audit)
 - **Companion:** `docs/superpowers/specs/2026-07-23-airbyte-terraform-lane-design.md`

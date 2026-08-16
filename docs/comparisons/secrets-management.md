@@ -1,5 +1,7 @@
 # Secrets management — minimal default vs opt-in backends
 
+> 🇷🇺 Русская версия: [secrets-management.ru.md](secrets-management.ru.md)
+
 **Question asked:** how do secrets travel with the repo — across CI, a VPS, and a **new
 workstation** — without ever landing in git? **Verdict: keep the ADR-0011 minimal default**
 (gitignored `.env` + GitHub Actions secrets); use the now-implemented **opt-in backends**

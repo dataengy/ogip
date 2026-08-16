@@ -1,5 +1,7 @@
 # ODOS 0.1 conformance example
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 These seven YAML files are the ODOS projection of the six-group orchestration model defined in
 the governing design: shared defaults plus warehouse, ingestion, snapshots, maintenance,
 integrations, and monitoring.

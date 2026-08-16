@@ -1,5 +1,7 @@
 # Task — cloud-devops readiness ([#53](https://github.com/dataengy/ogip/issues/53))
 
+> 🇷🇺 Русская версия: [cloud-devops-readiness.ru.md](cloud-devops-readiness.ru.md)
+
 **Role:** [`.claude/agents/ogip-cloud-devops.md`](../../.claude/agents/ogip-cloud-devops.md) ·
 **Matrix:** [`config/verify.yml`](../../config/verify.yml) ·
 **Lane:** `cloud-devops` (this file, the agent file, the matrix; `deploy/vps/` stays with

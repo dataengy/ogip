@@ -1,5 +1,7 @@
 # Task — Airbyte + Terraform evaluation lane (anchor: github_repos; negative-result by design)
 
+> 🇷🇺 Русская версия: [airbyte-evaluation-lane.ru.md](airbyte-evaluation-lane.ru.md)
+
 **Status:** 🚧 in progress · **Priority:** P3 (backlog) · **Issue:** [#41](https://github.com/dataengy/ogip/issues/41)
 
 Lane: `airbyte` (claim `obj--airbyte` before writing). Everything lives in

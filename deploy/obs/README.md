@@ -1,5 +1,7 @@
 # `deploy/obs/` — observability stack
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 VictoriaMetrics + Loki + Alloy + Grafana, wired for OGIP (Phase 7). Optional: the pipeline runs
 green without it. Architecture, contracts and known gaps:
 [`docs/architecture/observability.md`](../../docs/architecture/observability.md).

@@ -1,5 +1,7 @@
 # ADR-0002 — DuckDB as the analytical engine
 
+> 🇷🇺 Русская версия: [ADR-0002-duckdb-analytical-engine.ru.md](ADR-0002-duckdb-analytical-engine.ru.md)
+
 - **Status:** Accepted
 - **Date:** 2026-07-17
 - **Relates to:** [ADR-0003](ADR-0003-parquet-lake-defer-iceberg-ducklake.md), [ADR-0004](ADR-0004-sqlmesh-default-transform-engine.md)

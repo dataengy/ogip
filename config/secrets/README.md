@@ -1,5 +1,7 @@
 # `config/secrets/` — git-secret working directory (opt-in, ADR-0011)
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 Home of the **git-secret** opt-in backend
 ([ADR-0011](../../docs/adr/ADR-0011-minimal-secrets.md) ·
 [docs/comparisons/secrets-management.md](../../docs/comparisons/secrets-management.md)).

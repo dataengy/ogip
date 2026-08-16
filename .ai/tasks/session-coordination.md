@@ -1,5 +1,7 @@
 # Task — Session coordination: lanes, ship loop, task-bound commits, PR flow
 
+> 🇷🇺 Русская версия: [session-coordination.ru.md](session-coordination.ru.md)
+
 **Status:** 🟡 in progress — lane locking + ship loop + commit binding shipped; worktrees proposed.
 
 ## Why

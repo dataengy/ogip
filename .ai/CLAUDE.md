@@ -1,5 +1,7 @@
 # OGIP — Project Instructions (Claude Code)
 
+> 🇷🇺 Русская версия: [CLAUDE.ru.md](CLAUDE.ru.md)
+
 **OGIP (Open Games Intelligence Platform)** — production-grade OSS **Market Intelligence
 Platform** for the games industry; product = **ML-ready Parquet datasets** for DS/ML/Analysts.
 Portfolio-quality showcase for Senior/Staff Data Engineer skills. Successor to OGAP

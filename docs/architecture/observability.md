@@ -1,5 +1,7 @@
 # OGIP — Observability
 
+> 🇷🇺 Русская версия: [observability.ru.md](observability.ru.md)
+
 How the platform is observed: **logs → Loki**, **metrics → VictoriaMetrics**, both collected by
 **Grafana Alloy** and read through **one provisioned Grafana dashboard**. Lightweight by design
 ([`.ai/PLAN.md`](../../.ai/PLAN.md) A10) — single binaries, no Kubernetes, no cluster mode.

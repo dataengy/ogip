@@ -1,5 +1,7 @@
 # AGENTS.md — instructions for AI agents working in OGIP
 
+> 🇷🇺 Русская версия: [AGENTS.ru.md](AGENTS.ru.md)
+
 **OGIP (Open Games Intelligence Platform)** — a portfolio-grade **Market Intelligence
 Platform**: it collects public gaming-market data, transforms it with plain SQL on DuckDB,
 and ships **ML-ready Parquet datasets** for Data Scientists, ML Engineers, and Analysts

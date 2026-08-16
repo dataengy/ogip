@@ -1,5 +1,7 @@
 # Task — Dagster setup (dg CLI + Components, dev + prod)
 
+> 🇷🇺 Русская версия: [dagster-setup.ru.md](dagster-setup.ru.md)
+
 **Status:** 🟡 in progress — dbt + dlt components run green; dev/prod configs in; ingestr CDC pending.
 
 Alternative complete setup for the `prefect-dagster-dlt-dbt` profile (A12) — **off the

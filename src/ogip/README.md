@@ -1,5 +1,7 @@
 # `src/ogip/` — typed Python core
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 The importable package (`ogip`). Fully typed, Pyright strict.
 
 | Module | Purpose |

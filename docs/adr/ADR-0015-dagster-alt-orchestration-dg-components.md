@@ -1,5 +1,7 @@
 # ADR-0015 — Dagster alt-orchestration via `dg` Components (dbt + dlt + ingestr CDC)
 
+> 🇷🇺 Русская версия: [ADR-0015-dagster-alt-orchestration-dg-components.ru.md](ADR-0015-dagster-alt-orchestration-dg-components.ru.md)
+
 - **Status:** Accepted
 - **Date:** 2026-07-17
 - **Relates to:** [ADR-0007](ADR-0007-prefect-orchestration.md) (Prefect + runnable alt setups),

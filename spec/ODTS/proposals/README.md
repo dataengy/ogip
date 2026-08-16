@@ -1,5 +1,7 @@
 # ODTS proposals
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 Pre-normative design input for ODTS versions after [0.1](../SPEC.md). Everything here is a
 **proposal**: not accepted, not normative, and not something an adapter may implement.
 

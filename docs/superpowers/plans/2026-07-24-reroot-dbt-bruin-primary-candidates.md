@@ -1,5 +1,7 @@
 # Re-root: prefect+dbt & prefect+Bruin as Primary Candidates Implementation Plan
 
+> 🇷🇺 Русская версия: [2026-07-24-reroot-dbt-bruin-primary-candidates.ru.md](2026-07-24-reroot-dbt-bruin-primary-candidates.ru.md)
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make **prefect+dbt** and **prefect+Bruin** the two primary, production-grade comparison candidates; move every other engine setup (sqlmesh, plain_sql, opendbt, sqlmesh_dbt, dagster) to experimental/R&D — off the default `make`/pipeline path.

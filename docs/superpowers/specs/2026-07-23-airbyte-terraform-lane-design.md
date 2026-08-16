@@ -1,5 +1,7 @@
 # Airbyte + Terraform ingestion lane — design
 
+> 🇷🇺 Русская версия: [2026-07-23-airbyte-terraform-lane-design.ru.md](2026-07-23-airbyte-terraform-lane-design.ru.md)
+
 - **Date:** 2026-07-23
 - **Status:** design, awaiting approval
 - **Lane:** `experimental/ingestion/airbyte` (off the production `make` path — AGENTS.md §30-32)

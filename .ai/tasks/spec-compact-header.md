@@ -1,5 +1,7 @@
 # Task — `spec/sql`: `@odts 0.1` compact header (frontend → `@bruin` YAML)
 
+> 🇷🇺 Русская версия: [spec-compact-header.ru.md](spec-compact-header.ru.md)
+
 **Status:** 📋 planned · **Priority:** mid · **Suggested model:** Opus 4.8 @ `high`
 
 Lane: `spec`. Scope: `spec/`, `src/ogip/spec_compile/`. Issue: [#35](https://github.com/dataengy/ogip/issues/35).

@@ -1,5 +1,7 @@
 # Task — Sources backlog: candidates mapped to games-market models
 
+> 🇷🇺 Русская версия: [sources-backlog.ru.md](sources-backlog.ru.md)
+
 **Status:** 📋 backlog (grooming) · **Priority:** P2
 
 Candidate sources for extending coverage, mapped to the market-intelligence use cases the

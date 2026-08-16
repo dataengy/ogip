@@ -1,5 +1,7 @@
 # ADR-0009 — Product = ML-ready outputs + Feature Store; no BI/semantic in core
 
+> 🇷🇺 Русская версия: [ADR-0009-ml-outputs-feature-store.ru.md](ADR-0009-ml-outputs-feature-store.ru.md)
+
 - **Status:** Accepted
 - **Date:** 2026-07-17
 - **Relates to:** D6/D7/D8

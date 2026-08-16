@@ -1,5 +1,7 @@
 # ODOS — Open Data Orchestration Standard
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 This directory is OGIP's normative **ODOS 0.1 profile**, extracted from the approved
 [ODOS design](../../docs/superpowers/specs/2026-07-20-odos-orchestration-spec-design.md).
 ODOS describes when work runs, in what order, and how it survives failure. It does not describe

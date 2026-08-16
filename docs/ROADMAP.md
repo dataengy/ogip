@@ -1,5 +1,7 @@
 # OGIP — Roadmap
 
+> 🇷🇺 Русская версия: [ROADMAP.ru.md](ROADMAP.ru.md)
+
 Phased delivery with a **user approval gate after each phase**. Full detail and acceptance
 criteria live in [.ai/PLAN.md](../.ai/PLAN.md); this is the at-a-glance map. Requirement
 unknowns that steer this map live in [OPEN-QUESTIONS.md](OPEN-QUESTIONS.md).

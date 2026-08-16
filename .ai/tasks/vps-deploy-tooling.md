@@ -1,5 +1,7 @@
 # Task — VPS deploy tooling (`deploy/vps/`)
 
+> 🇷🇺 Русская версия: [vps-deploy-tooling.ru.md](vps-deploy-tooling.ru.md)
+
 **Status:** 🚧 in progress — scripts written, linted and dry-run verified; a real host deploy is
 V2 scope (finalization 2026-07-30): `integrations/prefect/{deploy,trigger}.py` exist as loud
 TBD stubs (exit 2, docs/techdebt/finalization-tbd.md row 6), unblocking condition unchanged

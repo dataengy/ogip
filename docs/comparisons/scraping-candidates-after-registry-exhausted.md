@@ -1,5 +1,7 @@
 # Scraping candidates once the scrape-tier registry is built out
 
+> 🇷🇺 Русская версия: [scraping-candidates-after-registry-exhausted.ru.md](scraping-candidates-after-registry-exhausted.ru.md)
+
 - **Date:** 2026-07-23 · **Refs:** OGIP#18, OGIP#19
 - **Context:** all four scrape-tier sources (`metacritic`, `opencritic`, `psn`, `steamcharts`)
   are already implemented (`ingestion/sources/*.py`, non-stub, with raw+staging models). The

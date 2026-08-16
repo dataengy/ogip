@@ -1,5 +1,7 @@
 # Task — `spec/orchestration`: `@odos 0.1` orchestration standard (Dagster + Prefect)
 
+> 🇷🇺 Русская версия: [odos-orchestration-spec.ru.md](odos-orchestration-spec.ru.md)
+
 **Status:** 📋 planned · **Priority:** mid · **Suggested model:** Opus 4.8 @ `high`
 
 Lane: `orchestration`. Scope: `spec/orchestration/`, `src/ogip/tasks/`,

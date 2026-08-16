@@ -1,5 +1,7 @@
 # `ingestion/samples/` — demo fixtures (SYNTHETIC)
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 Small, **hand-authored** sample payloads so the pipeline runs end-to-end with **zero
 credentials** (demo mode / CI). These are **not** captured API responses.
 

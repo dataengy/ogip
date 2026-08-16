@@ -1,5 +1,7 @@
 # Task — Finalize R2 lake + VPS deploy (close the staged s3/vps handoffs)
 
+> 🇷🇺 Русская версия: [r2-vps-finalize.ru.md](r2-vps-finalize.ru.md)
+
 **Status:** 📋 ready — every prerequisite is staged; all remaining edits sit in one lane ·
 **Priority:** **P1**
 

@@ -1,5 +1,7 @@
 # Runbooks
 
+> 🇷🇺 Русская версия: [README.ru.md](README.ru.md)
+
 Operational procedures for OGIP. Deployment is **manual on a VPS** and **DevOps is handled
 separately** ([ADR-0012](../adr/ADR-0012-github-ci-manual-vps-deploy.md)), so these runbooks are
 the operational source of truth. Use [`_template.md`](_template.md) for new runbooks.

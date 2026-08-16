@@ -1,5 +1,7 @@
 # ADR-0013 — GitHub Issues/Projects as the task tracker
 
+> 🇷🇺 Русская версия: [ADR-0013-github-issues-projects-tasks.ru.md](ADR-0013-github-issues-projects-tasks.ru.md)
+
 - **Status:** Accepted
 - **Date:** 2026-07-17
 - **Relates to:** D12 · `.ai/TODO.md` · `.ai/tasks/` · `integrations/github/`

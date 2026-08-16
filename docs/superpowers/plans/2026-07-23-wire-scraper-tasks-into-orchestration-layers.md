@@ -1,5 +1,7 @@
 # Wiring the scraper/parser tasks into the four orchestration layers — Implementation Plan
 
+> 🇷🇺 Русская версия: [2026-07-23-wire-scraper-tasks-into-orchestration-layers.ru.md](2026-07-23-wire-scraper-tasks-into-orchestration-layers.ru.md)
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 > **STALE-PATH NOTE (added 2026-07-23, still open — do NOT implement against the paths below).**

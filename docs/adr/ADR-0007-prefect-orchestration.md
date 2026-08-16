@@ -1,5 +1,7 @@
 # ADR-0007 — Prefect 3 orchestration + runnable alternative setups
 
+> 🇷🇺 Русская версия: [ADR-0007-prefect-orchestration.ru.md](ADR-0007-prefect-orchestration.ru.md)
+
 - **Status:** Accepted
 - **Date:** 2026-07-17
 - **Relates to:** D1/D3 · [ADR-0004](ADR-0004-sqlmesh-default-transform-engine.md)

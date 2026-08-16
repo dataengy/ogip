@@ -1,5 +1,7 @@
 # Task — Agentic observability: monitor the agents building OGIP (standard-first)
 
+> 🇷🇺 Русская версия: [agentic-monitoring.ru.md](agentic-monitoring.ru.md)
+
 **Status:** 🚧 in progress — plan approved 2026-07-19; Phase 0 (OTel spike) underway.
 
 Lane: `obs`. Scope: `deploy/obs/**`, `src/scripts/obs-*`, `.claude/settings.local.json`

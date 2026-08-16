@@ -1,5 +1,7 @@
 # Transform expansion, ODTS-synced SQLMesh DQ, and six separated Prefect sub-projects — Implementation Plan
 
+> 🇷🇺 Русская версия: [2026-07-23-transform-expansion-and-six-prefect-subprojects.ru.md](2026-07-23-transform-expansion-and-six-prefect-subprojects.ru.md)
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** (1) Extend the transform SSoT so **every raw source flows through staging into core/fs** across all engines and ODTS fixtures; (2) declare **comprehensive DQ once in the ODTS spec** and make the SQLMesh adapter *project it into audits* (today it silently drops every check); (3) restructure the Prefect orchestration into **six separated, individually-deployable sub-projects** over a shared step library.
