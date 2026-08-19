@@ -11,6 +11,7 @@ the operational source of truth. Use [`_template.md`](_template.md) for new runb
 | [deploy-vps.md](deploy-vps.md) | Manual deploy to the VPS | draft |
 | [pipeline-failure.md](pipeline-failure.md) | Triage a failed Prefect flow / DQ gate | draft |
 | [run-dagster.md](run-dagster.md) | Run the Dagster alt-orchestration (dbt + dlt + ingestr CDC) | draft |
+| [new-workstation.md](new-workstation.md) | Bootstrap R&D on a fresh machine (clone → secrets → gates) | draft |
 | backfill.md | Backfill / full-refresh a source | _planned_ |
 | add-source.md | Add a new ingestion source | _planned_ |
 | rotate-secrets.md | Rotate a secret | _planned_ |

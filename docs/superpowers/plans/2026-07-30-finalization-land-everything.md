@@ -163,3 +163,7 @@ off-repo.
   e2e legs proven on wiped warehouses). **#49 (odos) MERGED** — clean auto-merge, the
   runtime bridge needed zero changes for the flattened defs; spec-design layout refs
   updated; 278 unit tests green. All lanes are in dev. Remaining: dev→main (#10).
+- 2026-07-30 · **DONE — dev→main PR #10 MERGED (19/19 checks)**. main is releasable and
+  carries the whole run: ADR-0020 primaries, three green demo commands, real DQ gate,
+  all lanes landed, stale-branch + techdebt registers. Same-day V4 completion. Open follow-ups
+  live on their issues: #37 adapters, #17/#18 V2 scope, #35/#36/#20 spec fronts.

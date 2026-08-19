@@ -1,0 +1,62 @@
+# OGIP verification matrix — what "fully working" means for this project.
+#
+# Consumed by /verify-project-local-full and /verify-project-cloud-deployable via the
+# project-readiness runner (~/.ai/skills/_scripts/infra/project-readiness/Justfile):
+#   just -f ~/.ai/skills/_scripts/infra/project-readiness/Justfile verify local
+#   just -f ~/.ai/skills/_scripts/infra/project-readiness/Justfile verify cloud
+# Owner agent: .claude/agents/ogip-cloud-devops.md.
+#
+# Stages run from the repo root. Fields: name, cmd, evidence? (post-check, must pass),
+# optional? (fail -> WARN), operator_input? (fail -> NEEDS-OPERATOR: a deliberately
+# human-supplied slot, e.g. the blank VPS host — see deploy/vps/README.md).
+# Local stages mirror .ci/steps/* where possible: CI parity beats invented checks.
+
+local:
+  stages:
+    - name: gates
+      cmd: make check # ruff + pyright + pytest (e2e deselected — see e2e stage)
+    - name: render-env
+      cmd: make render-env
+      evidence: test -s .env
+    - name: e2e-ci-parity
+      cmd: bash .ci/steps/e2e.sh # Prefect job on sample data + DQ monitors (exact CI step)
+      evidence: test -s .run/data/outputs/games.parquet && test -s .run/data/outputs/market_features.parquet
+    - name: structure-validate
+      cmd: bash .ci/steps/structure-validate.sh
+      # optional locally: the step counts gitignored files, so sanctioned local *.ru.md
+      # translations trip it while CI's clean checkout passes — handoff to core-pipeline
+      # (exclude gitignored files in .ci/steps/structure-validate.sh); see tasks/cloud-devops-readiness.md
+      optional: true
+    - name: bash-lint
+      cmd: bash .ci/steps/bash-lint.sh
+    - name: secret-scan
+      cmd: bash .ci/steps/secret-scan.sh
+    - name: compose-lint
+      cmd: docker compose -f deploy/docker-compose.yml config -q
+      optional: true # needs the docker CLI; daemon not required
+    - name: obs-stack
+      cmd: just obs-up && just obs-verify && just obs-down
+      optional: true # needs a running docker daemon (colima)
+
+cloud:
+  stages:
+    - name: vps-tooling-lint
+      cmd: for f in deploy/vps/*.sh; do bash -n "$f" || exit 1; done
+    - name: runbooks-present
+      cmd: test -s docs/runbooks/deploy-vps.md && test -s docs/runbooks/new-workstation.md
+    - name: smoke-tooling
+      cmd: bash deploy/vps/smoke.sh --help >/dev/null # remote verification exists (runs ON the VPS post-deploy)
+    - name: ci-green-dev
+      cmd: gh run list --workflow ci.yml --branch dev --limit 1 --json conclusion -q '.[0].conclusion' | grep -qx success
+    - name: secrets-escrow
+      cmd: just secrets-doctor # backend readiness; unlock (GPG key / bw session) is a human step
+      operator_input: true
+    - name: vps-provision-dry
+      cmd: just vps-provision-dry # aborts on blank host — operator supplies OGIP_VPS_HOST (ADR-0012)
+      operator_input: true
+    - name: vps-deploy-dry
+      cmd: just vps-deploy-dry
+      operator_input: true
+    - name: vps-status
+      cmd: just vps-status
+      operator_input: true

@@ -14,6 +14,12 @@
             "command": "bash \"$HOME/.ai/skills/_scripts/session/session-state-hook.sh\" on-resume",
             "timeout": 10,
             "statusMessage": "session-state"
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/src/scripts/worktrees-settled-hook.sh\" 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "settle-check"
           }
         ]
       }

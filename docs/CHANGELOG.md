@@ -6,6 +6,24 @@ All notable changes to OGIP are documented here. Format follows
 
 ## [Unreleased]
 
+### Added — `ru-docs` branch: versioned RU translations + bilingual mirror-refs (2026-08-16)
+- Long-lived branch `ru-docs` (worktree `OGIP.worktrees/ru-docs`, #55) carries every
+  `*.ru.md` translation as committed+pushed files plus beginning-of-file mirror-refs
+  (EN doc ↔ RU sibling) — both exist ONLY there; on `dev` the `*.ru.md` ignore convention
+  is unchanged and sources carry no RU links. Branch doc: `docs/RU-DOCS-BRANCH.md`
+  (on the branch). Inserter: `mirror-refs.py` in the shared translate-ru script family.
+
+### Added — Opt-in secrets sync + new-workstation runbook (2026-08-11)
+- ADR-0011's opt-in backends are now implemented (#52): `config/.env-secrets-render.sh`
+  (`pull`/`push` for Bitwarden CLI, `hide`/`reveal`/`setup-git-secret` for git-secret,
+  `doctor` readiness report), `just secrets-*` recipes with dry siblings; slot names stay
+  sourced from `config/.env-render.py → SECRET_SLOTS`, values are never printed.
+- Fixed the inverted `.gitignore` rule that ignored the committed `config/secrets/*.secret`
+  blobs; plaintext under `config/secrets/` is now the only thing ignored.
+- `docs/comparisons/secrets-management.md` (adoption analysis) and
+  `docs/runbooks/new-workstation.md` (settled old machine → bootstrapped new machine);
+  dbt deps lockfile committed on `lane/dagster` for reproducible package resolution.
+
 ### Added — DQ monitor executor + dbt/Bruin primary landing (2026-07-30)
 - `dq/run.py` executes the declared monitors (row_count + freshness) against the DuckDB
   warehouse: `error` severity blocks with exit 1 (ADR-0008); in `make check` (loud SKIP on a
