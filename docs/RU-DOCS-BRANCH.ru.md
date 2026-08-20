@@ -1,4 +1,4 @@
-<!-- ru-translation-of: docs/RU-DOCS-BRANCH.md sha:ec829d729031 -->
+<!-- ru-translation-of: docs/RU-DOCS-BRANCH.md sha:897e08259d29 -->
 <!-- Автоперевод. Источник — docs/RU-DOCS-BRANCH.md. Правьте источник, затем /translate-md-docs-to-russian. -->
 
 > 🇬🇧 English original: [RU-DOCS-BRANCH.md](RU-DOCS-BRANCH.md)
@@ -47,7 +47,12 @@ mirror-ref ветки. Содержательное изменение на dev 
 ## Чего здесь никогда не должно происходить
 
 - Никаких merge/PR из `ru-docs` в `dev` (это принесло бы трекаемые переводы и EN-строки
-  ссылок в каждый клон).
+  ссылок в каждый клон). С 2026-08-20 это закреплено
+  ([#57](https://github.com/dataengy/ogip/issues/57)): `ru-docs` **защищена как ветка**
+  (нет удаления, нет force-push) и **исключена из squash-only правил мёржа PR** — она
+  указана в `never_merge` + `long_lived` в
+  `~/.ai/skills/.settings/branch_rules.yml#pr_merge`. Обновляется она только через
+  `git merge origin/dev` внутри этого worktree.
 - Никаких ручных правок тел `*.ru.md` — правьте EN-источник и ретранслируйте (об этом
   говорит сам provenance-заголовок).
 - Никаких коммитов переводов `*.local.md` / машинно-локальных источников (их EN-оригиналы

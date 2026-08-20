@@ -1,5 +1,7 @@
 # HANDOFF / compact snapshot — cloud-devops readiness (2026-08-20)
 
+> 🇷🇺 Русская версия: [HANDOFF-2026-08-20-cloud-devops-readiness.ru.md](HANDOFF-2026-08-20-cloud-devops-readiness.ru.md)
+
 Session scope: [#53](https://github.com/dataengy/ogip/issues/53) — cloud-devops role, verify
 skills, readiness audit, deploy proposal.
 

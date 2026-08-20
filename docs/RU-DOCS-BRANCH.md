@@ -44,7 +44,12 @@ in the next enumerate/manifest pass for retranslation.
 ## What must never happen here
 
 - No merge/PR of `ru-docs` into `dev` (it would carry the tracked translations and the
-  EN-side link lines into every clone).
+  EN-side link lines into every clone). Since 2026-08-20 this is enforced
+  ([#57](https://github.com/dataengy/ogip/issues/57)): `ru-docs` is **branch-protected**
+  (no deletion, no force-push) and **exempt from the repo's squash-only PR-merge rules** —
+  it is listed under `never_merge` + `long_lived` in
+  `~/.ai/skills/.settings/branch_rules.yml#pr_merge`. It updates itself only via
+  `git merge origin/dev` inside this worktree.
 - No hand-edits of `*.ru.md` bodies — fix the EN source and retranslate (the provenance
   header says exactly that).
 - No commits of `*.local.md` / machine-local sources' translations (their EN originals are

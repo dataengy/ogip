@@ -43,6 +43,8 @@
 | `.ai/SKILLS.md` | `.ai/SKILLS.ru.md` | ✅ up-to-date |
 | `.ai/STATUS.md` | `.ai/STATUS.ru.md` | ✅ up-to-date |
 | `.ai/TODO.md` | `.ai/TODO.ru.md` | ✅ up-to-date |
+| `.ai/WiP/HANDOFF-2026-08-16-ru-docs-branch.md` | `.ai/WiP/HANDOFF-2026-08-16-ru-docs-branch.ru.md` | ✅ up-to-date |
+| `.ai/WiP/HANDOFF-2026-08-20-cloud-devops-readiness.md` | `.ai/WiP/HANDOFF-2026-08-20-cloud-devops-readiness.ru.md` | ✅ up-to-date |
 | `.ai/tasks/README.md` | `.ai/tasks/README.ru.md` | ✅ up-to-date |
 | `.ai/tasks/agentic-monitoring.md` | `.ai/tasks/agentic-monitoring.ru.md` | ✅ up-to-date |
 | `.ai/tasks/airbyte-evaluation-lane.md` | `.ai/tasks/airbyte-evaluation-lane.ru.md` | ✅ up-to-date |
@@ -63,10 +65,18 @@
 | `.ai/tasks/scraping-resilient.md` | `.ai/tasks/scraping-resilient.ru.md` | ✅ up-to-date |
 | `.ai/tasks/session-coordination.md` | `.ai/tasks/session-coordination.ru.md` | ✅ up-to-date |
 | `.ai/tasks/sources-backlog.md` | `.ai/tasks/sources-backlog.ru.md` | ✅ up-to-date |
+| `.ai/tasks/spec-compact-header.md` | `.ai/tasks/spec-compact-header.ru.md` | ✅ up-to-date |
+| `.ai/tasks/spec-macros.md` | `.ai/tasks/spec-macros.ru.md` | ✅ up-to-date |
+| `.ai/tasks/spec-semantic-layer.md` | `.ai/tasks/spec-semantic-layer.ru.md` | ✅ up-to-date |
+| `.ai/tasks/transform-engine-generators.md` | `.ai/tasks/transform-engine-generators.ru.md` | ✅ up-to-date |
+| `.ai/tasks/vps-deploy-tooling.md` | `.ai/tasks/vps-deploy-tooling.ru.md` | ✅ up-to-date |
 | `.ci/README.md` | `.ci/README.ru.md` | ✅ up-to-date |
 | `.claude/CLAUDE.md` | `.claude/CLAUDE.ru.md` | ✅ up-to-date |
 | `.claude/agents/ogip-cloud-devops.md` | `.claude/agents/ogip-cloud-devops.ru.md` | ✅ up-to-date |
 | `.claude/agents/ogip-ingestion-engineer.md` | `.claude/agents/ogip-ingestion-engineer.ru.md` | ✅ up-to-date |
+| `.claude/agents/ogip-lane-worker.md` | `.claude/agents/ogip-lane-worker.ru.md` | ✅ up-to-date |
+| `.claude/agents/ogip-obs-engineer.md` | `.claude/agents/ogip-obs-engineer.ru.md` | ✅ up-to-date |
+| `.claude/agents/ogip-workstation-migrator.md` | `.claude/agents/ogip-workstation-migrator.ru.md` | ✅ up-to-date |
 | `AGENTS.md` | `AGENTS.ru.md` | ✅ up-to-date |
 | `README.md` | `README.ru.md` | ✅ up-to-date |
 | `config/README.md` | `config/README.ru.md` | ✅ up-to-date |
@@ -124,11 +134,14 @@
 | `docs/superpowers/plans/2026-07-20-source-dod-registry-and-domain-docs.md` | `docs/superpowers/plans/2026-07-20-source-dod-registry-and-domain-docs.ru.md` | ✅ up-to-date |
 | `docs/superpowers/plans/2026-07-23-transform-expansion-and-six-prefect-subprojects.md` | `docs/superpowers/plans/2026-07-23-transform-expansion-and-six-prefect-subprojects.ru.md` | ✅ up-to-date |
 | `docs/superpowers/plans/2026-07-23-wire-scraper-tasks-into-orchestration-layers.md` | `docs/superpowers/plans/2026-07-23-wire-scraper-tasks-into-orchestration-layers.ru.md` | ✅ up-to-date |
-| `docs/superpowers/plans/2026-07-24-airbyte-lane-implementation.md` | `docs/superpowers/plans/2026-07-24-airbyte-lane-implementation.ru.md` | ♻️ stale |
-| `docs/superpowers/plans/2026-07-24-reroot-dbt-bruin-primary-candidates.md` | `docs/superpowers/plans/2026-07-24-reroot-dbt-bruin-primary-candidates.ru.md` | ♻️ stale |
+| `docs/superpowers/plans/2026-07-24-airbyte-lane-implementation.md` | `docs/superpowers/plans/2026-07-24-airbyte-lane-implementation.ru.md` | ✅ up-to-date |
+| `docs/superpowers/plans/2026-07-24-reroot-dbt-bruin-primary-candidates.md` | `docs/superpowers/plans/2026-07-24-reroot-dbt-bruin-primary-candidates.ru.md` | ✅ up-to-date |
+| `docs/superpowers/plans/2026-07-30-finalization-land-everything.md` | `docs/superpowers/plans/2026-07-30-finalization-land-everything.ru.md` | ✅ up-to-date |
 | `docs/superpowers/specs/2026-07-20-odos-orchestration-spec-design.md` | `docs/superpowers/specs/2026-07-20-odos-orchestration-spec-design.ru.md` | ✅ up-to-date |
 | `docs/superpowers/specs/2026-07-23-airbyte-terraform-lane-design.md` | `docs/superpowers/specs/2026-07-23-airbyte-terraform-lane-design.ru.md` | ✅ up-to-date |
-| `docs/techdebt/airbyte-lane.md` | `docs/techdebt/airbyte-lane.ru.md` | ♻️ stale |
+| `docs/techdebt/airbyte-lane.md` | `docs/techdebt/airbyte-lane.ru.md` | ✅ up-to-date |
+| `docs/techdebt/finalization-tbd.md` | `docs/techdebt/finalization-tbd.ru.md` | ✅ up-to-date |
+| `docs/techdebt/stale-branches.md` | `docs/techdebt/stale-branches.ru.md` | ✅ up-to-date |
 | `dq/README.md` | `dq/README.ru.md` | ✅ up-to-date |
 | `experimental/ingestion/airbyte/README.md` | `experimental/ingestion/airbyte/README.ru.md` | ✅ up-to-date |
 | `experimental/orchestration/dagster_ogip/README.md` | `experimental/orchestration/dagster_ogip/README.ru.md` | ✅ up-to-date |
@@ -142,10 +155,13 @@
 | `spec/ODOS/README.md` | `spec/ODOS/README.ru.md` | ✅ up-to-date |
 | `spec/ODOS/SPEC.md` | `spec/ODOS/SPEC.ru.md` | ✅ up-to-date |
 | `spec/ODOS/examples/README.md` | `spec/ODOS/examples/README.ru.md` | ✅ up-to-date |
+| `spec/ODTS/GOVERNING-BRIEF.md` | `spec/ODTS/GOVERNING-BRIEF.ru.md` | ✅ up-to-date |
 | `spec/ODTS/IMPLEMENTATION.md` | `spec/ODTS/IMPLEMENTATION.ru.md` | ✅ up-to-date |
 | `spec/ODTS/README.md` | `spec/ODTS/README.ru.md` | ✅ up-to-date |
 | `spec/ODTS/SPEC.md` | `spec/ODTS/SPEC.ru.md` | ✅ up-to-date |
 | `spec/ODTS/examples/README.md` | `spec/ODTS/examples/README.ru.md` | ✅ up-to-date |
+| `spec/ODTS/proposals/0.2-compact-projection.md` | `spec/ODTS/proposals/0.2-compact-projection.ru.md` | ✅ up-to-date |
+| `spec/ODTS/proposals/README.md` | `spec/ODTS/proposals/README.ru.md` | ✅ up-to-date |
 | `spec/README.md` | `spec/README.ru.md` | ✅ up-to-date |
 | `spec/contracts/README.md` | `spec/contracts/README.ru.md` | ✅ up-to-date |
 | `spec/orchestration/README.md` | `spec/orchestration/README.ru.md` | ✅ up-to-date |
@@ -176,4 +192,4 @@
 
 ## Итого
 
-- Переводов: **129**  ·  Глоссариев/компаньонов: **4**  ·  Требуют обновления: **3**
+- Переводов: **145**  ·  Глоссариев/компаньонов: **4**  ·  Требуют обновления: **0**

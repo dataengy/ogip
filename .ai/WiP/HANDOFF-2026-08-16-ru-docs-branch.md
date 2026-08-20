@@ -1,5 +1,7 @@
 # HANDOFF — ru-docs branch: state after the 2026-08-16 session (#55)
 
+> 🇷🇺 Русская версия: [HANDOFF-2026-08-16-ru-docs-branch.ru.md](HANDOFF-2026-08-16-ru-docs-branch.ru.md)
+
 Pre-compaction snapshot (/compact-safely step 3). Everything below is verifiable on disk/origin.
 
 ## Open tasks (with keys)

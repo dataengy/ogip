@@ -13,8 +13,8 @@ translations:
     state: up-to-date
   - source: .ai/CLAUDE.md
     target: .ai/CLAUDE.ru.md
-    recorded_sha12: 7153156bc605
-    current_sha12: 7153156bc605
+    recorded_sha12: 62a7aef95951
+    current_sha12: 62a7aef95951
     state: up-to-date
   - source: .ai/FIXME.md
     target: .ai/FIXME.ru.md
@@ -45,6 +45,16 @@ translations:
     target: .ai/TODO.ru.md
     recorded_sha12: 059085535750
     current_sha12: 059085535750
+    state: up-to-date
+  - source: .ai/WiP/HANDOFF-2026-08-16-ru-docs-branch.md
+    target: .ai/WiP/HANDOFF-2026-08-16-ru-docs-branch.ru.md
+    recorded_sha12: a279e86f66b7
+    current_sha12: a279e86f66b7
+    state: up-to-date
+  - source: .ai/WiP/HANDOFF-2026-08-20-cloud-devops-readiness.md
+    target: .ai/WiP/HANDOFF-2026-08-20-cloud-devops-readiness.ru.md
+    recorded_sha12: a1061f3a053d
+    current_sha12: a1061f3a053d
     state: up-to-date
   - source: .ai/tasks/README.md
     target: .ai/tasks/README.ru.md
@@ -146,6 +156,31 @@ translations:
     recorded_sha12: 99b3ba4caec4
     current_sha12: 99b3ba4caec4
     state: up-to-date
+  - source: .ai/tasks/spec-compact-header.md
+    target: .ai/tasks/spec-compact-header.ru.md
+    recorded_sha12: c1a743b4d2a6
+    current_sha12: c1a743b4d2a6
+    state: up-to-date
+  - source: .ai/tasks/spec-macros.md
+    target: .ai/tasks/spec-macros.ru.md
+    recorded_sha12: 14c29e101ceb
+    current_sha12: 14c29e101ceb
+    state: up-to-date
+  - source: .ai/tasks/spec-semantic-layer.md
+    target: .ai/tasks/spec-semantic-layer.ru.md
+    recorded_sha12: 5ba8f1ac51ee
+    current_sha12: 5ba8f1ac51ee
+    state: up-to-date
+  - source: .ai/tasks/transform-engine-generators.md
+    target: .ai/tasks/transform-engine-generators.ru.md
+    recorded_sha12: 3c914f5231e8
+    current_sha12: 3c914f5231e8
+    state: up-to-date
+  - source: .ai/tasks/vps-deploy-tooling.md
+    target: .ai/tasks/vps-deploy-tooling.ru.md
+    recorded_sha12: 975eee2957f2
+    current_sha12: 975eee2957f2
+    state: up-to-date
   - source: .ci/README.md
     target: .ci/README.ru.md
     recorded_sha12: a369ebc117a6
@@ -153,8 +188,8 @@ translations:
     state: up-to-date
   - source: .claude/CLAUDE.md
     target: .claude/CLAUDE.ru.md
-    recorded_sha12: 7153156bc605
-    current_sha12: 7153156bc605
+    recorded_sha12: 62a7aef95951
+    current_sha12: 62a7aef95951
     state: up-to-date
   - source: .claude/agents/ogip-cloud-devops.md
     target: .claude/agents/ogip-cloud-devops.ru.md
@@ -165,6 +200,21 @@ translations:
     target: .claude/agents/ogip-ingestion-engineer.ru.md
     recorded_sha12: 103bf2e19f4a
     current_sha12: 103bf2e19f4a
+    state: up-to-date
+  - source: .claude/agents/ogip-lane-worker.md
+    target: .claude/agents/ogip-lane-worker.ru.md
+    recorded_sha12: 45826eecef33
+    current_sha12: 45826eecef33
+    state: up-to-date
+  - source: .claude/agents/ogip-obs-engineer.md
+    target: .claude/agents/ogip-obs-engineer.ru.md
+    recorded_sha12: acbddb0c6894
+    current_sha12: acbddb0c6894
+    state: up-to-date
+  - source: .claude/agents/ogip-workstation-migrator.md
+    target: .claude/agents/ogip-workstation-migrator.ru.md
+    recorded_sha12: c816acb75a80
+    current_sha12: c816acb75a80
     state: up-to-date
   - source: AGENTS.md
     target: AGENTS.ru.md
@@ -218,8 +268,8 @@ translations:
     state: up-to-date
   - source: docs/RU-DOCS-BRANCH.md
     target: docs/RU-DOCS-BRANCH.ru.md
-    recorded_sha12: ec829d729031
-    current_sha12: ec829d729031
+    recorded_sha12: 897e08259d29
+    current_sha12: 897e08259d29
     state: up-to-date
   - source: docs/adr/ADR-0001-edw-layering-no-medallion.md
     target: docs/adr/ADR-0001-edw-layering-no-medallion.ru.md
@@ -453,14 +503,19 @@ translations:
     state: up-to-date
   - source: docs/superpowers/plans/2026-07-24-airbyte-lane-implementation.md
     target: docs/superpowers/plans/2026-07-24-airbyte-lane-implementation.ru.md
-    recorded_sha12: 352f86a2307a
+    recorded_sha12: dbb7d208dddd
     current_sha12: dbb7d208dddd
-    state: stale
+    state: up-to-date
   - source: docs/superpowers/plans/2026-07-24-reroot-dbt-bruin-primary-candidates.md
     target: docs/superpowers/plans/2026-07-24-reroot-dbt-bruin-primary-candidates.ru.md
-    recorded_sha12: 94a92c04470a
+    recorded_sha12: 70bf86e02193
     current_sha12: 70bf86e02193
-    state: stale
+    state: up-to-date
+  - source: docs/superpowers/plans/2026-07-30-finalization-land-everything.md
+    target: docs/superpowers/plans/2026-07-30-finalization-land-everything.ru.md
+    recorded_sha12: 655d00a20ea0
+    current_sha12: 655d00a20ea0
+    state: up-to-date
   - source: docs/superpowers/specs/2026-07-20-odos-orchestration-spec-design.md
     target: docs/superpowers/specs/2026-07-20-odos-orchestration-spec-design.ru.md
     recorded_sha12: ffae73f41d06
@@ -473,9 +528,19 @@ translations:
     state: up-to-date
   - source: docs/techdebt/airbyte-lane.md
     target: docs/techdebt/airbyte-lane.ru.md
-    recorded_sha12: d90122b5efca
+    recorded_sha12: e31234e6f43f
     current_sha12: e31234e6f43f
-    state: stale
+    state: up-to-date
+  - source: docs/techdebt/finalization-tbd.md
+    target: docs/techdebt/finalization-tbd.ru.md
+    recorded_sha12: b300eda6daa9
+    current_sha12: b300eda6daa9
+    state: up-to-date
+  - source: docs/techdebt/stale-branches.md
+    target: docs/techdebt/stale-branches.ru.md
+    recorded_sha12: d95918beb47d
+    current_sha12: d95918beb47d
+    state: up-to-date
   - source: dq/README.md
     target: dq/README.ru.md
     recorded_sha12: 70b627d6cc16
@@ -541,6 +606,11 @@ translations:
     recorded_sha12: abdc3a08c6db
     current_sha12: abdc3a08c6db
     state: up-to-date
+  - source: spec/ODTS/GOVERNING-BRIEF.md
+    target: spec/ODTS/GOVERNING-BRIEF.ru.md
+    recorded_sha12: e924cd2406d3
+    current_sha12: e924cd2406d3
+    state: up-to-date
   - source: spec/ODTS/IMPLEMENTATION.md
     target: spec/ODTS/IMPLEMENTATION.ru.md
     recorded_sha12: fec03186b86c
@@ -560,6 +630,16 @@ translations:
     target: spec/ODTS/examples/README.ru.md
     recorded_sha12: b107fb98b4c0
     current_sha12: b107fb98b4c0
+    state: up-to-date
+  - source: spec/ODTS/proposals/0.2-compact-projection.md
+    target: spec/ODTS/proposals/0.2-compact-projection.ru.md
+    recorded_sha12: ec28f6bf1fd3
+    current_sha12: ec28f6bf1fd3
+    state: up-to-date
+  - source: spec/ODTS/proposals/README.md
+    target: spec/ODTS/proposals/README.ru.md
+    recorded_sha12: e9069c0066d9
+    current_sha12: e9069c0066d9
     state: up-to-date
   - source: spec/README.md
     target: spec/README.ru.md
@@ -669,6 +749,6 @@ glossaries:
     kind: glossary-or-companion
     note: no .md source; hand-maintained (not auto-translated)
 summary:
-  translations: 129
+  translations: 145
   glossaries: 4
-  stale_or_unmarked: 3
+  stale_or_unmarked: 0
