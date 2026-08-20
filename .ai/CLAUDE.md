@@ -30,6 +30,15 @@ SSoT config, quality bar, run profiles. This file adds Claude-specific workflow 
      a rewrite destroys their in-flight work. No exceptions.
 - Branches: work lands on **`dev`**; `dev → main` goes through a **PR** with CI green
   (`.github/workflows/ci.yml` already runs on `pull_request`). `main` stays releasable.
+- **PR merge policy (#57)** — enforced by repo settings since 2026-08-20; SSoT
+  `~/.ai/skills/.settings/branch_rules.yml#pr_merge`; merge via `just gh-merge-as <pr>`
+  (policy flags are its default):
+  - Every PR merge is a **squash** — the only method the repo allows.
+  - Merged head branches are **deleted** (repo auto-delete), except long-lived ones:
+    `main`, `dev`, `ru-docs` are branch-protected (no deletion, no force-push).
+  - After a squash release `dev → main`, `dev` **back-merges `origin/main`** — squash breaks
+    ancestry and the next release PR would replay all history (`gh-merge-as` prints the recipe).
+  - **`ru-docs` is exempt from all of this** (#55): it never creates PRs and never merges.
 
 ## Skills
 

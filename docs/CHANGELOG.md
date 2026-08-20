@@ -6,6 +6,14 @@ All notable changes to OGIP are documented here. Format follows
 
 ## [Unreleased]
 
+### Changed — PR merge policy: squash-only, merged branches auto-deleted (2026-08-20)
+- All PR merges are now **squash** — the repo disallows merge commits and rebase merges
+  (#57); merged head branches auto-delete, with `main`/`dev`/`ru-docs` branch-protected
+  (no deletion, no force-push). `just gh-merge-as <pr>` applies the policy flags by default
+  and prints the mandatory `dev` back-merge recipe after a squash release into `main`.
+  `ru-docs` is fully exempt: it never creates PRs and never merges (#55). Shared SSoT:
+  `~/.ai/skills/.settings/branch_rules.yml#pr_merge`.
+
 ### Added — `ru-docs` branch: versioned RU translations + bilingual mirror-refs (2026-08-16)
 - Long-lived branch `ru-docs` (worktree `OGIP.worktrees/ru-docs`, #55) carries every
   `*.ru.md` translation as committed+pushed files plus beginning-of-file mirror-refs
