@@ -10,20 +10,19 @@ deleted, not left as archaeology. Do not "fix" anything marked **DO NOT TOUCH**.
 
 **Scheduled closures (finalization run 2026-07-30,
 [plan](../docs/superpowers/plans/2026-07-30-finalization-land-everything.md)):** F8 closed
-2026-07-30 (no `ODPS` mention survives in `spec/ODOS/` or the design doc — row deleted per the
-register's own rule) · F2 gets the cheap sweep and F4 the stub-READMEs at step 21 · F6 was fixed
-2026-07-30 (tasks-sync realigned #19's body to its file). **F1 stays open** — it is about the
-*authoring format* (`@bruin` → `@odts`, moves with [#35](https://github.com/dataengy/ogip/issues/35));
-step 13 / ADR-0020 rewrote only hard rule 2's *engine* clause. F3/F5 stay owner-decisions — untouched.
+2026-07-30 (no `ODPS` survives — row deleted per the register's own rule) · F4 closed
+2026-07-30 (all six READMEs exist — row deleted) · F6 fixed 2026-07-30 (tasks-sync realigned
+#19's body). **F1 and F2 stay open together** — both are the *authoring format* flip and move
+atomically with [#35](https://github.com/dataengy/ogip/issues/35) (rule 2 + the 10-document
+sweep belong in the same commit as the first `@odts` model; a half-sweep now would just create
+a second drift). F3/F5 stay owner-decisions — untouched.
 
 | # | Problem | Severity | Wrong when | Owner lane |
 |---|---|---|---|---|
 | [F1](#f1--hard-rule-2-contradicts-adr-0016) | Hard rule 2 contradicts ADR-0016 | **P1** | when [#35](https://github.com/dataengy/ogip/issues/35) lands | `spec` |
 | [F2](#f2--format-claims-scattered-across-10-documents) | "Bruin asset format" asserted in 10 documents | **P1** | when [#35](https://github.com/dataengy/ogip/issues/35) lands | `spec` |
 | [F3](#f3--adr-0005-has-no-forward-pointer) | ADR-0005 has no forward pointer to ADR-0016 | P2 | **now** | `spec` |
-| [F4](#f4--six-directories-violate-hard-rule-8) | Six directories have no `README.md` | P2 | **now** | `spec` |
 | [F5](#f5--semantic-layer-format-is-undecided-against-odts) | Semantic-layer format undecided against `@odts` | P3 | when [#20](https://github.com/dataengy/ogip/issues/20) starts | `spec` |
-| [F6](#f6--issue-19-body-has-drifted-from-its-task-file) | Issue #19 body drifted from its task file | P3 | **now** | not `spec` |
 
 _F7 (ODTS vs the Open Transformation Specification) was evaluated and closed — verdict in
 [docs/comparisons/ots-vs-odts.md](../docs/comparisons/ots-vs-odts.md); the alignment work it
@@ -86,17 +85,6 @@ and amend the convention to permit it; (b) accept forward-pointer silence as the
 immutability; (c) supersede 0005 wholesale with a re-statement. Do not resolve this unilaterally
 — it changes how every future ADR is written.
 
-## F4 — six directories violate hard rule 8
-
-[AGENTS.md](AGENTS.md) hard rule 8: *"Every new directory gets a `README.md`."* Missing in
-`spec/sql`, `spec/sql/{staging,core,raw,fs}`, `spec/contracts`. Pre-existing, not introduced
-by the `@odts` work.
-
-`spec/sql` now has [AGENTS.md](../spec/sql/AGENTS.md), which covers *authoring rules* but is
-not a README and does not satisfy the rule. The layer directories are the more useful gap:
-`raw`/`staging`/`core`/`fs` encode the layer-naming law
-([ADR-0001](../docs/adr/ADR-0001-edw-layering-no-medallion.md)) and currently explain it
-nowhere local.
 
 ## F5 — semantic-layer format is undecided against `@odts`
 
@@ -108,13 +96,3 @@ re-opens the same vendor-marker argument ADR-0016 just settled.
 **Decide before #20 starts:** does the semantic layer follow `@odts`, stay Bruin YAML as a
 deliberate exception, or become plain YAML with no vendor marker? Cheap now, expensive after
 the definitions exist.
-
-## F6 — issue #19 body has drifted from its task file
-
-`just tasks-sync --dry-run` reports a pending body update for
-[#19 `sources-backlog`](https://github.com/dataengy/ogip/issues/19). The drift predates the
-`@odts` work and belongs to another lane.
-
-**Do not fix by running the full sync** — it would push this lane's drift under your name.
-Whoever owns `sources-backlog` should sync it, or use the targeted path (import
-`src/scripts/tasks_sync.py` and call `_update` for that slug alone).

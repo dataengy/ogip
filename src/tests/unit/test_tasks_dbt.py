@@ -13,9 +13,35 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import call, patch
 
+import pytest
+
 from ogip.tasks.dbt import dbt_build, dbt_command, dbt_deps
 
 PROJECT = Path("transform/dbt")
+
+
+class RunCapture:
+    """Fixture to capture dbt _run calls and extract argv."""
+
+    def __init__(self) -> None:
+        self.calls: list[list[str]] = []
+
+    def __call__(self, project_dir: Path, verb: str, *flags: str) -> None:
+        argv = dbt_command(project_dir, verb, *flags)
+        self.calls.append(argv)
+
+    @property
+    def last(self) -> list[str]:
+        """Return the argv of the last _run call."""
+        if not self.calls:
+            raise RuntimeError("No calls captured")
+        return self.calls[-1]
+
+
+@pytest.fixture
+def run_capture() -> RunCapture:
+    """Fixture to capture dbt _run calls and provide access to the argv."""
+    return RunCapture()
 
 
 def test_build_places_project_flags_after_the_subcommand():
@@ -167,9 +193,34 @@ def test_dbt_build_select_and_state_appends_both_flags(tmp_path: Path) -> None:
         patch("ogip.tasks.dbt._regenerate") as mock_regenerate,
         patch("ogip.tasks.dbt._run") as mock_run,
     ):
-        dbt_build(project_dir=tmp_path, select="state:modified+", state="dbt")
+        # Use an absolute path for state so it's not resolved against project_dir
+        dbt_build(project_dir=tmp_path, select="state:modified+", state="/tmp/dbt")
     mock_regenerate.assert_called_once_with(tmp_path)
     assert mock_run.call_args_list == [
         call(tmp_path, "deps"),
-        call(tmp_path, "build", "--select", "state:modified+", "--state", "dbt"),
+        call(tmp_path, "build", "--select", "state:modified+", "--state", "/tmp/dbt"),
     ]
+
+
+def test_build_resolves_relative_state_against_project_dir(
+    run_capture: RunCapture,
+) -> None:
+    """`state: "."` in the spec must mean the lane's own project dir, not the CWD."""
+    with (
+        patch("ogip.tasks.dbt._regenerate"),
+        patch("ogip.tasks.dbt._run", side_effect=run_capture),
+    ):
+        dbt_build(project_dir=Path("transform/dbt"), select="state:modified+", state=".")
+    argv = run_capture.last
+    flag = argv[argv.index("--state") + 1]
+    assert flag == str(Path("transform/dbt"))
+
+
+def test_build_keeps_absolute_state_untouched(run_capture: RunCapture) -> None:
+    with (
+        patch("ogip.tasks.dbt._regenerate"),
+        patch("ogip.tasks.dbt._run", side_effect=run_capture),
+    ):
+        dbt_build(project_dir=Path("transform/dbt"), state="/tmp/manifests")
+    argv = run_capture.last
+    assert argv[argv.index("--state") + 1] == "/tmp/manifests"

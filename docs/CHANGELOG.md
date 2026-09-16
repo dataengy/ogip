@@ -6,6 +6,46 @@ All notable changes to OGIP are documented here. Format follows
 
 ## [Unreleased]
 
+### Changed — PR merge policy: squash-only, merged branches auto-deleted (2026-08-20)
+- All PR merges are now **squash** — the repo disallows merge commits and rebase merges
+  (#57); merged head branches auto-delete, with `main`/`dev`/`ru-docs` branch-protected
+  (no deletion, no force-push). `just gh-merge-as <pr>` applies the policy flags by default
+  and prints the mandatory `dev` back-merge recipe after a squash release into `main`.
+  `ru-docs` is fully exempt: it never creates PRs and never merges (#55). Shared SSoT:
+  `~/.ai/skills/.settings/branch_rules.yml#pr_merge`.
+
+### Added — `ru-docs` branch: versioned RU translations + bilingual mirror-refs (2026-08-16)
+- Long-lived branch `ru-docs` (worktree `OGIP.worktrees/ru-docs`, #55) carries every
+  `*.ru.md` translation as committed+pushed files plus beginning-of-file mirror-refs
+  (EN doc ↔ RU sibling) — both exist ONLY there; on `dev` the `*.ru.md` ignore convention
+  is unchanged and sources carry no RU links. Branch doc: `docs/RU-DOCS-BRANCH.md`
+  (on the branch). Inserter: `mirror-refs.py` in the shared translate-ru script family.
+
+### Added — Opt-in secrets sync + new-workstation runbook (2026-08-11)
+- ADR-0011's opt-in backends are now implemented (#52): `config/.env-secrets-render.sh`
+  (`pull`/`push` for Bitwarden CLI, `hide`/`reveal`/`setup-git-secret` for git-secret,
+  `doctor` readiness report), `just secrets-*` recipes with dry siblings; slot names stay
+  sourced from `config/.env-render.py → SECRET_SLOTS`, values are never printed.
+- Fixed the inverted `.gitignore` rule that ignored the committed `config/secrets/*.secret`
+  blobs; plaintext under `config/secrets/` is now the only thing ignored.
+- `docs/comparisons/secrets-management.md` (adoption analysis) and
+  `docs/runbooks/new-workstation.md` (settled old machine → bootstrapped new machine);
+  dbt deps lockfile committed on `lane/dagster` for reproducible package resolution.
+
+### Added — DQ monitor executor + dbt/Bruin primary landing (2026-07-30)
+- `dq/run.py` executes the declared monitors (row_count + freshness) against the DuckDB
+  warehouse: `error` severity blocks with exit 1 (ADR-0008); in `make check` (loud SKIP on a
+  fresh checkout) and in the CI e2e step. Caught a real gap on day one: `core.console_pricing`
+  was empty on demo data — the PSN sample now matches a game in the RAWG demo set (Portal 2).
+- Re-root merged (PR #46): dbt primary + Bruin co-primary (ADR-0020), `prefect-dbt` default,
+  three demo commands green (`run-dbt` · `run-bruin` · `run-dagster-dbt`), Bruin CLI in CI,
+  `kind:"dbt"` selection fixes the standing combo-e2e failure, T9 landing scripts
+  (`just preflight` · `just gh-merge-as`).
+- Local/CI lint parity (#39): the nested dagster project is linted explicitly on both sides.
+- Loud TBD stubs for `integrations/prefect/{deploy,trigger}.py` (#11/#17); layer READMEs for
+  `spec/sql*` + `spec/contracts` (closes F4); ODTS 0.2 proposals committed behind their
+  pre-normative banner.
+
 ### Changed — Finalization run started (2026-07-30)
 - Plan of record: `docs/superpowers/plans/2026-07-30-finalization-land-everything.md`
   (umbrella `.ai/tasks/finalization.md`): three green run commands (`run-dbt` · `run-bruin` ·

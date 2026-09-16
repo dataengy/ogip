@@ -31,7 +31,8 @@ axis."* ODOS is that axis. It never describes a transformation; it schedules one
 Orchestration in OGIP is currently defined **twice**, in two unrelated dialects:
 
 - `experimental/orchestration/dagster_ogip/jobs/dg-tasks.sh` — a bash dispatch of 9 tasks, wired
-  to Dagster ops/jobs/schedules/sensors in `defs/orchestration/<group>/definitions.py`;
+  to Dagster ops/jobs/schedules/sensors in `defs/orchestration/<group>.py` (layout flattened
+  by PR #34; `warehouse/` is a subpackage split into jobs/schedules/sensors);
 - `pipelines/flows/_common.py` + `pipelines/flows/engines/*.py` — Python step functions wrapped
   into Prefect flows and assets.
 
@@ -81,8 +82,8 @@ spec/orchestration/
   _ext/dagster/       # irreducibles: dg Components (defs.yaml)
 ```
 
-One file per **group**. Groups match the existing `defs/orchestration/<group>/` split, so the
-diff between spec and reality stays readable during migration.
+One file per **group**. Groups match the existing `defs/orchestration/<group>.py` split
+(flattened by PR #34), so the diff between spec and reality stays readable during migration.
 
 ### 4.2 File skeleton
 
@@ -144,6 +145,10 @@ assets:
     kinds: [duckdb, parquet]
     group_name: marts
 ```
+
+An asset the orchestrator provides outside ODTS and ODOS (e.g. the native CDC landing asset) is
+declared with `external: true` instead of `task:` — it joins the graph for `select:` but no
+adapter generates it (plan-2 decision 1).
 
 Asset keys are ODTS dotted names (`core.game`), never orchestrator-native key tuples. The
 Dagster-side collision between the dbt raw model and the dlt asset (ADR-0015, "Consequences") is
@@ -352,6 +357,9 @@ checks:
 ```yaml
 odos: 0.1
 group: ingestion
+assets:
+  cdc.landing:
+    external: true
 jobs:
   dlt_ingest_job: { select: raw.rawg__games }
   cdc_asset_job:  { select: cdc.landing }
@@ -387,7 +395,7 @@ jobs:
   update_dbt_job:            { task: dbt.parse, tags: { maintenance: dbt } }
   update_dbt_changed_job:
     task: dbt.build
-    args: { select: "state:modified+", state: dbt }
+    args: { select: "state:modified+", state: "." }
     tags: { maintenance: dbt }
   dbt_project_evaluator_job:
     task: dbt.build
@@ -400,6 +408,9 @@ automations:
     on:  poll(sensors.spec_sql_mtime, every=30s)
     run: update_dbt_changed_job
 ```
+
+`state: "."` resolves against the lane's `project_dir` inside `dbt.build` — a lane-specific path
+never appears in the spec (plan-2 decision 4).
 
 ### `integrations.yml`
 
@@ -498,7 +509,7 @@ expands `select:` against the ODTS-derived asset graph, and validates every `tas
 against the registry. Adapters render the IR:
 
 ```
-spec/orchestration/*.yml ──▶ ODOS IR ──┬──▶ to_dagster.py ──▶ defs/orchestration/<group>/definitions.py
+spec/orchestration/*.yml ──▶ ODOS IR ──┬──▶ to_dagster.py ──▶ defs/orchestration/<group>.py
                                        └──▶ to_prefect.py ──▶ pipelines/flows/<group>.py
              ▲
     spec/sql (ODTS) ── asset graph

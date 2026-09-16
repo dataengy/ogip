@@ -1,0 +1,12 @@
+odos: 0.1
+group: monitoring
+doc: "Location-scoped monitoring — what has no per-job equivalent (design §4.6a,
+  §13.4)."
+
+hooks:
+  dwh_run_failure_alert:
+    on: run_failed(scope=location)
+    task: alerting.notify_run_failure
+    targets: [dagster]
+    doc: "Fire on any failed run in the code location — the hook point for the
+      alerting lane's Notifier (Telegram/Mattermost/Slack)."

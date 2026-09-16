@@ -46,6 +46,11 @@ ingestion:
 
 secrets:
   backend: env # ADR-0011 / D10 — env (default) | github (CI) | bitwarden | git-secret
+  # Opt-in backend settings (config/.env-secrets-render.sh · `just secrets-doctor`):
+  bitwarden:
+    item: OGIP .env.secrets # secure-note item; hidden custom fields named per secret slot
+  git_secret:
+    plaintext: config/secrets/.env.secrets # gitignored; committed sibling: .env.secrets.secret
 
 prefect:
   # ephemeral PINNED as the demo/deploy run model (finalization decision 2026-07-30 — the

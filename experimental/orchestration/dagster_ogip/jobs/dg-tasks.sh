@@ -10,8 +10,8 @@
 #     dbt-evaluate         regenerate + run package:dbt_project_evaluator
 #     dbt-deps             regenerate + unconditional `dbt deps`
 #     update-dbt            regenerate the dbt project from spec/ + parse (no run)
-#     update-dbt-changed   regenerate + run models selected by state:modified+ (--state passed
-#                           straight through; no manifest-copy fallback)
+#     update-dbt-changed   regenerate + run models selected by state:modified+ (--state="."
+#                           resolves to project_dir under the new resolution rule)
 #     parsing              run the scraper/parser → Postgres landing (placeholder: ingestion lane P1)
 #     prefect              trigger the root Prefect flow (the alt orchestrator)
 #     cdc [--stream|--dry-run]   ingestr CDC from the Postgres landing zone (delegates to cdc/)
@@ -58,7 +58,7 @@ case "$task" in
   build-dwh)          ogip_task dbt.build --project_dir="$DBT_PROJECT" ;;
   build-dwh-full)     ogip_task dbt.build --project_dir="$DBT_PROJECT" --full_refresh=true ;;
   dbt-evaluate)       ogip_task dbt.build --project_dir="$DBT_PROJECT" --select=package:dbt_project_evaluator ;;
-  update-dbt-changed) ogip_task dbt.build --project_dir="$DBT_PROJECT" --select=state:modified+ --state="$DBT_PROJECT" ;;
+  update-dbt-changed) ogip_task dbt.build --project_dir="$DBT_PROJECT" --select=state:modified+ --state="." ;;
   dbt-deps)           ogip_task dbt.deps  --project_dir="$DBT_PROJECT" --force=true ;;
   update-dbt)         ogip_task dbt.parse --project_dir="$DBT_PROJECT" ;;
   parsing)            ogip_task ingest.parse_to_landing ;;

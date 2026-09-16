@@ -11,8 +11,12 @@ dist/
 /.env
 /.env.*
 .dlt/secrets.toml
-# git-secret (opt-in): encrypted *.secret blobs are committed; plaintext never
-config/secrets/*.secret
+# git-secret (opt-in): encrypted *.secret blobs ARE committed; plaintext never is.
+# (everything under config/secrets/ is ignored except the README and the blobs —
+# the previous rule ignored the blobs themselves, inverting the intent)
+config/secrets/*
+!config/secrets/README.md
+!config/secrets/*.secret
 
 # --- Temp: everything in .tmp/ is ignored EXCEPT the tracked README + Justfile ---
 /.tmp/*

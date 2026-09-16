@@ -30,7 +30,7 @@ class TestParse:
         records = list(source.parse(PAGE_URL, _FIXTURE.read_text("utf-8")))
         assert len(records) == 1  # BreadcrumbList block skipped, Product taken
         rec = records[0]
-        assert rec["name"] == "Legendary Eleven"
+        assert rec["name"] == "Portal 2"
         assert rec["sku"] == "UP1716-CUSA12032_00-LEGENDARYELEVEN0"
         assert rec["category"] == "Full Game"
         assert rec["price"] == "12.99"
@@ -60,7 +60,7 @@ class TestParse:
 
     def test_demo_records_need_no_network(self, source: PsnStoreConcept) -> None:
         records = list(source.records())  # OGIP_PSN_LIVE unset → fixture path
-        assert [r["name"] for r in records] == ["Legendary Eleven"]
+        assert [r["name"] for r in records] == ["Portal 2"]
 
     def test_urls_come_from_config_concepts(self, source: PsnStoreConcept) -> None:
         urls = list(source.urls())

@@ -25,6 +25,9 @@ else is a recommendation, and labelled as one.
 | `/add-secret` | [`src/scripts/ask-secret-gui.sh`](../src/scripts/ask-secret-gui.sh) | Secret-slot intake. Never invent a credential; an empty slot is a question for the user. |
 | `/check-secrets` | [`tasks/vps-deploy-tooling.md`](tasks/vps-deploy-tooling.md) | Secrets completeness before a deploy. |
 | `/github-auth-ensure` | [`.claude/settings.json`](../.claude/settings.json) SessionStart hook | Will `git push` authenticate as the account that **owns** `dataengy/ogip`? A push here failed `denied to hnkovr` while the correct token was already on disk — a URL-scoped credential helper was shadowing it. The hook warns only on mismatch. |
+| `/verify-project-local-full` | [`config/verify.yml`](../config/verify.yml) `local:`, [`.claude/agents/ogip-cloud-devops.md`](../.claude/agents/ogip-cloud-devops.md) | Whole-project local verification: runs the matrix (CI-parity stages + obs/compose) with real exit codes. |
+| `/verify-project-cloud-deployable` | [`config/verify.yml`](../config/verify.yml) `cloud:`, same agent | Off-workstation deployability: assets, runbooks, CI, secrets escrow, `vps-*-dry` drive. `NEEDS-OPERATOR` on human-supplied slots is the expected shape. |
+| `/propose-project-deploy` | [`tasks/cloud-devops-readiness.md`](tasks/cloud-devops-readiness.md) | Deploy proposal behind a human gate (slash-only). Never deploys; ADR-0012 keeps deploys manual. |
 
 ## 2. Applicable to the stack — recommended, not yet wired
 

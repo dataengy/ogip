@@ -1,0 +1,26 @@
+odos: 0.1
+group: snapshots
+doc: "Partitioned snapshots — the daily market snapshot fact and the backfills
+  it enables."
+
+assets:
+  fs.market_snapshot:
+    task: snapshot.write
+    partitions: daily_market
+    kinds: [duckdb, parquet]
+    group_name: marts
+    doc: "Daily market snapshot fact (one row per game per day) written from
+      fs.market_features to a per-date Parquet — daily-partitioned, so history
+      is backfillable."
+
+jobs:
+  market_snapshot_job:
+    select: fs.market_snapshot
+    partitioned: true
+    doc: "Materialize one daily partition of market_snapshot (backfill a range
+      from the UI or `dagster asset backfill`)."
+
+automations:
+  daily_market_snapshot:
+    on: partition_ready(market_snapshot_job)
+    doc: "Daily schedule derived from the partition definition."

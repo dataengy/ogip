@@ -22,8 +22,10 @@ echo
 echo "-- branches (vs $base: behind/ahead · contained · pushed) --"
 while IFS= read -r branch; do
   counts="$(git rev-list --left-right --count "$base...$branch" 2>/dev/null || echo '? ?')"
-  behind="${counts%%$'\t'*}"; ahead="${counts##*$'\t'}"
-  contained="no"; if [[ "$ahead" == 0 ]]; then contained="yes"; fi
+  behind="${counts%%$'\t'*}"
+  ahead="${counts##*$'\t'}"
+  contained="no"
+  if [[ "$ahead" == 0 ]]; then contained="yes"; fi
   upstream="$(git rev-parse --abbrev-ref "$branch@{upstream}" 2>/dev/null || true)"
   pushed="${upstream:-UNPUSHED}"
   dup=""

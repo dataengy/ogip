@@ -25,8 +25,10 @@ render-env:
 # ─── Quality gates ────────────────────────────────────────────────────────────
 # Ruff lint + format check + SQL lint
 lint:
-    uv run ruff check .
-    uv run ruff format --check .
+    # explicit nested path: `ruff check .` skips experimental/orchestration/dagster_ogip
+    # locally (nested-project boundary) while CI's clean runner reaches it — #39
+    uv run ruff check . experimental/orchestration/dagster_ogip/src
+    uv run ruff format --check . experimental/orchestration/dagster_ogip/src
     @just sql-lint
 
 # Auto-fix lint + format
@@ -56,7 +58,7 @@ test-e2e:
     uv run pytest -m e2e
 
 # All quality gates (CI parity)
-check: lint typecheck test
+check: lint typecheck test dq-check
 
 # Run the shared CI steps exactly as GitHub Actions runs them
 ci:
@@ -163,9 +165,30 @@ sql-lint:
 bash-lint:
     bash .ci/steps/bash-lint.sh
 
-# --- Secrets: render blank slots from an opt-in backend (Bitwarden/git-secret) ---
+# --- Secrets: opt-in backends (Bitwarden / git-secret, ADR-0011) ---
+# pull fills only BLANK slots in .env (merge-safe); values are never printed.
 secrets-render:
-    bash config/.env-secrets-render.sh
+    bash config/.env-secrets-render.sh pull
+secrets-render-dry:
+    bash config/.env-secrets-render.sh pull --dry-run
+# push the FILLED slots of .env into the Bitwarden secure-note item (creates it on first push)
+secrets-push:
+    bash config/.env-secrets-render.sh push
+secrets-push-dry:
+    bash config/.env-secrets-render.sh push --dry-run
+# git-secret: export filled slots -> plaintext -> committed *.secret blob (and back)
+secrets-hide:
+    bash config/.env-secrets-render.sh hide
+secrets-hide-dry:
+    bash config/.env-secrets-render.sh hide --dry-run
+secrets-reveal:
+    bash config/.env-secrets-render.sh reveal
+# one-time git-secret init (needs a GPG secret key; pass an email to override git config)
+secrets-setup-git-secret *args:
+    bash config/.env-secrets-render.sh setup-git-secret {{ args }}
+# read-only readiness report for both backends
+secrets-doctor:
+    bash config/.env-secrets-render.sh doctor
 
 # --- Repo hygiene: fail if stray files land in the root (root-lean rule) ---
 tidy-root:

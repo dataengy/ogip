@@ -9,6 +9,7 @@ Every non-secret default is declared **once** here. Nothing config-shaped lives 
 | `.pre-commit-config.yaml` | Hooks run by **prek** (fast): ruff · sqlfluff (SQL) · shellcheck/shfmt (Bash) · yamllint · gitleaks · ty · smoke tests (+ data tests on push). |
 | `.yamllint.yaml` | Relaxed YAML lint config. |
 | `sqlfluff/` | Per-dialect SQL lint presets (DuckDB house style also in `pyproject.toml`). |
-| `.env-secrets-render.sh` | _(opt-in)_ fill secret slots from Bitwarden / git-secret (ADR-0011). Default is manual `.env` / GitHub Actions secrets. |
+| `.env-secrets-render.sh` | _(opt-in)_ fill secret slots from Bitwarden / git-secret (ADR-0011). Actions: `pull` (merge-safe fill) · `push` (bw vault upsert) · `hide`/`reveal` (git-secret) · `setup-git-secret` · `doctor`. Just recipes: `secrets-render[-dry]`, `secrets-push[-dry]`, `secrets-hide[-dry]`, `secrets-reveal`, `secrets-setup-git-secret`, `secrets-doctor`. Default path stays manual `.env` / GitHub Actions secrets. |
+| `secrets/` | git-secret working dir: committed `*.secret` blobs + gitignored plaintext ([README](secrets/README.md)). |
 
 **Never** put secret values here — tracked templates carry blank slots / env-var names only.
