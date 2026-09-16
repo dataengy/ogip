@@ -11,6 +11,11 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Bruin ships several releases a week; installing "latest" made e2e red without a code
+  # change (#54). Pin the version the repo is validated against and bump it deliberately.
+  BRUIN_VERSION: v0.11.680
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -44,7 +49,8 @@ jobs:
         with: { enable-cache: true }
       - name: Install Bruin CLI # co-primary engine (ADR-0020) — e2e runs dbt + bruin
         run: |
-          curl -LsSL https://raw.githubusercontent.com/bruin-data/bruin/refs/heads/main/install.sh | sh
+          curl -LsSL https://raw.githubusercontent.com/bruin-data/bruin/refs/heads/main/install.sh | sh -s -- "$BRUIN_VERSION"
+          "$HOME/.local/bin/bruin" version || true # record the resolved version in the log
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - run: .ci/run.sh e2e # runs the Prefect pipeline end-to-end on the demo fixture
 
